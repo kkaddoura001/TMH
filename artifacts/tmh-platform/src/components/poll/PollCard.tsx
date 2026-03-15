@@ -8,6 +8,7 @@ import type { Poll, PollOption } from "@workspace/api-client-react/src/generated
 import { useVoter } from "@/hooks/use-voter"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { ResultsBreakdown } from "./ResultsBreakdown"
 
 type RelatedProfile = { id: number; name: string; role: string; company: string | null; isVerified: boolean }
 
@@ -243,6 +244,8 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                     Voted — Results Live
                   </p>
                 </div>
+
+                <ResultsBreakdown pollId={poll.id} totalVotes={localTotal} />
               </motion.div>
             )}
           </AnimatePresence>
