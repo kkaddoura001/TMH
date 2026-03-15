@@ -1,0 +1,55 @@
+Replace the entire about.tsx with this content and structure. The writing tone is direct, personal, newspaper op-ed — no corporate language:
+
+SECTION 1 — Hero (bg-foreground text-background full bleed):
+Headline (font-serif font-black uppercase text-6xl md:text-8xl leading-none tracking-tight):
+"THIS ISN'T A PLATFORM.
+IT'S A RECKONING."
+
+Below headline, a single line in text-xl text-background/60 font-sans:
+"400 million people. One region. And almost nobody asking them what they actually think."
+
+SECTION 2 — The real story (max-w-3xl mx-auto px-4 py-20, prose-style, NO headers, just paragraphs in large readable text):
+
+Paragraph 1 (text-xl font-serif leading-relaxed):
+"I started The Middle East Hustle because I was tired. Tired of the region being defined by its crises instead of its people. Tired of watching the world's conversation about us happen without us. Tired of founders, creatives, and builders doing extraordinary things in complete silence while the noise came from everywhere else."
+
+Paragraph 2 (text-base text-muted-foreground font-sans leading-relaxed):
+"This region has $3.6 trillion in economic potential. Half its population is under 30. It's producing unicorns, Oscar-shortlisted films, world-class scientists, and the kind of entrepreneurs who build companies in the middle of wars, economic collapses, and systems designed to stop them. And yet the dominant narrative is still conflict, oil, and monarchy."
+
+Paragraph 3 — PULL QUOTE styled (font-serif italic text-2xl md:text-3xl border-l-4 border-primary pl-6 my-12 text-foreground):
+"The Middle East Hustle exists to ask the questions nobody else is asking — and to let the people of this region answer them."
+
+Paragraph 4 (text-base text-muted-foreground font-sans leading-relaxed):
+"Every poll on this platform is a small act of documentation. What do founders in Cairo really think about brain drain? What does a 25-year-old in Riyadh actually believe about AI and her job? Where does the region's most influential talent want to be in 10 years — and why are so many of them hedging their answer? These aren't abstract questions. They're the pulse of a region in motion."
+
+Paragraph 5 (text-base text-muted-foreground font-sans leading-relaxed):
+"The TMH Directory is a record of the people actually building this place. Not the ones with the best PR. Not the ones with the most followers. The ones who stayed, who came back, who built something real in conditions that would have broken most people."
+
+SECTION 3 — The beliefs (newspaper 2-column layout, py-20 bg-secondary/30):
+Heading: "WHAT WE STAND FOR" — font-serif font-black uppercase text-4xl border-b-2 border-foreground pb-4 mb-12
+
+6 beliefs in a 2-column grid (md:grid-cols-2 gap-8), each as a styled block:
+- Number (text-5xl font-serif font-black text-foreground/10) + Title (font-serif font-bold uppercase text-lg border-b border-border pb-2 mb-3) + Body (text-sm text-muted-foreground font-sans leading-relaxed)
+
+01. STRENGTH IN ADVERSITY — "Survival in this region isn't guaranteed. It's earned. We've faced wars, economic collapses, and systems built to slow us down. Our youth, our innovation, and our refusal to accept less is what keeps us moving."
+
+02. UNITY IN DIVERSITY — "Dozens of languages. Multiple faiths. Wildly different histories. And somehow, shared goals. We don't erase our differences here — we use them."
+
+03. BUILDING FOR IMPACT — "The founders and leaders in this directory didn't build for applause. They built for legacy. That's the only kind of building worth documenting."
+
+04. CELEBRATING THE UNDERDOG — "The world has underestimated this region for generations. We embrace that. Underdogs build differently — with more hunger, more creativity, and less to lose."
+
+05. NO FLUFF, JUST TRUTH — "This platform doesn't do polished bios and safe opinions. We ask hard questions. We publish real answers. We show the hustle as it actually is — not as it looks on a LinkedIn post."
+
+06. PAVING THE WAY FORWARD — "By 2030, this region will need 40 million new jobs. That's not a statistic. That's a mandate. TMH exists to document the people answering it."
+
+SECTION 4 — Signed close (centered, py-16, border-t border-border):
+Large pull quote in font-serif italic text-2xl:
+"Real People. Real Hustle. Real Change."
+
+Below it in text-sm text-muted-foreground font-sans:
+"— Kareem Kaddoura, Founder · The Middle East Hustle"
+
+Below that, two CTAs side by side:
+- "CAST YOUR VOTE" → /polls (bg-foreground text-background px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-primary)
+- "MEET THE HUSTLERS" → /profiles (border border-foreground text-foreground px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-foreground hover:text-background)

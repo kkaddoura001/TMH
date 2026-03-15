@@ -1,0 +1,42 @@
+Rewrite home.tsx with these specific changes:
+
+1. MASTHEAD — Replace the current hero section top with a proper newspaper masthead before the main content:
+   - Full width, bg-background, border-b-2 border-foreground
+   - Top strip (text-[10px] uppercase tracking-widest, flex justify-between, px the same as rest of site):
+     Left: "EST. 2024 — OPINION OF RECORD"
+     Right: current date dynamically rendered using new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})
+   - Main masthead row: "THE MIDDLE EAST HUSTLE" in font-serif font-black text-4xl md:text-5xl centered, with a thin border-t and border-b
+   - Navigation strip below: same nav links as Navbar but in a secondary smaller bar, text-[10px] uppercase tracking-widest
+
+2. NEWS TICKER — Directly below the masthead (above the hero), add a scrolling ticker bar:
+   - bg-foreground text-background, height h-9, flex items-center overflow-hidden
+   - Left badge: "LIVE" in bg-primary text-background px-3 font-bold text-[10px] uppercase flex-shrink-0
+   - Scrolling content: use CSS animation (keyframes: translateX from 100% to -100%) on a span showing trendingPolls data as: "[question] — [totalVotes] votes · " repeated. If no data yet, use placeholder text.
+   - CSS: add keyframe in a <style> tag: @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+3. HERO — Change the headline from "The Region's Opinion Engine" to:
+   "400 MILLION PEOPLE. ONE VOICE."
+   Subline (rotating every 3 seconds using useState + useEffect setInterval):
+   - "[X] votes cast this week"
+   - "New debate every 24 hours"  
+   - "The Middle East unfiltered"
+   Use the featuredPoll totalVotes for the first stat.
+
+4. FEATURED POLL — Above the PollCard in the hero, add a label:
+   <div class="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-4 flex items-center gap-2">
+     <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+     TODAY'S LEAD DEBATE
+   </div>
+
+5. TRENDING DEBATES section — Change title to "THIS WEEK'S DEBATES" and make the first poll card span full-width (col-span-2) in the grid if there are 3+ polls, with its question in a larger font.
+
+6. PROFILES SECTION — Rename "Defining Voices" to "THE HUSTLERS" and add below each profile card a "THEIR NETWORK IS VOTING" label in text-[10px] uppercase text-primary.
+
+7. BOTTOM CTA — Add a full-width section before the footer:
+   - bg-foreground text-background p-12 md:p-16
+   - Left (2/3 width on desktop): 
+     Bold label: "JOIN 10,000+ VOICES"
+     Headline: font-serif font-black text-4xl md:text-5xl uppercase: "THE REGION'S OPINION. UNFILTERED."
+     Subline: "Get the weekly breakdown — where the Middle East actually stands, by country, sector, and seniority. Free during beta."
+   - Right (1/3 width): email input (bg-background text-foreground border-none px-4 py-3 w-full) + "JOIN THE HUSTLE" button (bg-primary text-background font-bold uppercase tracking-widest px-6 py-3)
+   - On submit, store email in localStorage and show: "YOU'RE IN." confirmation

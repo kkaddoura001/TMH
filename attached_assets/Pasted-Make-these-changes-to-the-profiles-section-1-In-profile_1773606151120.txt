@@ -1,0 +1,60 @@
+Make these changes to the profiles section:
+
+1. In profiles.tsx:
+   - Change page title from "The TMH Directory" to "THE HUSTLERS"
+   - Change subtitle to: "The founders, operators, and builders redefining what's possible in the Middle East. No PR spin. No corporate bios. Just real people doing real work."
+   - Change filter label "Featured Voices" to "Most Relevant"
+   - Add a country filter dropdown below the search bar, pulling unique countries from the profiles data, with an "All Countries" default option
+
+2. In ProfileCard.tsx, redesign the card:
+   - If profile.imageUrl exists, show a full-bleed grayscale photo at the top of the card (h-48 object-cover w-full) that switches to color on hover (transition-all duration-300). If no image, show the initials box as now.
+   - Add isFeatured badge: if isFeatured, show "FEATURED VOICE" in bg-primary text-background text-[9px] uppercase tracking-widest px-2 py-1 absolute top-3 left-3
+   - Name: font-serif font-black text-xl uppercase tracking-tight (larger than current)
+   - Below name: profile.headline in text-sm italic text-muted-foreground (NOT truncated — let it wrap to 2 lines)
+   - Below headline: role + " · " + company in text-[10px] uppercase tracking-widest text-muted-foreground
+   - Replace the bottom row with a full-width "READ THEIR STORY →" button styled as: w-full mt-4 py-2 border border-foreground text-foreground text-[10px] uppercase tracking-widest font-bold hover:bg-foreground hover:text-background transition-colors text-center
+
+3. In profile-detail.tsx, redesign the layout:
+   - The profile header: show the photo much larger (w-full max-h-80 object-cover object-top grayscale) full-bleed above the name/title section, no border, edge to edge
+   - "The Story" section: use a large drop cap on the first letter (text-6xl font-serif float-left mr-2 leading-none) — CSS first-letter trick
+   - "Lessons Learned": change the number styling — make them MUCH larger (text-6xl font-serif font-black text-foreground/10) as decorative background numbers, with the lesson text overlaid
+   - Add a "IN THEIR OWN WORDS" section (only if quote exists) ABOVE "The Story" section — render the quote in: font-serif italic text-2xl md:text-3xl font-black border-l-4 border-primary pl-6 py-4 my-8
+   - Add a "FUN FACT" section at the bottom of the sidebar if funFact field exists: label "FUN FACT" in text-[10px] uppercase tracking-widest text-primary, content in text-sm text-muted-foreground italic
+
+4. Update imageUrl in the profilesTable seed data for profiles that have photos extracted from the PDF. Use these paths (the images should be uploaded to /public/profiles/ in the Replit project):
+   imageUrl: '/profiles/sultan_al_darmaki.jpg' — Sultan Al Darmaki
+   imageUrl: '/profiles/mohammed_al_zaben.jpg' — Mohammed Al Zaben
+   imageUrl: '/profiles/walid_faza.jpg' — Walid Faza
+   imageUrl: '/profiles/bader_ataya.jpg' — Bader Ataya
+   imageUrl: '/profiles/muhannad_al_shami.jpg' — Muhannad Al Shami
+   imageUrl: '/profiles/dana_baki.jpg' — Dana Baki
+   imageUrl: '/profiles/nikita_sachdev_lord.jpg' — Nikita Sachdev Lord
+   imageUrl: '/profiles/karima_el_hakim.jpg' — Karima El Hakim
+   imageUrl: '/profiles/sarah_toukan.jpg' — Sarah Toukan
+   imageUrl: '/profiles/dina_saman.jpg' — Dina Sam'an
+   imageUrl: '/profiles/omar_absi.jpg' — Omar Absi
+   imageUrl: '/profiles/mark_chahwan.jpg' — Mark Chahwan
+   imageUrl: '/profiles/abe_seksek.jpg' — Abe Seksek
+   imageUrl: '/profiles/dr_sara_althari.jpg' — Dr. Sara Althari
+   imageUrl: '/profiles/sara_hamdan.jpg' — Sara Hamdan
+   imageUrl: '/profiles/rami_salman.jpg' — Rami Salman
+   imageUrl: '/profiles/mousa_yassin.jpg' — Mousa Yassin
+   imageUrl: '/profiles/tala_al_jabri.jpg' — Tala Al Jabri
+   imageUrl: '/profiles/maryam_al_hassani.jpg' — Maryam Al Hassani
+   imageUrl: '/profiles/noelle_al_jaweini.jpg' — Noelle Al-Jaweini
+   imageUrl: '/profiles/mazen_kanaan.jpg' — Mazen Kanaan
+   imageUrl: '/profiles/ambareen_musa.jpg' — Ambareen Musa
+   imageUrl: '/profiles/nazia_khan.jpg' — Nazia Khan
+   imageUrl: '/profiles/zeid_hreish.jpg' — Zeid Hreish
+   imageUrl: '/profiles/fares_ghandour.jpg' — Fares Ghandour
+   imageUrl: '/profiles/stephanie_emile.jpg' — Stephanie Emile
+   imageUrl: '/profiles/rami_shaar.jpg' — Rami Shaar
+   imageUrl: '/profiles/maysa_jalbout.jpg' — Maysa Jalbout
+   imageUrl: '/profiles/walid_daniel_dib.jpg' — Walid Daniel Dib
+   imageUrl: '/profiles/nada_khan.jpg' — Nada Khan
+   imageUrl: '/profiles/lama_kaddoura.jpg' — Lama Kaddoura
+   imageUrl: '/profiles/christopher_hobeiche.jpg' — Christopher Hobeiche
+   imageUrl: '/profiles/dania_shahin.jpg' — Dania Shahin
+   imageUrl: '/profiles/mona_abou_hana.jpg' — Mona Abou Hana
+   imageUrl: '/profiles/loulou_khazen_baz.jpg' — Loulou Khazen Baz
+   All others remain imageUrl: null
