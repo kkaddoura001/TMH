@@ -68,7 +68,7 @@ export default function Home() {
           {/* Masthead title */}
           <div className="border-t-2 border-b-2 border-foreground py-4 my-2 text-center">
             <h1 className="font-serif font-black text-4xl md:text-5xl uppercase tracking-tight text-foreground leading-none">
-              The Middle East Hustle
+              The Middle East Hustle<span className="text-primary">.</span>
             </h1>
           </div>
           {/* Nav strip */}
