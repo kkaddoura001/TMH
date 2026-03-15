@@ -54,7 +54,7 @@ export default function Home() {
     <Layout>
       <style>{`
         @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-        .ticker-animate { animation: ticker 28s linear infinite; }
+        .ticker-animate { animation: ticker 70s linear infinite; }
       `}</style>
 
       {/* ── MASTHEAD ── */}

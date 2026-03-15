@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils"
 import { ResultsBreakdown } from "./ResultsBreakdown"
 import { generateShareCard, getPollUrl, getWhatsAppUrl, getLinkedInUrl } from "@/lib/shareCard"
 
-type RelatedProfile = { id: number; name: string; role: string; company: string | null; isVerified: boolean }
 
 interface PollCardProps {
   poll: Poll
@@ -171,33 +170,6 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
             <p className="text-muted-foreground text-sm line-clamp-3 mb-4 font-sans">
               {poll.context}
             </p>
-          )}
-
-          {/* Voices on this debate */}
-          {(poll as any).relatedProfiles && (poll as any).relatedProfiles.length > 0 && (
-            <div className="mb-4">
-              <p className="text-[9px] uppercase tracking-[0.3em] font-bold text-muted-foreground mb-2">
-                Voices on this debate
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {((poll as any).relatedProfiles as RelatedProfile[]).slice(0, 3).map((profile) => (
-                  <Link key={profile.id} href={`/profiles/${profile.id}`}>
-                    <div className="flex items-center gap-2 border border-border px-2.5 py-1.5 hover:border-foreground hover:bg-foreground hover:text-background transition-all duration-150 cursor-pointer group">
-                      <div className="w-5 h-5 bg-foreground text-background group-hover:bg-background group-hover:text-foreground flex items-center justify-center text-[9px] font-black font-serif flex-shrink-0 transition-colors">
-                        {profile.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold leading-none truncate">{profile.name}</p>
-                        <p className="text-[9px] leading-none mt-0.5 opacity-60 truncate">{profile.role}</p>
-                      </div>
-                      {profile.isVerified && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
           )}
 
           <div className="mt-auto pt-6 border-t border-border flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
