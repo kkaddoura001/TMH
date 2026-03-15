@@ -78,33 +78,6 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
   const isLive = !poll.endsAt || new Date(poll.endsAt) > new Date()
   const showMobileStrip = !isVoted && !mobileStripDismissed && isLive
 
-  const VotingOptions = ({ inStrip = false }: { inStrip?: boolean }) => (
-    <div className={cn("space-y-3", inStrip && "space-y-2")}>
-      {localOptions.map((option) => (
-        <button
-          key={option.id}
-          onClick={() => {
-            handleVote(option.id)
-            if (inStrip) setMobileStripDismissed(true)
-          }}
-          disabled={!isLive}
-          className={cn(
-            "group w-full text-left px-5 py-4 border border-border transition-all duration-150 font-medium text-sm font-sans",
-            "bg-background text-foreground",
-            "hover:bg-foreground hover:text-background hover:border-foreground hover:border-l-4 hover:border-l-primary",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-            !isLive && "opacity-50 cursor-not-allowed",
-            inStrip && "py-3 text-xs"
-          )}
-        >
-          <span className="block transition-transform duration-150 group-hover:translate-x-1">
-            {option.text}
-          </span>
-        </button>
-      ))}
-    </div>
-  )
-
   return (
     <>
       <div className={cn(
@@ -210,7 +183,26 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                     Cast Your Vote
                   </span>
                 </div>
-                <VotingOptions />
+                <div className="space-y-3">
+                  {localOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => handleVote(option.id)}
+                      disabled={!isLive}
+                      className={cn(
+                        "group w-full text-left px-5 py-4 border border-border transition-all duration-150 font-medium text-sm font-sans",
+                        "bg-background text-foreground",
+                        "hover:bg-foreground hover:text-background hover:border-foreground hover:border-l-4 hover:border-l-primary",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                        !isLive && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <span className="block transition-transform duration-150 group-hover:translate-x-1">
+                        {option.text}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -286,8 +278,27 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="px-4 pb-4 pt-2 space-y-2">
-              <VotingOptions inStrip />
+            <div className="px-4 pb-4 pt-2">
+              <div className="space-y-2">
+                {localOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => { handleVote(option.id); setMobileStripDismissed(true) }}
+                    disabled={!isLive}
+                    className={cn(
+                      "group w-full text-left px-5 py-3 border border-border transition-all duration-150 font-medium text-xs font-sans",
+                      "bg-background text-foreground",
+                      "hover:bg-foreground hover:text-background hover:border-foreground hover:border-l-4 hover:border-l-primary",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      !isLive && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <span className="block transition-transform duration-150 group-hover:translate-x-1">
+                      {option.text}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
