@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, profilesTable, pollsTable, pollOptionsTable } from "@workspace/db";
-import { eq, desc, sql, ilike, or, and } from "drizzle-orm";
+import { eq, desc, sql, ilike, or, and, inArray, ne } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -71,13 +71,21 @@ router.get("/profiles/:id", async (req, res) => {
     const relatedPolls = await db
       .select()
       .from(pollsTable)
+      .where(sql`${pollsTable.relatedProfileIds} @> ${JSON.stringify([id])}::jsonb`)
       .orderBy(desc(pollsTable.createdAt))
-      .limit(3);
+      .limit(4);
 
     const relatedPollsWithOptions = await Promise.all(
       relatedPolls.map(async (poll) => {
         const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, poll.id));
         const totalVotes = options.reduce((s, o) => s + o.voteCount, 0);
+        const relatedProfileIds: number[] = poll.relatedProfileIds ?? [];
+        const relatedProfiles = relatedProfileIds.length > 0
+          ? await db
+              .select({ id: profilesTable.id, name: profilesTable.name, role: profilesTable.role, company: profilesTable.company, isVerified: profilesTable.isVerified })
+              .from(profilesTable)
+              .where(inArray(profilesTable.id, relatedProfileIds.slice(0, 3)))
+          : [];
         return {
           id: poll.id,
           question: poll.question,
@@ -97,7 +105,8 @@ router.get("/profiles/:id", async (req, res) => {
           isEditorsPick: poll.isEditorsPick,
           createdAt: poll.createdAt.toISOString(),
           endsAt: poll.endsAt ? poll.endsAt.toISOString() : null,
-          relatedProfileIds: poll.relatedProfileIds ?? [],
+          relatedProfileIds,
+          relatedProfiles,
         };
       })
     );
@@ -105,7 +114,7 @@ router.get("/profiles/:id", async (req, res) => {
     const similarProfiles = await db
       .select()
       .from(profilesTable)
-      .where(and(eq(profilesTable.sector, profile.sector), eq(profilesTable.id, id) ? sql`false` : sql`true`))
+      .where(and(eq(profilesTable.sector, profile.sector), ne(profilesTable.id, id)))
       .limit(3);
 
     res.json({

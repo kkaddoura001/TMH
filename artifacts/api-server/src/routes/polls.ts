@@ -1,11 +1,23 @@
 import { Router, type IRouter } from "express";
-import { db, pollsTable, pollOptionsTable, votesTable } from "@workspace/db";
-import { eq, desc, sql, and, ne } from "drizzle-orm";
+import { db, pollsTable, pollOptionsTable, votesTable, profilesTable } from "@workspace/db";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-function toPollResponse(poll: any, options: any[]) {
+async function enrichWithProfiles(profileIds: number[]) {
+  if (!profileIds || profileIds.length === 0) return [];
+  const rows = await db
+    .select({ id: profilesTable.id, name: profilesTable.name, role: profilesTable.role, company: profilesTable.company, isVerified: profilesTable.isVerified })
+    .from(profilesTable)
+    .where(inArray(profilesTable.id, profileIds))
+    .limit(3);
+  return rows.map((p) => ({ id: p.id, name: p.name, role: p.role, company: p.company ?? null, isVerified: p.isVerified }));
+}
+
+async function toPollResponse(poll: any, options: any[]) {
   const totalVotes = options.reduce((s: number, o: any) => s + o.voteCount, 0);
+  const relatedProfileIds: number[] = poll.relatedProfileIds ?? [];
+  const relatedProfiles = await enrichWithProfiles(relatedProfileIds.slice(0, 3));
   return {
     id: poll.id,
     question: poll.question,
@@ -25,7 +37,8 @@ function toPollResponse(poll: any, options: any[]) {
     isEditorsPick: poll.isEditorsPick,
     createdAt: poll.createdAt?.toISOString() ?? new Date().toISOString(),
     endsAt: poll.endsAt ? poll.endsAt.toISOString() : null,
-    relatedProfileIds: poll.relatedProfileIds ?? [],
+    relatedProfileIds,
+    relatedProfiles,
   };
 }
 
@@ -57,7 +70,7 @@ router.get("/polls", async (req, res) => {
     const result = await Promise.all(
       polls.map(async (poll: any) => {
         const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, poll.id));
-        return toPollResponse(poll, options);
+        return await toPollResponse(poll, options);
       })
     );
 
@@ -76,10 +89,10 @@ router.get("/polls/featured", async (_req, res) => {
       const [fallback] = await db.select().from(pollsTable).orderBy(desc(pollsTable.createdAt)).limit(1);
       if (!fallback) return res.status(404).json({ error: "No polls found" });
       const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, fallback.id));
-      return res.json(toPollResponse(fallback, options));
+      return res.json(await toPollResponse(fallback, options));
     }
     const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, poll.id));
-    res.json(toPollResponse(poll, options));
+    res.json(await toPollResponse(poll, options));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch featured poll" });
@@ -92,7 +105,7 @@ router.get("/polls/:id", async (req, res) => {
     const [poll] = await db.select().from(pollsTable).where(eq(pollsTable.id, id));
     if (!poll) return res.status(404).json({ error: "Poll not found" });
     const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, id));
-    res.json(toPollResponse(poll, options));
+    res.json(await toPollResponse(poll, options));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch poll" });

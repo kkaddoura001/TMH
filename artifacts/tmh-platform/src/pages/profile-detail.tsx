@@ -138,9 +138,15 @@ export default function ProfileDetail() {
           {profile.relatedPolls && profile.relatedPolls.length > 0 && (
             <section>
               <h2 className="font-serif text-3xl font-black uppercase tracking-tight border-b-2 border-foreground pb-4 mb-8">Associated Polls</h2>
-              <div className="grid gap-8">
+              <div className="grid gap-10">
                 {profile.relatedPolls.map(poll => (
-                  <PollCard key={poll.id} poll={poll} />
+                  <div key={poll.id}>
+                    <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      How does {profile.name.split(" ")[0]}'s network vote on this?
+                    </p>
+                    <PollCard poll={poll} />
+                  </div>
                 ))}
               </div>
             </section>
