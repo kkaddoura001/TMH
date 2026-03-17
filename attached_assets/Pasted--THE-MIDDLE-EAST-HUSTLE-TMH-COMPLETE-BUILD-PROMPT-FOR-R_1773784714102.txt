@@ -1,0 +1,914 @@
+# THE MIDDLE EAST HUSTLE (TMH) — COMPLETE BUILD PROMPT FOR REPLIT
+
+> **Copy this entire prompt into Replit Agent or Replit AI Chat. It contains everything needed to build the full MVP.**
+
+---
+
+## PROJECT OVERVIEW
+
+Build "The Middle East Hustle" (TMH) — a community-driven polling and founder-profile platform for the Middle East. The core mechanic: provocative question → one-tap vote → results locked behind a share gate (share to WhatsApp OR enter email to unlock) → results animate in with country breakdown. Every vote is a distribution event. The share gate is the growth engine.
+
+**One-sentence pitch:** TMH is the digital town square the Middle East has never had — where 400 million people finally have one place to say what they actually think.
+
+**Tagline:** Real People. Real Hustle. Real Change.
+
+---
+
+## TECH STACK (USE EXACTLY THIS)
+
+| Layer | Technology | Why |
+|---|---|---|
+| **Frontend** | **Next.js 14** (App Router) | SSR for SEO. Dynamic meta tags per poll and per profile. |
+| **Styling** | **Tailwind CSS** | Port CSS variables from design system below. |
+| **Database** | **Supabase** (PostgreSQL) | Realtime subscriptions for live vote counts. Built-in auth. RLS. |
+| **Auth** | **Supabase Auth** (magic link) | No password friction. Email captured at auth. |
+| **Vote Processing** | **Supabase Edge Functions** (Deno) | Serverless. Rate-limited. Independent of frontend uptime. |
+| **Media & OG Cards** | **Cloudinary** | On-demand image transforms. OG cards via URL params. |
+| **Newsletter** | **Beehiiv API** | Subscriber sync on email capture. Built-in referral tracking. |
+| **Transactional Email** | **Resend** | Application status emails. Onboarding sequences. |
+| **AI Agent** | **Claude API** (claude-sonnet-4-20250514) | Hustler application scoring (0-100). |
+| **Fingerprinting** | **FingerprintJS** (open-source) | Duplicate vote prevention. |
+| **Analytics** | **PostHog + GA4** | Funnel analysis + acquisition sources. |
+
+---
+
+## ENVIRONMENT VARIABLES (Replit Secrets)
+
+```
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=       # Edge Functions only
+CLAUDE_API_KEY=                  # AI qualification agent
+BEEHIIV_API_KEY=
+BEEHIIV_PUBLICATION_ID=
+RESEND_API_KEY=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+FINGERPRINTJS_API_KEY=           # Pro version if needed
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+```
+
+---
+
+## PROJECT FOLDER STRUCTURE
+
+```
+/src
+  /components
+    /layout        — Navbar, Footer, Ticker, PageWrapper
+    /polls         — HeroPoll, DebateCard, QuestionStrip, ShareGate, PollResults
+    /hustlers      — HustlerCard, HustlerGrid, HustlerProfile, ProfileAvatar
+    /ui            — Button, Badge, Input, Toast, Modal, Tabs
+    /rankings      — CountryLeaderboard, CountryRow
+    /admin         — PollCreator, ProfileQueue, ApplicationQueue, Analytics
+  /app (Next.js App Router)
+    page.jsx                    — Homepage
+    /polls
+      /[slug]/page.jsx          — Individual poll page
+      /archive/page.jsx         — Poll archive
+      /category/[name]/page.jsx — Category view
+    /hustlers
+      page.jsx                  — Directory
+      /[slug]/page.jsx          — Individual profile
+      /directory/page.jsx       — Full directory with filters
+    /apply
+      page.jsx                  — Application form
+      /submitted/page.jsx       — Confirmation page
+    /rankings/page.jsx          — Power Rankings
+    /about/page.jsx
+    /join/page.jsx              — QR landing page
+    /dashboard/page.jsx         — User dashboard
+    /auth/page.jsx              — Sign in / register
+    /admin
+      page.jsx                  — Admin dashboard
+      /polls/page.jsx           — Poll manager
+      /profiles/page.jsx        — Profile queue
+      /applications/page.jsx    — Hustler applications with AI scores
+      /analytics/page.jsx       — Analytics dashboard
+      /newsletter/page.jsx      — Newsletter manager
+      /users/page.jsx           — User & referral manager
+      /qr/page.jsx              — QR campaign manager
+  /lib
+    supabase.js                 — Supabase client init
+    cloudinary.js               — Image URL generators
+    beehiiv.js                  — Newsletter API calls
+    fingerprint.js              — FingerprintJS init
+    share.js                    — Share link generators (all platforms)
+  /styles
+    globals.css                 — CSS variables from design system
+    animations.css              — Keyframes
+```
+
+---
+
+## COMPLETE SITE MAP (from Figma D-01)
+
+```
+🏠 Homepage (/)
+├── Polls (/polls)
+│   ├── Poll Detail Page (/polls/:slug)
+│   │   ├── 🔒 Share Gate (overlay)
+│   │   ├── Results & Breakdown (same page, post-unlock)
+│   │   └── Shareable Result Card (generated via Cloudinary)
+│   ├── Poll Archive (/polls/archive)
+│   └── Category View (/polls/category/:name)
+├── The Hustlers (/hustlers)
+│   ├── Hustler Profile (/hustlers/:slug)
+│   │   ├── Linked Polls (embedded)
+│   │   └── Profile Share Kit (modal)
+│   ├── Full Directory (/hustlers/directory)
+│   └── Search & Filter
+├── Power Rankings (/rankings)
+│   ├── Country Leaderboard
+│   ├── Top Polls This Month
+│   └── Most Viewed Hustlers
+├── About (/about)
+├── Become a Hustler (/apply)
+│   ├── Application Form (/apply/form)
+│   ├── Confirmation (/apply/submitted)
+│   ├── 🤖 AI Qualification Check (automated, backend)
+│   ├── ✅ Passed — Queued for Editorial
+│   └── ❌ Not Yet — Improvement Tips Sent
+├── QR Card Landing (/join)
+│   ├── Featured Poll (direct to vote)
+│   └── Email Capture (priority)
+├── Sign In / Register (/auth)
+│   ├── Magic Link Login
+│   └── Register (email + country)
+├── User Dashboard (/dashboard)
+│   ├── My Votes
+│   ├── My Referrals & Tier
+│   ├── Claim My Hustler Profile
+│   └── Settings
+└── 🔐 Admin (/admin)
+    ├── Poll Manager
+    ├── Profile Queue
+    ├── Hustler Applications (with AI scores)
+    ├── Analytics Dashboard
+    ├── Newsletter Manager
+    └── User & Referral Manager
+```
+
+---
+
+## DESIGN SYSTEM — IMPLEMENT EXACTLY
+
+### Colour Palette
+
+```css
+:root {
+  /* Primary */
+  --crimson: #DC143C;          /* Primary action. Ticker. Share gate. CTAs. Result bars. Logo. */
+  --near-black: #0A0A0A;      /* Dark mode background */
+  --off-white: #FAFAFA;        /* Dark mode text */
+  --warm-parchment: #F5F0EB;   /* Light mode background */
+  --dark-ink: #1A1A1A;         /* Light mode text */
+  --card-dark: #2A2A2A;        /* Dark mode card backgrounds */
+  --warm-sand: #E8E0D8;        /* Borders, dividers, light mode secondary */
+  --accent-green: #10B981;     /* Live indicator dots. Positive sentiment. */
+  --mid-grey: #444444;         /* Secondary text. Subheadings. Meta info. */
+}
+```
+
+**CRITICAL:** Crimson is the ONLY true accent colour. Green is for live/active states only. No blue, purple, or orange in the UI.
+
+### Typography
+
+| Typeface | Role | Weights | Where |
+|---|---|---|---|
+| **Playfair Display** | Display / Logo / Pull Quotes | 700, 900 | TMH masthead logo. Hero section. Profile quotes. About opening. |
+| **Barlow Condensed** | All headings / Labels / Badges | 700, 900 | Section titles (uppercase, tracked). Poll question text. Profile tags. Category badges. |
+| **DM Sans** | All body copy / UI text / Forms | 400, 500, 700 | Body text. Poll options. Country labels. Forms. Newsletter copy. Admin. |
+
+Import all three from Google Fonts.
+
+### Dark Mode vs Light Mode
+
+| Element | Dark Mode | Light Mode |
+|---|---|---|
+| Background | `#0A0A0A` | `#F5F0EB` |
+| Primary text | `#FAFAFA` | `#1A1A1A` |
+| Card backgrounds | `#2A2A2A` | `#F0E8DF` |
+| Navbar | `rgba(10,10,10,0.95)` + backdrop blur | `rgba(245,240,235,0.95)` + backdrop blur |
+| Borders | `rgba(220,20,60,0.2)` | `rgba(220,20,60,0.3)` |
+
+**DEFAULT:** Dark mode on first visit. System preference detection via `prefers-color-scheme`. Toggle saved to localStorage. Toggle icon: 🌙 Moon / ☀️ Sun.
+
+### Motion & Animation Specs
+
+| Animation | Trigger | Spec |
+|---|---|---|
+| Ticker scroll | Page load | `30s linear infinite`. Pauses on hover. |
+| Vote confirmation | Option tap | Crimson highlight + checkmark. `200ms ease-out`. |
+| Share gate entrance | 500ms after vote | Slides up from bottom. `300ms ease-out`. Backdrop blur on results behind. |
+| Result bar fill | On share/email unlock | Staggered: `600ms` each, `100ms` delay between bars. `cubic-bezier(0.25,1,0.5,1)`. |
+| Country breakdown | With result bars | Same stagger system, `100ms` offset from results. |
+| Profile card hover | Mouse enter | `translateY(-8px)` + border crimson. `300ms ease`. |
+| Profile image | Mouse enter | Grayscale `100%` to `0%`. `300ms ease`. |
+| Live pulse dot | Always | `2s` pulse keyframe. Scale `1 → 1.4 → 1`. Green. |
+| Page load fade | On mount | Sections stagger in, opacity `0 → 1`. `400ms`, `60ms` delay per section. |
+
+---
+
+## DESIGN PHILOSOPHY
+
+The design language must feel like "The Economist met Wired, both moved to Dubai, and a 25-year-old designer who grew up on Instagram rebuilt it." Editorial authority. Digital energy. Zero corporate sterility.
+
+**Key principles:**
+1. **Editorial Authority** — Every page feels curated. Masthead dates the issue. Section headers look like newspaper column titles. No rounded blob UI. Sharp edges, clear hierarchy, confident typography.
+2. **Controlled Drama** — Crimson used sparingly but powerfully. It signals urgency and action. Everywhere else is monochrome.
+3. **Data as Narrative** — "9,241 people voted" beats "9K votes". Country breakdown shown as a race, not a pie chart. Results animate in like a reveal.
+4. **WhatsApp-Native First** — Every shareable element designed for 375px screen in a messaging app preview. If it doesn't read in a WhatsApp preview, it doesn't ship.
+
+---
+
+## DATABASE SCHEMA — FULL SQL (Supabase PostgreSQL)
+
+### Table 1: polls
+```sql
+CREATE TABLE polls (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_text text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  category text NOT NULL, -- 'technology_ai'|'culture_society'|'business'|'cities'|'identity'|'economy'|'women_equality'|'environment'
+  options jsonb NOT NULL, -- [{text:'Option 1',votes:0},...]
+  status text DEFAULT 'draft', -- 'draft'|'live'|'archived'
+  poll_type text DEFAULT 'card', -- 'hero'|'card'|'strip'|'hustler'
+  framing text, -- 1-sentence editorial context shown under question
+  hustler_id uuid REFERENCES hustlers(id),
+  sponsored_by text, -- brand name if sponsored
+  publish_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+### Table 2: votes
+```sql
+CREATE TABLE votes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  poll_id uuid REFERENCES polls(id) NOT NULL,
+  option_index int NOT NULL, -- 0-based index into options array
+  user_id uuid REFERENCES users(id), -- nullable (anonymous vote)
+  fingerprint text NOT NULL, -- FingerprintJS visitor ID
+  country_code char(2), -- ISO 3166-1 alpha-2
+  utm_source text, -- 'whatsapp'|'linkedin'|'x'|'qr'|'direct'
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(poll_id, fingerprint) -- one vote per device per poll
+);
+```
+
+### Table 3: users
+```sql
+CREATE TABLE users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text UNIQUE NOT NULL,
+  name text,
+  country_code char(2),
+  referral_code text UNIQUE DEFAULT nanoid(8),
+  referred_by uuid REFERENCES users(id),
+  tier text DEFAULT 'explorer', -- 'explorer'|'insider'|'ambassador'|'founding_voice'
+  insider_active boolean DEFAULT false,
+  role text DEFAULT 'user', -- 'user'|'admin'|'hustler'
+  stripe_id text, -- Phase 2
+  created_at timestamptz DEFAULT now()
+);
+```
+
+### Table 4: hustlers
+```sql
+CREATE TABLE hustlers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  title text NOT NULL,
+  company text NOT NULL,
+  city text,
+  country_code char(2),
+  bio text, -- 100-200 words, editorial voice
+  quote text, -- signature quote
+  photo_url text, -- Cloudinary URL
+  category_tags text[],
+  linked_poll_ids uuid[],
+  tag_badge text, -- e.g. 'EXIT FOUNDER', 'UNICORN BUILDER'
+  verified boolean DEFAULT false,
+  pro boolean DEFAULT false,
+  founding_member boolean DEFAULT false, -- true for first 102
+  claimed_by uuid REFERENCES users(id),
+  profile_views int DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+### Table 5: hustler_applications
+```sql
+CREATE TABLE hustler_applications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  applicant_email text NOT NULL,
+  name text,
+  title text,
+  company text,
+  city text,
+  country_code text,
+  bio text,
+  quote text,
+  photo_url text,
+  impact_statement text,
+  social_links jsonb, -- {linkedin, twitter, instagram, website}
+  ai_score int, -- 0-100
+  ai_status text, -- 'passed'|'conditional'|'not_yet'
+  ai_reasoning text,
+  ai_checklist jsonb, -- [{criterion, score, notes}]
+  editorial_status text DEFAULT 'pending', -- 'pending'|'approved'|'declined'|'revision'
+  editor_notes text,
+  created_at timestamptz DEFAULT now(),
+  reviewed_at timestamptz
+);
+```
+
+### Table 6: referrals
+```sql
+CREATE TABLE referrals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  referrer_id uuid REFERENCES users(id) NOT NULL,
+  referred_id uuid REFERENCES users(id) NOT NULL,
+  source_platform text,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+### Table 7: newsletter_subscribers
+```sql
+CREATE TABLE newsletter_subscribers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text UNIQUE NOT NULL,
+  beehiiv_id text,
+  country_code char(2),
+  source text,
+  utm_source text,
+  unsubscribed_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+### Table 8: qr_campaigns
+```sql
+CREATE TABLE qr_campaigns (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  campaign_name text NOT NULL,
+  short_code text UNIQUE NOT NULL, -- e.g. 'step26'
+  featured_poll_id uuid REFERENCES polls(id),
+  location_tag text, -- e.g. 'Dubai / AstroLabs / March 2026'
+  scans int DEFAULT 0,
+  conversions int DEFAULT 0,
+  email_captures int DEFAULT 0,
+  active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+**IMPORTANT:** Enable Row Level Security (RLS) on ALL tables. Enable Supabase Realtime on the `votes` table for live vote counters.
+
+---
+
+## CORE USER FLOW #1: THE VIRAL VOTE LOOP (from Figma D-02)
+
+This is the most critical flow. If this is broken on mobile, nothing else matters.
+
+```
+Step 1: DISCOVER
+  → Friend shares TMH poll link in WhatsApp group
+  → Link preview shows: question + live vote count + teaser stat
+  → Question is provocative enough to demand a tap
+
+Step 2: ARRIVE (on /polls/:slug or /join for QR)
+  → No pop-up. No gate. No login prompt.
+  → Just the question, 4-6 answer options, and live vote counter.
+
+Step 3: VOTE
+  → User taps one option
+  → Confirmation animation: crimson highlight + checkmark (200ms ease-out)
+  → Vote counter increments in real-time (Supabase Realtime)
+  → Selected option highlights in crimson
+  → FingerprintJS visitor ID logged to prevent duplicate votes
+  → Country code inferred from IP
+
+Step 4: SHARE GATE (500ms after vote, slides up from bottom)
+  → Full results are BLURRED behind the gate
+  → Headline: "UNLOCK FULL RESULTS"
+  → Subhead: "Share this debate — or enter your email. Either unlocks the full breakdown."
+  → 6 share buttons (in this order, WhatsApp is PRIMARY and LARGEST):
+    1. WhatsApp (primary, biggest button, green accent)
+    2. LinkedIn
+    3. X (Twitter)
+    4. Telegram
+    5. Instagram Story
+    6. Copy Link
+  → Email field below with:
+    - Auto-focus on share gate appear
+    - Placeholder: 'your@email.com'
+    - Button: 'UNLOCK RESULTS' (not 'Subscribe' or 'Sign up')
+    - On mobile: email keyboard opens automatically
+    - GDPR notice: 'No spam. Unsubscribe anytime.'
+  → Live counter text: "9,241 people already know how this split. You don't."
+
+Step 5: RESULTS (after share OR email entry)
+  → Results animate in with staggered progress bars
+    (600ms each, 100ms delay between bars, cubic-bezier(0.25,1,0.5,1))
+  → Country breakdown reveals (UAE, SA, EG, JO, LB, Other)
+  → Personal stat: "You voted with the majority in UAE — but against it in Saudi Arabia."
+  → Shareable result card auto-generated via Cloudinary (WhatsApp + IG Story sizes)
+  → If email entered: push to Beehiiv API. Welcome email fires within 60 seconds. Referral link included.
+
+Step 6: CROSS-SELL
+  → 3 more polls shown (most relevant)
+  → Most relevant Hustler profile shown
+  → Newsletter sign-up: "JOIN 10,000+ VOICES SHAPING THE REGION'S CONVERSATION"
+  → Nudge: "You've voted on 1 poll. Insiders vote on all of them."
+```
+
+**Share link format for WhatsApp:**
+```
+wa.me/?text=[encoded message]
+```
+Message template: `"[Question text] — [X,XXX] people voted. The region is split. Cast your vote: [URL with UTM params]"`
+
+---
+
+## CORE USER FLOW #2: QR CARD ENTRY (/join)
+
+```
+1. User scans branded TMH QR card (event / co-working / restaurant / street)
+2. Lands on /join — sees featured poll + "Join [X,XXX] voices from across the region"
+3. Votes → Share Gate → email capture (PRIORITISED on this page — email field is more prominent than on standard poll pages)
+4. Supabase logs: scan counted, conversion tracked, source: QR campaign, location tag stored
+5. Admin sees scan rate and conversion rate per campaign location
+```
+
+The /join page has NO navbar on mobile to reduce distraction. Headline: "WELCOME TO THE HUSTLE." Subhead: "You've just unlocked the most honest conversation in the Middle East."
+
+---
+
+## CORE USER FLOW #3: HUSTLER APPLICATION (from Figma D-03 and D-05)
+
+```
+1. User discovers /apply — Headline: "THINK YOU'RE A HUSTLER?"
+   Subhead: "We're building the most credible founder directory in the Middle East. Not everyone makes the cut."
+2. Fills out application form with fields:
+   - Name, Email, Title, Company, City, Country
+   - Bio (100-200 words)
+   - Signature Quote
+   - Impact Statement
+   - Photo URL (or upload)
+   - Social Links (LinkedIn, Twitter, Instagram, Website)
+3. Submits → Confirmation page (/apply/submitted)
+   Text: "APPLICATION RECEIVED. Our AI review runs in minutes."
+4. Supabase Edge Function triggers on INSERT to hustler_applications
+5. Edge Function calls Claude API with TMH scoring prompt + applicant data
+6. Claude evaluates 8-point checklist (see below) and returns JSON:
+   { score, status, reasoning, checklist: [{criterion, score, notes}] }
+7. Score stored back to hustler_applications row
+8. Automated email sent via Resend based on score threshold
+9. Application appears in admin queue with colour-coded AI score badge
+10. Editor reviews and makes final approval/decline decision (AI is advisory only)
+```
+
+### AI Scoring Rubric (8 criteria, 100 points total)
+
+| Points | Criterion | Pass Signal | Fail Signal |
+|---|---|---|---|
+| 0-15 | Real, verifiable impact on people, companies, or industries | Named outcomes: revenue, users, employees, exits, publications | Vague: 'passionate about', 'experienced in' |
+| 0-15 | Based in MENA or deep ongoing connection to the region | Current city in MENA, or explicit MENA focus in bio | No MENA connection evident |
+| 0-15 | Unique, specific story — not a generic career path | Pivots, failures, non-linear journeys, specific decisions | Standard corporate progression |
+| 0-15 | Built, led, or founded something tangible | Company, product, NGO, movement — with specifics | Title-holder only, no evidence of building |
+| 0-10 | Quote is original, specific, and memorable — not generic | First-person, specific to their experience | 'Work hard and dream big' or any cliché |
+| 0-10 | Public profile is verifiable (LinkedIn, news, company website) | Active LinkedIn with matching details | No searchable public presence |
+| 0-10 | Their audience would genuinely engage on TMH | Has followers / community / known in their sector | No evident audience or network |
+| 0-10 | Application complete — all fields filled, photo provided | All fields populated, photo URL returns valid image | Missing fields, broken photo, one-line bio |
+
+### Score Thresholds & Automated Emails
+
+| Score | Status | Email Subject | Email Body Summary |
+|---|---|---|---|
+| **70-100** | PASSED | "Your TMH application is through." | Congratulations. AI review passed. Editorial reviews within 48 hours. |
+| **40-69** | CONDITIONAL | "Your TMH application — one more step." | Profile shows promise. Lists specific gaps from checklist. Resubmit in 30 days. |
+| **0-39** | NOT YET | "Your TMH application — keep building." | TMH bar is high. On Rising Hustlers watchlist. Reapply in 90 days. |
+
+### Fallback
+If AI call fails → application marked 'pending_manual' → Kareem notified via Resend.
+
+---
+
+## HOMEPAGE CONTENT & SECTIONS (top to bottom)
+
+Build the homepage in this exact order:
+
+### 1. Navbar (sticky, backdrop blur)
+- Logo: "TMH" in Playfair Display 900 (left)
+- Sub-logo: "The Middle East Hustle" in Barlow Condensed uppercase
+- Nav links: POLLS / THE HUSTLERS / RANKINGS / ABOUT / BECOME A HUSTLER
+- Dark/light mode toggle (right)
+
+### 2. Live Ticker (full-width, crimson background)
+Scrolling marquee of live polls with vote counts:
+"Which Middle Eastern city is best to build a life? — 10,241 votes · Is wasta destroying or building the Middle East? — 9,700 votes · Your job will still exist in 5 years. Be honest. — 9,100 votes · Would you raise your kids in the Middle East? — 8,800 votes · Are we building for ourselves or for Western validation? — 7,600 votes"
+- 30s linear infinite scroll. Pauses on hover.
+
+### 3. Masthead (newspaper-style header)
+"EST. 2026 · DUBAI · ISSUE NO. 001"
+"THE MIDDLE EAST HUSTLE."
+"The voice of 400 million."
+
+### 4. Hero Section
+- HEADLINE: "400 MILLION PEOPLE. ONE QUESTION."
+- SUBHEAD: "9,241 votes cast this week — and the region is divided."
+- CTA: "SEE THIS WEEK'S DEBATE ↓"
+- Below: The Hero Poll component (weekly featured poll, largest display)
+  - poll_type = 'hero'
+  - 4-6 answer options as tappable cards
+  - Live vote counter with Supabase Realtime
+
+### 5. Debate Cards Grid
+- 3 live polls in a responsive grid below hero
+- poll_type = 'card'
+- Mini result bars visible to ALL (no gate on these)
+- Rotate every 2-3 days
+
+### 6. Daily Question Strip
+- Header: "THE QUESTIONS NO ONE'S ASKING"
+- Sub: "Vote on any of them. Share the ones that matter."
+- Horizontal scrollable strip of poll cards
+- poll_type = 'strip'
+- 1 new question per day — never show same content for >48 hours
+- Vote inline (tap to vote, same share gate mechanic)
+
+### 7. Country Leaderboard
+- Header: "HOW DOES YOUR COUNTRY VOTE?"
+- CTA: "REPRESENT YOUR COUNTRY — VOTE NOW"
+- Animated leaderboard bars showing vote participation by country
+- Countries: UAE, Saudi Arabia, Egypt, Jordan, Lebanon, Kuwait, Bahrain, Qatar, Oman, Other
+
+### 8. Hustler Grid
+- Header: "THE HUSTLERS"
+- Sub: "The founders, operators, and change-makers shaping the Middle East."
+- CTA: "VIEW ALL HUSTLERS (102)"
+- 8 featured profiles in a grid
+- Each card: Photo (grayscale → colour on hover), Name, Title, Company, Tag Badge
+- Cards hover: translateY(-8px) + border crimson (300ms ease)
+
+### 9. Newsletter CTA Section
+- HEADLINE: "JOIN 10,000+ VOICES SHAPING THE REGION'S CONVERSATION"
+- SUB: "Every Tuesday: one question, one breakdown, one hustler."
+- BUTTON: "JOIN THE HUSTLE"
+- Email field + submit → Beehiiv API
+
+### 10. Footer
+- Tagline: "The voice of 400 million."
+- Social icons: X / LinkedIn / Instagram / TikTok / WhatsApp Channel
+- Columns: Navigate / Join / Legal
+- Bottom: "© 2026 The Middle East Hustle. Founded by Kareem Kaddoura. Dubai."
+
+---
+
+## KEY PAGE SPECS
+
+### /polls/archive
+- HEADLINE: "EVERY QUESTION WE'VE EVER ASKED"
+- SUB: "[X] debates. [X,XXX,XXX] votes. Browse them all."
+- Filters: All / by category / sort by Most Voted, Most Recent, Most Shared
+
+### /hustlers
+- HEADLINE: "THE HUSTLERS"
+- SUB: "102 founders, operators, and change-makers. Real people. Real stories."
+- Filters: All Countries / By Sector / Search
+
+### /hustlers/:slug
+- Profile page with:
+  - Large photo (B&W with colour on interaction)
+  - Name, Title, Company, City
+  - Tag badge (e.g. "EXIT FOUNDER", "UNICORN BUILDER")
+  - Bio (100-200 words)
+  - Signature quote in large Playfair Display with crimson quotation marks
+  - "THEIR DEBATES" section with 2-3 linked polls
+  - Share kit button: "SHARE THIS HUSTLER'S STORY" (modal with WA, LinkedIn, X, Copy)
+
+### /rankings
+- HEADER: "HOW THE REGION VOTES"
+- Tabs: Countries / Top Debates / Top Hustlers / Trending
+
+### /about
+- OPENING: "This isn't just a page. It's a purpose, a mission, a movement."
+- Kareem's personal statement
+- 6 Beliefs section
+- Closing: "Real People. Real Hustle. Real Change."
+
+### /dashboard (authenticated users only)
+- HEADLINE: "YOUR HUSTLE DASHBOARD"
+- SUB: "[X] polls voted on · [X] referrals · [Tier] status"
+- Sections: My Votes / My Referrals / Recommended Polls
+
+---
+
+## SHARE LINK GENERATORS
+
+Build a utility library (`/lib/share.js`) with pre-formatted share links for each platform:
+
+```javascript
+// WhatsApp (primary)
+`https://wa.me/?text=${encodeURIComponent(message + ' ' + url)}`
+
+// LinkedIn
+`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+
+// X / Twitter
+`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`
+
+// Telegram
+`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`
+
+// Copy Link
+navigator.clipboard.writeText(url)
+```
+
+All share links must include UTM parameters: `?utm_source=whatsapp&utm_medium=share&utm_campaign=poll_[slug]`
+
+---
+
+## OG / META TAG GENERATION
+
+Every poll and profile page needs dynamic meta tags for link previews:
+
+```html
+<!-- Poll page -->
+<meta property="og:title" content="[Question text] — The Middle East Hustle" />
+<meta property="og:description" content="[X,XXX] people voted. The region is split. Cast your vote." />
+<meta property="og:image" content="[Cloudinary URL with text overlay of question]" />
+<meta property="og:url" content="https://themiddleeasthustle.com/polls/[slug]" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- Profile page -->
+<meta property="og:title" content="[Name] — [Title] at [Company] | TMH Hustler" />
+<meta property="og:description" content="[First 150 chars of bio]" />
+<meta property="og:image" content="[Cloudinary profile card: photo + name + title]" />
+```
+
+Use Cloudinary URL-based text overlays for OG images — no server-side rendering needed.
+
+---
+
+## VOTE PROCESSING LOGIC (Supabase Edge Function)
+
+```
+POST /functions/v1/submit-vote
+Body: { poll_id, option_index, fingerprint, country_code, utm_source }
+
+1. Check UNIQUE(poll_id, fingerprint) — reject if duplicate
+2. INSERT into votes table
+3. UPDATE polls.options jsonb to increment vote count for selected option
+4. Return { success: true, total_votes, option_votes }
+```
+
+Rate limit: Max 1 vote per fingerprint per poll per 24h. Enforce at Edge Function level.
+
+---
+
+## ADMIN DASHBOARD
+
+Secure behind Supabase Auth with role = 'admin'. No public access.
+
+### Poll Creator
+- Create new polls with: question text, slug (auto-generate from question), category, options (add/remove), framing text, poll type, schedule publish_at
+- Set status: draft → live → archived
+- Preview before publishing
+
+### Profile Queue
+- View all hustler profiles
+- Edit bio, quote, photo, tags
+- Toggle verified/pro/founding_member
+- Link polls to profiles
+
+### Application Queue
+- List all applications sorted by date
+- Show AI score as colour-coded badge (green 70+, yellow 40-69, red 0-39)
+- Expand to see full AI reasoning and checklist
+- One-click approve/decline/request revision
+- Editor notes field
+- On approve: create hustler record, fire onboarding email sequence
+
+### QR Campaign Manager
+- Create campaigns with: name, short_code, featured_poll_id, location_tag
+- View per-campaign: scans, conversions, email captures
+- Toggle active/inactive
+
+---
+
+## THE 102 FOUNDING HUSTLER PROFILES
+
+All 102 profiles below must be seeded into the Supabase `hustlers` table at launch. Import via CSV. All have `founding_member = true`.
+
+**Provide this data as a CSV seed script. Key profiles include:**
+
+Sultan Al Darmaki (1833 Members Club, Abu Dhabi), Mohammed Al Zaben (MUNCH:ON acq. Careem, Dubai), Raya Bidshahri (School of Humanity, Dubai), Talal Tabbaa (CoinMENA, Bahrain), Walid Daniel Dib (Better supplements, Dubai), Ghaith Abdul Rahman (PwC/Dubai Future Foundation), Walid Faza (MSA Capital, Dubai), Majid Al Ansari (Filmmaker, UAE), Mohammad Al Razaz (OTO logistics, UAE/KSA), Khalid Al-Muflehi (Dept Culture & Tourism AD), Bader Ataya (Kitopi, Dubai), Muhannad Al Shami (PwC, UAE), Kunaal Kapur (Finance, Dubai), Saad Abu Touq (Ogilvy UAE), Saad Abu Zahra (Autodesk META), Ramzi Farah (Razor Capital, MENA), Loulou Khazen Baz (Conversations w/ Loulou / Spade Ventures, Dubai), Aya Sadder (Bolt Consultancy, UAE/Lebanon), Fadi Kanaan (EAGLE AI, Dubai), Nada Khan (Nutanix META, Dubai), Dana Baki (Exploration Space, Dubai), Maher Kaddoura (Accenture retd. / Social Impact, Dubai), Badr Ward (Lamsa, UAE), Nikita Sachdev Lord (Luna PR, Dubai), Karima El Hakim (Plug and Play Egypt, Cairo), Laith Zraikat (Arzan VC, Kuwait/Dubai), Amjad Masad (Replit, San Francisco / Jordanian), Sarah Toukan (Ziina, Dubai), Faisal Toukan (Ziina, Dubai), Dina Sam'an (CoinMENA, Bahrain), Omar Absi (Swftbox, Dubai), Mark Chahwan (Sarwa, Dubai), Abe Seksek (Serial Entrepreneur, MENA), Malak Albaw (MENA/Europe), Dr. Sara Althari (Genomics, UAE/UK), Dr. Ajlan Al Zaki (Stanford/MD Anderson, UAE/USA), Mohamed Nagaty Aboulnaga (Egypt/MENA), Anis Harb (Deliveroo MENA, Dubai), Mazen Kanaan (Mochi F&B, UAE/Lebanon), Sara Hamdan (NYT/Tech, MENA/USA), Nader Baker (Misfits advertising, Dubai), Rami Salman (UAE), Mousa Yassin (UAE/Iraq), Tala Al Jabri (Gulf VC, UAE), Nafez Dakkak (Edraak/Queen Rania Foundation, Jordan), Ryan Bistany (SABIS Global, MENA), Hamdan Al Khafaji (Contrast Wellness, Dubai), Mona Abou Hana (PwC/Strategy, Dubai), Christian Eid (DUCKLIFE branding, UAE), Nimish Shah (The Nudge Institute, MENA), Nahla Atié (The Lighthouse, Dubai), Nishant Singh (Crescent Enterprises, UAE), Mahmoud Mneimne (KOJ Group, UAE), Khalil Kanaan (Barbosa/Craft/Microbrewery, UAE), Omar El Tabch (Akrim AE, UAE), Rateel Al Shehri (Content Creator, Saudi Arabia), Nadia Jamjoom (KOJ Group, KSA/UAE), Majdy Miqdady (Flan social platform, MENA), Ambareen Musa (Souqalmal, Dubai), Cinderella Hamdan (B8 Architecture, Dubai), Saeed Al Mheiri (Chalhoub Greenhouse, UAE), Mais Imran (Sprinklr, UAE), Lama Kaddoura (Avantgarde Group, UAE), Amanda Mai Binger (Gosha Flowers, Dubai), Joyce Jarjoura (Gensler, UAE), Petros N. Zouzoulas (Parsons, UAE), Najla Ahmed Al Midfa (Sharjah Entrepreneurship Center), Kevin Holliday (C3, UAE), Philip Bucknell (Avantgarde Group, UAE/Global), Nikola Nedeljkovic (Right Bite, UAE), Ahmed Sanie Eldin (P&G, UAE), Sigrid Abdo (Kerry Group, UAE), Ahmad Al Khatib (NEXT50 AI, UAE), Tarek Bolbol (Claymore Consultants, UAE), Lubna Kabir (VC, Global/MENA), Rahaf Kubba (Wisewell, UAE), Sari AbuZahra (Deutsche Bank, UAE), Elias Ayyoub (UAE/Jordan), Eva Ayyoub (Ramboll, UAE), Tamara Dabbas (Tamara fintech, UAE), Tala Abbas (UAE), Rawan Gebran (ex-McKinsey, MENA), Natalia Shustova (Gosha Flowers, Dubai), Kristina Bråteng (Architect, UAE/Global), Adam El Rafey (Young Leader, UAE), AlDhabi AlMheiri (Published Author age 10, UAE), Zein Nemri (Systems of Harmony, UAE), Noelle Al-Jaweini (Saudi Exchange, Saudi Arabia), Maryam Al Hassani (Zealous, UAE), Nazia Khan (Performance Coach, UAE), Christopher Hobeiche (LinkedIn, UAE), Dr. Najat Benchiba-Savenius (Global Compass Consulting, UAE/Global), Zeid Hreish (ex-Uber KSA/Web3, MENA), Fares Ghandour (Tuhoon mental health, MENA), Dania Shahin (Alpha Wave Global, UAE), Leila Kaissi (Adams Street Partners, Global/MENA), Maysa Jalbout (Education Reform, Jordan/Global), Stephanie Emile (Web3, UAE/Global), Rami Shaar (Jotform, USA/MENA), Dr. Samah Jabr (Psychiatrist, Palestine), Dubai Abulhoul (Fiker Institute, UAE), Farah Foustok (Finance, Global/MENA), Ghassan R. Haddad (GovTech, MENA).
+
+**Create a seed script that generates slugs (kebab-case from name) and sets founding_member = true for all 102. Bios, quotes, and photo_urls will be loaded later via the admin panel.**
+
+---
+
+## 80 LAUNCH-READY POLL QUESTIONS
+
+Pre-load these into the `polls` table. All have passed the editorial 5-rule test. Categories and suggested poll_types are indicated:
+
+### TECHNOLOGY & AI (14) — category: 'technology_ai'
+1. Your job will still exist in 5 years. Be honest.
+2. AI is going to make the Middle East more competitive — or less?
+3. Would you hire a junior employee or an AI tool for the same budget?
+4. Is the UAE's tech ecosystem built for founders or for photo opportunities?
+5. Arabic AI models — does the region even need them?
+6. The $3.5T sovereign wealth funds — are they investing in the right tech?
+7. Should coding be mandatory in every MENA school?
+8. Is NEOM a vision or the world's most expensive PR campaign?
+9. Will AI replace more jobs in the Middle East than anywhere else?
+10. Do MENA founders get worse VC terms than their Western counterparts?
+11. Is the region's 'Smart City' obsession actually helping its citizens?
+12. Crypto: investment vehicle, inflation hedge, or speculation trap in MENA?
+13. Which region will produce the first $100B Arab tech company?
+14. Is the brain drain from MENA getting better or worse?
+
+### CULTURE & SOCIETY (14) — category: 'culture_society'
+1. Is wasta destroying meritocracy — or is it just regional networking?
+2. Should Arabic be mandatory in every Gulf school, regardless of nationality?
+3. Is the Middle East's hustle culture toxic or the source of its strength?
+4. Do expats in the Gulf get more opportunities than locals — and is that fair?
+5. Is the concept of 'face' (saving dignity publicly) holding the region back?
+6. Should Ramadan working hours be standardised across all Gulf countries?
+7. Which country in MENA has the best quality of life for the average person?
+8. Is social media making the Middle East more divided than united?
+9. Are arranged marriages in the region declining, and is that a loss?
+10. Should dual citizenship be allowed across all GCC countries?
+11. Is the Gulf's tolerance of other religions genuine or strategic?
+12. Does the region respect its blue-collar workers enough?
+13. Is TikTok doing more damage or more good to Arab youth culture?
+14. Nationalism in the Arab world: source of pride or barrier to progress?
+
+### BUSINESS & STARTUPS (14) — category: 'business'
+1. Is the MENA startup ecosystem actually meritocratic?
+2. Should founders bootstrap or take VC money — what's the right answer for this region?
+3. Is Dubai or Riyadh the better city to build a startup right now?
+4. Are MENA VCs backing the right founders — or the safest ones?
+5. Is the region's obsession with 'unicorns' missing the point entirely?
+6. Would you rather work for a startup or a multinational in the Middle East?
+7. Is corporate social responsibility in MENA genuine or greenwashing?
+8. The Saudi Vision 2030 — ahead of schedule, on track, or behind?
+9. Is family business still the most reliable path to wealth in this region?
+10. Should the UAE introduce a minimum wage for all workers?
+11. Are women-led startups in MENA getting equal access to capital?
+12. Is the informal economy (grey market, cash) a bigger problem than we admit?
+13. MENA's e-commerce boom — who are the real winners?
+14. Does this region reward risk-taking or punish failure too harshly?
+
+### CITIES & LIFESTYLE (10) — category: 'cities'
+1. Dubai, Riyadh, or Cairo — where is the real future of the Middle East?
+2. Would you raise your kids in the Middle East?
+3. Which Arab city has the best work-life balance?
+4. Is Dubai too expensive now — or is the value still there?
+5. Riyadh is changing fast. Is it changing in the right direction?
+6. Which city in MENA will be the next global startup hub?
+7. Is the traffic in your city getting better or worse — and does leadership care?
+8. Is the expat lifestyle in the Gulf sustainable long-term?
+9. Would you give up a higher salary to live in your home country?
+10. Is Beirut, despite everything, still the cultural heart of the Arab world?
+
+### IDENTITY & BELONGING (10) — category: 'identity'
+1. Are we building for ourselves or for Western validation?
+2. What does it mean to be Arab in 2026?
+3. Is the Arab diaspora more influential outside the region or inside it?
+4. Is the Middle East one region — or is that a Western invention?
+5. Is there a growing generation gap in values between parents and children in MENA?
+6. Should Arab countries celebrate their pre-Islamic heritage more openly?
+7. Do you feel more connected to your nationality or your city?
+8. Is English or Arabic the language of success in this region?
+9. Is the 'Arab World' branding hurting countries that want to be seen individually?
+10. Is religious identity in MENA getting stronger or weaker among Gen Z?
+
+### ECONOMY & FINANCE (10) — category: 'economy'
+1. Is the region's wealth gap getting better or worse?
+2. Will crypto replace traditional banking in MENA within 10 years?
+3. Should GCC countries introduce income tax?
+4. Is the cost of living in Dubai proportional to the quality of life?
+5. Oil money: curse or foundation for diversification?
+6. Which Gulf country is best managing its post-oil transition?
+7. Is Islamic finance a genuine alternative or a product with extra steps?
+8. Should Gulf governments reduce reliance on expat remittances?
+9. Is MENA's real estate market in a bubble?
+10. Does the region invest enough in its public health systems?
+
+### WOMEN & EQUALITY (8) — category: 'women_equality'
+1. Should women have equal inheritance rights across the Middle East?
+2. Is the gender gap in MENA startups actually closing?
+3. Which country in the region has made the most genuine progress on women's rights?
+4. Is the region's female leadership more symbolic or substantive?
+5. Should quotas for women on corporate boards be mandatory in MENA?
+6. Is the hijab debate in MENA settled — or still very much alive?
+7. Are women in the Gulf given equal access to career opportunities?
+8. Is the marriage age gap (older men, younger women) a problem the region needs to address?
+
+**For each question, auto-generate a slug from the question text (kebab-case, truncated to ~60 chars). Set default options as Yes/No or contextually appropriate 3-4 options. Set status = 'draft' so admin can review and publish.**
+
+---
+
+## API INTEGRATIONS SUMMARY
+
+| Integration | Purpose | Key Implementation Notes |
+|---|---|---|
+| **Supabase** | Core backend | RLS on all tables. Realtime for vote counts. Edge Functions for vote processing and AI agent. |
+| **Claude API** | AI qualification agent | claude-sonnet-4-20250514. Single structured prompt → JSON response. |
+| **Beehiiv** | Newsletter | Add subscriber on email capture. Trigger welcome sequence. Weekly Pulse auto-draft. |
+| **Resend** | Transactional email only | Application status emails. Onboarding kit (3-email sequence). Admin alerts. |
+| **Cloudinary** | Media, OG cards, result cards | URL-based transforms. OG card = base template + text overlay params. |
+| **FingerprintJS** | Duplicate vote prevention | Open-source for MVP. Pro ($99/mo) only if gaming becomes an issue. |
+| **GA4** | Analytics | Events: page_view, vote_cast, share_gate_shown, share_completed, email_captured, poll_results_viewed, hustler_profile_viewed, newsletter_subscribed. |
+| **WhatsApp Share** | Pre-formatted share links | `wa.me/?text=[encoded]`. Pure frontend deep-link. No server call. |
+
+---
+
+## HUSTLER ONBOARDING KIT (3-Email Sequence via Resend)
+
+| Email | Timing | Subject | Content |
+|---|---|---|---|
+| **1** | Immediately on approval | "YOUR TMH PROFILE IS LIVE." | Profile URL, WhatsApp share card (Cloudinary), LinkedIn share card, QR code, suggested caption copy. |
+| **2** | 24 hours later | "NOMINATE YOUR FIRST POLL QUESTION." | Link to nomination form. 3 example questions from their sector. |
+| **3** | 7 days later | "HOW YOUR PROFILE IS PERFORMING." | Profile view count from last 7 days. Encouragement to share. |
+
+---
+
+## CRITICAL BUILD PRIORITIES
+
+**The #1 thing that must work perfectly:**
+The vote → share gate → results loop on mobile. Especially WhatsApp deep-link on both iOS and Android. If this is broken, nothing else matters.
+
+**The #2 thing that must work:**
+All 102 Hustler profiles live, looking correct, with photos loading from Cloudinary and linked to relevant polls.
+
+**The #3 thing that must work:**
+The first email after share gate capture must arrive within 60 seconds via Beehiiv, and it must include the user's referral link.
+
+---
+
+## LAUNCH CHECKLIST (All must be green before public launch)
+
+- [ ] Hero poll + at least 3 debate cards live
+- [ ] At least 10 questions in the daily question strip
+- [ ] Share gate functional: WhatsApp share verified on iOS and Android
+- [ ] OG preview card tested on WhatsApp (iOS), WhatsApp Web, LinkedIn, iMessage
+- [ ] All 102 Hustler profiles imported and displaying correctly
+- [ ] AI qualification agent live and tested
+- [ ] Beehiiv welcome email fires within 60 seconds
+- [ ] Weekly Pulse newsletter scheduled for first Tuesday post-launch
+- [ ] Rate limiting: same fingerprint cannot vote twice on same poll per 24h
+- [ ] Supabase RLS enabled on all tables
+- [ ] Admin dashboard secured (no public access)
+- [ ] Cookie consent banner live and dismissable
+- [ ] GA4 events confirmed for all key actions
+- [ ] Lighthouse mobile score: 90+
+- [ ] Domain, SSL, custom domain configured on Replit Deployment
+- [ ] Dark mode default, light mode toggle working, saved to localStorage
+
+---
+
+## FIGMA REFERENCE LINKS
+
+These FigJam boards contain the visual architecture diagrams. Refer to them for flow verification:
+
+- **D-01 — TMH Site Map:** https://www.figma.com/board/lisPnWMKk0ft9Ftf47FsDi/TMH-Site-Map?node-id=0-1
+- **D-02 — Core Vote Flow (incl. QR Entry):** https://www.figma.com/board/e3q2jo2kEMnTWG9bulOu5M/TMH-Core-Vote-Flow--incl.-QR-Entry-?node-id=0-1
+- **D-05 — AI Qualification Agent Logic:** https://www.figma.com/board/7gfQBfj8Lr8Gc38HIrovBx/TMH-AI-Qualification-Agent-Logic?node-id=0-1
+
+---
+
+## BUILD ORDER (Phased)
+
+| Phase | Days | What to Build |
+|---|---|---|
+| **Phase 0: Setup** | Days 1-3 | Replit workspace + Supabase project. Tailwind + design system. CI/CD live. |
+| **Phase 1: Core UI** | Days 4-10 | All homepage sections: ticker, masthead, hero poll, debate cards, question strip, leaderboard, Hustler grid, newsletter CTA, footer. Dark/light mode. Mobile responsive. |
+| **Phase 2: Poll Engine** | Days 8-16 | Supabase polls + votes tables. Vote API with fingerprint dedup. Share gate. Email unlock → Beehiiv. Result animations. Country breakdown. OG card (Cloudinary). Share deep-links. |
+| **Phase 3: Profiles** | Days 14-22 | All 102 profiles via CSV import. Individual profile pages. Application form → admin queue. Profile share cards. Hustler grid from DB. |
+| **Phase 4: Admin & Auth** | Days 20-28 | Admin dashboard: poll creator, profile queue, application queue with AI scores. Magic link auth. Rate limiting. |
+| **Phase 5: Launch Prep** | Days 26-32 | SEO meta + OG images. Lighthouse audit (90+). QA cross-device. Cookie consent. Domain + SSL. Soft launch: 50 beta users. |
+
+**Target: Soft launch by Day 35. The core vote → share gate → results loop must be bulletproof on mobile by Day 20.**
+
+---
+
+## FINAL NOTES
+
+- Mobile-first. Every component must work perfectly on 375px width.
+- WhatsApp sharing is the primary distribution channel. Test exhaustively on iOS and Android.
+- No banner ads. No premium barriers on voting. The share gate is a distribution mechanic, not a paywall — there is always a free path (share OR email).
+- The platform must feel as good on a 5-year-old Android in Cairo as on the latest iPhone in Dubai.
+- Domain: themiddleeasthustle.com
+- Founded by: Kareem Kaddoura, Dubai, 2026.
+
+**Now build it.**
