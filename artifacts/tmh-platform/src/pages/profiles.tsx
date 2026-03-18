@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 
 export default function Profiles() {
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<'featured' | 'newest' | 'most_viewed'>('featured')
+  const [filter, setFilter] = useState<'all' | 'featured' | 'newest' | 'most_viewed'>('all')
   const [country, setCountry] = useState("all")
 
-  const { data, isLoading } = useListProfiles({ search, filter, limit: 100 })
+  const { data, isLoading } = useListProfiles({ search, filter, limit: 200 })
 
   const countries = useMemo(() => {
     if (!data?.profiles) return []
@@ -25,6 +25,7 @@ export default function Profiles() {
   }, [data?.profiles, country])
 
   const filters = [
+    { id: 'all', label: 'All' },
     { id: 'featured', label: 'Most Relevant' },
     { id: 'most_viewed', label: 'Most Viewed' },
     { id: 'newest', label: 'Newly Added' },

@@ -25,7 +25,7 @@ function toProfileResponse(profile: any) {
 router.get("/profiles", async (req, res) => {
   try {
     const { search, country, sector, filter, limit = "20", offset = "0" } = req.query as Record<string, string>;
-    const lim = Math.min(parseInt(limit) || 20, 50);
+    const lim = Math.min(parseInt(limit) || 20, 200);
     const off = parseInt(offset) || 0;
 
     const conditions: any[] = [];
