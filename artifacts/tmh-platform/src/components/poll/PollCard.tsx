@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link } from "wouter"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Share2, X, Linkedin, Lock, Mail, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Share2, Linkedin, Lock, Mail, CheckCircle2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { useVotePoll } from "@workspace/api-client-react"
 import type { Poll, PollOption } from "@workspace/api-client-react/src/generated/api.schemas"
@@ -29,8 +29,6 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
   const { hasVoted, getVotedOption, recordVote, token } = useVoter()
   const { toast } = useToast()
   const voteMutation = useVotePoll()
-  const [mobileStripDismissed, setMobileStripDismissed] = useState(false)
-
   const [localOptions, setLocalOptions] = useState<PollOption[]>(poll.options ?? [])
   const [localTotal, setLocalTotal] = useState(poll.totalVotes ?? 0)
   const [phase, setPhase] = useState<Phase>(() => getInitialPhase(poll.id, hasVoted))
@@ -155,8 +153,6 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
   }
 
   const isLive = !poll.endsAt || new Date(poll.endsAt) > new Date()
-  const showMobileStrip = !isVoted && !mobileStripDismissed && isLive
-
   return (
     <>
       <div className={cn(
@@ -446,59 +442,6 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
         </div>
       </div>
 
-      {/* Mobile sticky bottom strip */}
-      <AnimatePresence>
-        {showMobileStrip && (
-          <motion.div
-            key="mobile-strip"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t-2 border-foreground shadow-2xl"
-          >
-            <div className="px-4 pt-4 pb-2 flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                  Cast Your Vote
-                </p>
-                <p className="font-serif font-black uppercase text-sm leading-tight text-foreground truncate">
-                  {poll.question}
-                </p>
-              </div>
-              <button
-                onClick={() => setMobileStripDismissed(true)}
-                className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0 mt-0.5"
-                aria-label="Dismiss"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="px-4 pb-4 pt-2">
-              <div className="space-y-2">
-                {localOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => { handleVote(option.id); setMobileStripDismissed(true) }}
-                    disabled={!isLive}
-                    className={cn(
-                      "group w-full text-left px-5 py-3 border border-border transition-all duration-150 font-medium text-xs font-sans",
-                      "bg-background text-foreground",
-                      "hover:bg-foreground hover:text-background hover:border-foreground hover:border-l-4 hover:border-l-primary",
-                      !isLive && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <span className="block transition-transform duration-150 group-hover:translate-x-1">
-                      {option.text}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   )
 }
