@@ -22,6 +22,7 @@ function getInitialPhase(pollId: string, hasVoted: (id: string) => boolean): Pha
   if (typeof window === "undefined") return "vote"
   if (!hasVoted(pollId)) return "vote"
   if (localStorage.getItem(`tmh_unlocked_${pollId}`)) return "results"
+  if (localStorage.getItem("tmh_email_submitted")) return "results"
   return "gate"
 }
 
@@ -72,7 +73,8 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
       }
     )
 
-    setTimeout(() => setPhase("gate"), 500)
+    const alreadyUnlocked = localStorage.getItem("tmh_email_submitted") || localStorage.getItem(`tmh_unlocked_${poll.id}`)
+    setTimeout(() => alreadyUnlocked ? unlock() : setPhase("gate"), 500)
   }
 
   const handleShareWhatsApp = () => {
@@ -115,6 +117,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
     e.preventDefault()
     if (!email.trim()) return
     setEmailSubmitted(true)
+    localStorage.setItem("tmh_email_submitted", "true")
     const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
     fetch(`${baseUrl}/api/polls/${poll.id}/email-unlock`, {
       method: "POST",
