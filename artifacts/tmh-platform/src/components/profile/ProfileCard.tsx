@@ -75,11 +75,11 @@ export function ProfileCard({ profile }: { profile: Profile }) {
     >
       {/* Photo or initials */}
       {profile.imageUrl ? (
-        <div className="relative overflow-hidden h-48 flex-shrink-0">
+        <div className="relative overflow-hidden h-56 flex-shrink-0">
           <img
             src={profile.imageUrl}
             alt={profile.name}
-            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
+            className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-300"
           />
           {profile.isFeatured && (
             <span className="absolute top-3 left-3 bg-primary text-background text-[9px] uppercase tracking-widest px-2 py-1 font-bold">

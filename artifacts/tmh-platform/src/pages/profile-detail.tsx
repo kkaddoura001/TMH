@@ -96,61 +96,74 @@ export default function ProfileDetail() {
 
   return (
     <Layout>
-      {/* Full-bleed photo header */}
-      {profile.imageUrl && (
-        <div className="w-full max-h-80 overflow-hidden">
-          <img
-            src={profile.imageUrl}
-            alt={profile.name}
-            className="w-full max-h-80 object-cover object-top grayscale"
-          />
-        </div>
-      )}
-
-      {/* Name / meta strip */}
+      {/* Header: portrait photo + name/meta */}
       <div className="bg-background border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Link href="/profiles" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground font-bold mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Directory
           </Link>
 
-          {!profile.imageUrl && (
-            <div className="relative w-32 h-32 md:w-48 md:h-48 bg-secondary text-foreground flex items-center justify-center font-serif font-black text-5xl border border-border mb-8">
-              {profile.name.substring(0, 2).toUpperCase()}
-              {profile.isVerified && (
-                <div className="absolute -bottom-2 -right-2 bg-primary w-4 h-4 border-2 border-background" title="Verified Voice" />
-              )}
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="px-3 py-1 bg-foreground text-background text-[10px] font-bold uppercase tracking-widest">
-              {profile.sector}
-            </span>
-            <span className="text-muted-foreground text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 ml-auto">
-              <Eye className="w-4 h-4" /> {profile.viewCount.toLocaleString()} Views
-            </span>
-          </div>
-
-          <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-black uppercase text-foreground mb-4 leading-none tracking-tight">
-            {profile.name}
-          </h1>
-          <p className="text-xl md:text-2xl text-foreground font-serif italic mb-6 leading-relaxed border-l-4 border-primary pl-4">
-            {profile.headline}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-6 text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-foreground" /> {profile.role}
-            </div>
-            {profile.company && (
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-foreground" />
-                <CompanyLink company={profile.company} />
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
+            {/* Portrait photo */}
+            {profile.imageUrl ? (
+              <div className="relative flex-shrink-0 w-48 md:w-56 lg:w-64">
+                <div className="relative overflow-hidden border border-border" style={{ aspectRatio: '3/4' }}>
+                  <img
+                    src={profile.imageUrl}
+                    alt={profile.name}
+                    className="w-full h-full object-cover object-top grayscale"
+                  />
+                  {profile.isVerified && (
+                    <div className="absolute bottom-3 right-3 w-3 h-3 rounded-full bg-primary border-2 border-background" title="Verified Voice" />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="relative flex-shrink-0 w-48 md:w-56 bg-secondary text-foreground flex items-center justify-center font-serif font-black text-5xl border border-border" style={{ aspectRatio: '3/4' }}>
+                {profile.name.substring(0, 2).toUpperCase()}
+                {profile.isVerified && (
+                  <div className="absolute bottom-3 right-3 bg-primary w-3 h-3 border-2 border-background" title="Verified Voice" />
+                )}
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-foreground" /> {profile.city}, {profile.country}
+
+            {/* Name / meta */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="px-3 py-1 bg-foreground text-background text-[10px] font-bold uppercase tracking-widest">
+                  {profile.sector}
+                </span>
+                {profile.isFeatured && (
+                  <span className="px-3 py-1 bg-primary text-background text-[10px] font-bold uppercase tracking-widest">
+                    Featured Voice
+                  </span>
+                )}
+                <span className="text-muted-foreground text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 ml-auto">
+                  <Eye className="w-4 h-4" /> {profile.viewCount.toLocaleString()} Views
+                </span>
+              </div>
+
+              <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-black uppercase text-foreground mb-4 leading-none tracking-tight">
+                {profile.name}
+              </h1>
+              <p className="text-lg md:text-xl text-foreground font-serif italic mb-6 leading-relaxed border-l-4 border-primary pl-4">
+                {profile.headline}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-6 text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-foreground" /> {profile.role}
+                </div>
+                {profile.company && (
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4 text-foreground" />
+                    <CompanyLink company={profile.company} />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-foreground" /> {profile.city}, {profile.country}
+                </div>
+              </div>
             </div>
           </div>
         </div>
