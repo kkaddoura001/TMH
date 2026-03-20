@@ -85,17 +85,27 @@ router.get("/polls", async (req, res) => {
     const lim = Math.min(parseInt(limit) || 20, 50);
     const off = parseInt(offset) || 0;
 
-    let query = db.select().from(pollsTable);
+    // Resolve slug → canonical category name to handle duplicate slug variants in DB
+    let categoryName: string | null = null;
     if (category) {
-      query = query.where(eq(pollsTable.categorySlug, category)) as any;
+      const catRow = await db.select({ category: pollsTable.category })
+        .from(pollsTable)
+        .where(eq(pollsTable.categorySlug, category))
+        .limit(1);
+      categoryName = catRow[0]?.category ?? null;
+    }
+
+    let query = db.select().from(pollsTable);
+    if (categoryName) {
+      query = query.where(eq(pollsTable.category, categoryName)) as any;
     }
 
     let polls;
     if (filter === "trending" || filter === "most_voted") {
       polls = await (query as any).orderBy(desc(sql`(SELECT SUM(vote_count) FROM poll_options WHERE poll_id = polls.id)`)).limit(lim).offset(off);
     } else if (filter === "editors_picks") {
-      const whereClause = category
-        ? and(eq(pollsTable.isEditorsPick, true), eq(pollsTable.categorySlug, category))
+      const whereClause = categoryName
+        ? and(eq(pollsTable.isEditorsPick, true), eq(pollsTable.category, categoryName))
         : eq(pollsTable.isEditorsPick, true);
       polls = await db.select().from(pollsTable).where(whereClause).orderBy(desc(pollsTable.createdAt)).limit(lim).offset(off);
     } else if (filter === "ending_soon") {

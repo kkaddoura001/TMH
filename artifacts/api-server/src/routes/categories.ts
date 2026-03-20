@@ -4,37 +4,65 @@ import { eq, sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-const CATEGORIES = [
-  { slug: "startups-venture", name: "Startups & Venture", icon: "🚀" },
-  { slug: "work-careers", name: "Work & Careers", icon: "💼" },
-  { slug: "cities-lifestyle", name: "Cities & Lifestyle", icon: "🏙️" },
-  { slug: "technology-ai", name: "Technology & AI", icon: "🤖" },
-  { slug: "leadership", name: "Leadership", icon: "🎯" },
-  { slug: "consumer-trends", name: "Consumer Trends", icon: "📈" },
-  { slug: "culture-identity", name: "Culture & Identity", icon: "🌍" },
-  { slug: "women-in-region", name: "Women in the Region", icon: "⭐" },
-  { slug: "media-influence", name: "Media & Influence", icon: "📡" },
-  { slug: "sports-events", name: "Sports & Events", icon: "🏆" },
-  { slug: "future-region", name: "Future of the Region", icon: "🔮" },
-  { slug: "education-learning", name: "Education & Learning", icon: "📚" },
-];
+const ICON_MAP: Record<string, string> = {
+  "arts-expression": "🎨",
+  "startups-venture": "🚀",
+  "business-startups": "🚀",
+  "business": "🚀",
+  "work-careers": "💼",
+  "cities-lifestyle": "🏙️",
+  "cities": "🏙️",
+  "technology-ai": "🤖",
+  "technology_ai": "🤖",
+  "leadership": "🎯",
+  "consumer-trends": "📈",
+  "culture-identity": "🌍",
+  "culture-society": "🌍",
+  "culture_society": "🌍",
+  "economy-finance": "💰",
+  "economy": "💰",
+  "women-in-region": "⭐",
+  "women-equality": "⭐",
+  "women_equality": "⭐",
+  "media-influence": "📡",
+  "sports-events": "🏆",
+  "future-region": "🔮",
+  "education-learning": "📚",
+  "identity-belonging": "🧭",
+  "identity": "🧭",
+};
 
 router.get("/categories", async (_req, res) => {
   try {
-    const counts = await db
-      .select({ categorySlug: pollsTable.categorySlug, count: sql<number>`count(*)` })
+    // Derive categories dynamically from DB — grouped by category name, summing counts across any slug variants
+    const rows = await db
+      .select({
+        category: pollsTable.category,
+        categorySlug: pollsTable.categorySlug,
+        count: sql<number>`count(*)`,
+      })
       .from(pollsTable)
-      .groupBy(pollsTable.categorySlug);
+      .groupBy(pollsTable.category, pollsTable.categorySlug)
+      .orderBy(pollsTable.category);
 
-    const countMap: Record<string, number> = {};
-    for (const c of counts) {
-      countMap[c.categorySlug] = Number(c.count);
+    // Merge slug variants under the same category name, keeping the slug with the most polls
+    const nameMap: Record<string, { slug: string; count: number }> = {};
+    for (const row of rows) {
+      const existing = nameMap[row.category];
+      const n = Number(row.count);
+      if (!existing || n > existing.count) {
+        nameMap[row.category] = { slug: row.categorySlug, count: n };
+      }
     }
 
-    const categories = CATEGORIES.map((c) => ({
-      ...c,
-      pollCount: countMap[c.slug] ?? 0,
-    }));
+    const categories = Object.entries(nameMap)
+      .map(([name, { slug, count }]) => ({
+        name,
+        slug,
+        icon: ICON_MAP[slug] ?? "📌",
+        pollCount: count,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
     res.json({ categories });
   } catch (err) {
