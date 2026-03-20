@@ -192,6 +192,19 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
     e.preventDefault()
     e.stopPropagation()
     const url = getPollUrl(poll.id)
+
+    // Mobile: use native share sheet (iOS share menu, Android intent)
+    if (navigator.share) {
+      try {
+        await navigator.share({ url, title: poll.question })
+        return
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return
+        // share failed for other reason, fall through to clipboard
+      }
+    }
+
+    // Desktop: clipboard copy
     const ok = await copyToClipboard(url)
     if (ok) {
       toast({ title: "Link copied!" })
