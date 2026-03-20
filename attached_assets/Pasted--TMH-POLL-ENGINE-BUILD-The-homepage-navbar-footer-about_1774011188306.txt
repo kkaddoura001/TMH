@@ -1,0 +1,534 @@
+# TMH POLL ENGINE BUILD
+
+The homepage, navbar, footer, about page, routing, design system, dark/light mode, and mobile responsiveness are already built. Do NOT rebuild or modify any of those. This prompt is ONLY for the poll engine backend and frontend.
+
+-----
+
+## STEP 1: SUPABASE TABLES
+
+Create these tables in Supabase. If a Supabase project is not yet connected, connect one first.
+
+### polls table
+
+```sql
+CREATE TABLE polls (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  question TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('technology_ai', 'culture_society', 'business', 'cities', 'identity', 'economy', 'women_equality', 'arts_expression')),
+  options JSONB NOT NULL DEFAULT '[]',
+  poll_type TEXT DEFAULT 'card' CHECK (poll_type IN ('hero', 'card', 'strip')),
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'live', 'closed')),
+  is_featured BOOLEAN DEFAULT false,
+  tags TEXT[] DEFAULT '{}',
+  total_votes INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_polls_category ON polls(category);
+CREATE INDEX idx_polls_status ON polls(status);
+CREATE INDEX idx_polls_slug ON polls(slug);
+```
+
+The `options` JSONB stores an array of objects like:
+
+```json
+[
+  {"text": "Option A", "votes": 0},
+  {"text": "Option B", "votes": 0},
+  {"text": "Option C", "votes": 0},
+  {"text": "Option D", "votes": 0}
+]
+```
+
+### votes table
+
+```sql
+CREATE TABLE votes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  poll_id UUID REFERENCES polls(id) ON DELETE CASCADE,
+  option_index INTEGER NOT NULL,
+  fingerprint TEXT NOT NULL,
+  country_code TEXT DEFAULT 'XX',
+  utm_source TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(poll_id, fingerprint)
+);
+
+CREATE INDEX idx_votes_poll_id ON votes(poll_id);
+CREATE INDEX idx_votes_fingerprint ON votes(fingerprint);
+```
+
+### email_captures table
+
+```sql
+CREATE TABLE email_captures (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT NOT NULL,
+  poll_id UUID REFERENCES polls(id),
+  source TEXT DEFAULT 'share_gate',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Row Level Security
+
+```sql
+ALTER TABLE polls ENABLE ROW LEVEL SECURITY;
+ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_captures ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read live polls
+CREATE POLICY "Public can read live polls" ON polls FOR SELECT USING (status = 'live');
+
+-- Anyone can insert votes (rate limiting handled in application)
+CREATE POLICY "Public can vote" ON votes FOR INSERT WITH CHECK (true);
+
+-- Anyone can read votes (for result counts)
+CREATE POLICY "Public can read votes" ON votes FOR SELECT USING (true);
+
+-- Anyone can submit email
+CREATE POLICY "Public can submit email" ON email_captures FOR INSERT WITH CHECK (true);
+```
+
+### Enable Realtime on polls table
+
+In Supabase dashboard: Database > Replication > Enable realtime for the `polls` table. This powers the live vote counter.
+
+-----
+
+## STEP 2: SEED ALL POLL QUESTIONS
+
+Create a seed script that inserts all poll questions into the `polls` table with `status = 'live'`. Generate slugs by taking the question text, lowercasing, removing special characters, replacing spaces with hyphens, and truncating to 60 characters.
+
+Set the first poll as `poll_type = 'hero'` and `is_featured = true`. Set the next 3 as `poll_type = 'card'`. Set the rest as `poll_type = 'strip'`.
+
+Here are the questions organized by category. Each question includes its answer options.
+
+### TECHNOLOGY & AI (category: ‘technology_ai’)
+
+1. “Your job will still exist in 5 years. Be honest.” – Options: [“Definitely safe”, “Probably not”, “Already being replaced”, “I AM the replacement”]
+1. “AI is going to make the Middle East more competitive or less?” – Options: [“More competitive”, “Less competitive”, “Only for the rich countries”, “Too early to tell”]
+1. “Would you hire a junior employee or an AI tool for the same budget?” – Options: [“Junior employee”, “AI tool”, “Both, cut something else”, “Depends on the role”]
+1. “Is the UAE’s tech ecosystem built for founders or for photo opportunities?” – Options: [“Founders, genuinely”, “Photo ops mostly”, “Both honestly”, “It’s improving”]
+1. “Arabic AI models: does the region even need them?” – Options: [“Absolutely essential”, “Nice to have”, “English works fine”, “The market is too small”]
+1. “The $3.5T sovereign wealth funds: are they investing in the right tech?” – Options: [“Yes, playing long-term”, “Too conservative”, “Chasing Western trends”, “Nobody knows yet”]
+1. “Should coding be mandatory in every MENA school?” – Options: [“Yes, non-negotiable”, “No, not everyone needs it”, “Logic and problem-solving, not syntax”, “Fix the basics first”]
+1. “Is NEOM a vision or the world’s most expensive PR campaign?” – Options: [“Genuine vision”, “Expensive PR”, “Started as vision, became PR”, “Too early to judge”]
+1. “Will AI replace more jobs in the Middle East than anywhere else?” – Options: [“Yes, less safety nets”, “No, different economy”, “Only white-collar jobs”, “AI will create more jobs here”]
+1. “Do MENA founders get worse VC terms than their Western counterparts?” – Options: [“Much worse”, “About the same”, “Depends on the fund”, “We don’t have enough data”]
+1. “90% of AI startups in MENA are just a ChatGPT wrapper with a logo. Change my mind.” – Options: [“Accurate and embarrassing”, “Harsh but fair”, “There are real ones too”, “You’re just hating”]
+1. “$3.5 trillion in sovereign wealth and we still can’t build a global consumer app. Why?” – Options: [“Talent keeps leaving”, “Government money kills innovation”, “We build for exits not users”, “Give it time”]
+1. “Your company’s AI strategy is one guy with a ChatGPT Plus subscription. Admit it.” – Options: [“Personally attacked right now”, “We actually have a real one”, “Even that is generous”, “AI strategy is a scam anyway”]
+1. “NEOM has spent $500B+ and the main export so far is renders. Country or Behance portfolio?” – Options: [“Most expensive mood board ever”, “Long-term vision relax”, “The renders are fire though”, “It’s a jobs program”]
+1. “Be honest: you mass-applied to jobs using AI and still didn’t get a callback.” – Options: [“I feel seen”, “Got the job actually”, “Recruiters use AI too so we’re even”, “I hire people and yes I can tell”]
+1. “The average MENA developer makes $24K/year. Silicon Valley counterpart makes $180K. Same code. Fair?” – Options: [“Cost of living is different”, “No it’s exploitation”, “That’s why they leave”, “Remote work is fixing it”]
+1. “Half the tech founders at MENA conferences have never shipped a product. Just a deck and a lanyard.” – Options: [“The lanyard economy is real”, “Networking IS the product”, “I’ve seen this exact person”, “I might be this person”]
+1. “Smart City rankings put Dubai top 10 globally but your Etisalat bill still takes 45 minutes to dispute.” – Options: [“Smart cities dumb customer service”, “It’s actually gotten better”, “du is worse”, “I just pay and cry”]
+1. “ChatGPT writes better strategy decks than 80% of consultants billing $500/hr in the Gulf.” – Options: [“Consultants are shaking”, “ChatGPT can’t read the room”, “The slides are the same the fees aren’t”, “I’m a consultant and I use it too”]
+1. “Your startup says AI-powered but your actual moat is a WhatsApp group and one ops guy named Ahmed.” – Options: [“Ahmed is carrying the region”, “WhatsApp IS infrastructure here”, “Stop exposing my business model”, “Ahmed quit last week actually”]
+1. “MENA produced 0 of the top 100 AI research papers in 2025. Zero. But we hosted 47 AI conferences.” – Options: [“Conference economy goes crazy”, “Research doesn’t need a stage”, “We’re funding not building”, “The food at those events though”]
+1. “If every blockchain startup in Dubai actually had users crypto adoption would be 100%. It’s 4%.” – Options: [“The math isn’t mathing”, “It’s still early”, “Most are just token launchers”, “4% is actually decent”]
+1. “Is the region’s Smart City obsession actually helping its citizens?” – Options: [“Yes, real improvements”, “No, it’s a branding exercise”, “Helps some, ignores others”, “Define ‘helping’”]
+1. “Crypto: investment vehicle, inflation hedge, or speculation trap in MENA?” – Options: [“Legit investment”, “Speculation trap”, “Inflation hedge”, “All three depending on the person”]
+1. “Which region will produce the first $100B Arab tech company?” – Options: [“UAE”, “Saudi Arabia”, “Egypt”, “None in the next decade”]
+1. “Is the brain drain from MENA getting better or worse?” – Options: [“Getting worse”, “Getting better”, “It’s just shifting countries”, “Remote work changes this”]
+
+### CULTURE & SOCIETY (category: ‘culture_society’)
+
+1. “Is wasta destroying meritocracy or is it just regional networking?” – Options: [“Destroying it”, “It’s just networking”, “Both at the same time”, “Meritocracy never existed here”]
+1. “Should Arabic be mandatory in every Gulf school regardless of nationality?” – Options: [“Yes mandatory”, “Optional but encouraged”, “No, focus on quality education”, “Only for citizens”]
+1. “Is the Middle East’s hustle culture toxic or the source of its strength?” – Options: [“Toxic”, “Source of strength”, “Both”, “What hustle culture?”]
+1. “Do expats in the Gulf get more opportunities than locals and is that fair?” – Options: [“More opportunities, not fair”, “More opportunities, it’s fair”, “Locals get more actually”, “Depends on the industry”]
+1. “Is the concept of face (saving dignity publicly) holding the region back?” – Options: [“Yes, kills honesty”, “No, it’s cultural wisdom”, “It’s complicated”, “Only in business”]
+1. “Should Ramadan working hours be standardised across all Gulf countries?” – Options: [“Yes standardise”, “No each country decides”, “Ramadan hours are fine as is”, “Make them optional”]
+1. “Which country in MENA has the best quality of life for the average person?” – Options: [“UAE”, “Qatar”, “Oman”, “Jordan”]
+1. “Is social media making the Middle East more divided than united?” – Options: [“More divided”, “More united”, “Both equally”, “It just amplifies what exists”]
+1. “Are arranged marriages in the region declining and is that a loss?” – Options: [“Declining and good”, “Declining and a loss”, “Not declining actually”, “Evolving not declining”]
+1. “Should dual citizenship be allowed across all GCC countries?” – Options: [“Yes absolutely”, “No, sovereignty matters”, “Only between GCC states”, “It will never happen”]
+1. “Is the Gulf’s tolerance of other religions genuine or strategic?” – Options: [“Genuine”, “Strategic”, “Mix of both”, “Varies by country”]
+1. “Does the region respect its blue-collar workers enough?” – Options: [“Not even close”, “Improving slowly”, “Better than people think”, “No and it’s shameful”]
+1. “Is TikTok doing more damage or more good to Arab youth culture?” – Options: [“More damage”, “More good”, “It’s just a platform”, “Depends on the content”]
+1. “Nationalism in the Arab world: source of pride or barrier to progress?” – Options: [“Source of pride”, “Barrier to progress”, “Both”, “Depends on the country”]
+1. “72% of Arabs under 30 want to emigrate. But y’all get mad when someone actually leaves. Which one is it?” – Options: [“We want options not exile”, “Leaving IS the option”, “The guilt trip is cultural”, “They leave and come back anyway”]
+1. “Wasta got you your first job. Be honest. (67% of MENA professionals say connections matter more than CVs.)” – Options: [“My CV was strong AND I had wasta”, “Wasta opened the door I kept it open”, “No wasta pure grind”, “I AM the wasta for others now”]
+1. “You post Free Palestine but won’t buy from a Palestinian business. Solidarity or performance?” – Options: [“This one hurt”, “I actually do support them”, “Most people don’t even know Palestinian brands”, “It’s more complicated than that”]
+1. “Ramadan productivity drops 40% but nobody’s allowed to say it. Why are we pretending?” – Options: [“Spiritual gains > KPIs”, “Honestly Ramadan is my most focused month”, “The iftar meetings are the real work”, “HR is watching I can’t answer this”]
+1. “Your family asks when you’re getting married more than they ask about your actual career. Are we okay?” – Options: [“Every single Eid”, “They stopped asking (gave up)”, “My career IS the problem”, “Married and they still find something”]
+1. “We complain about Western media stereotypes while our own media barely covers anything outside Dubai and Riyadh.” – Options: [“Amman and Cairo left the chat”, “Gulf media IS the region’s media now”, “Diaspora media fills the gap”, “Fair point no excuse”]
+1. “Be honest: you judge people by their accent. Gulf Arabic vs Levantine vs Egyptian. We all do it.” – Options: [“Gulf = money”, “Egyptian = funny”, “Levantine = pretty”, “I don’t do this (lying)”]
+1. “80% of Gulf residents are expats but have zero path to permanent residency. Is this sustainable for another 20 years?” – Options: [“Built the country can’t stay in it”, “Golden visa fixed this”, “It’s a feature not a bug”, “20 years is generous”]
+1. “You spent $200 on an iftar at a hotel but haggle with the delivery driver over AED 5 tip. Explain yourself.” – Options: [“I tip well actually”, “The hotel iftar was a mistake too”, “This is about class and we know it”, “AED 5 IS a good tip”]
+1. “The region built $50B in malls but your neighborhood still doesn’t have a decent public park. Progress?” – Options: [“Air-conditioned malls ARE the parks”, “This is genuinely sad”, “My neighborhood has a park (barely)”, “Parks don’t generate rent”]
+1. “You call yourself self-made but your dad’s driver dropped you at your first interview. We see you.” – Options: [“The driver was emotional support”, “Privilege acknowledged”, “I took the metro actually”, “Self-made is a spectrum”]
+1. “Arab hospitality is legendary until it’s time to split the bill. Then it’s a hostage negotiation.” – Options: [“I always grab the bill”, “The fake wallet reach is an art form”, “Whoever invited should pay period”, “Venmo would fix the Middle East”]
+
+### BUSINESS & STARTUPS (category: ‘business’)
+
+1. “Is the MENA startup ecosystem actually meritocratic?” – Options: [“Yes if you’re good you rise”, “Not even close”, “Meritocratic for some”, “What ecosystem?”]
+1. “Should founders bootstrap or take VC money in this region?” – Options: [“Bootstrap always”, “VC if the idea is big enough”, “Depends on the sector”, “There’s no VC money anyway”]
+1. “Is Dubai or Riyadh the better city to build a startup right now?” – Options: [“Dubai”, “Riyadh”, “Cairo (hear me out)”, “Depends on the sector”]
+1. “Are MENA VCs backing the right founders or the safest ones?” – Options: [“The safest ones”, “The right ones”, “The most connected ones”, “They can’t tell the difference”]
+1. “Is the region’s obsession with unicorns missing the point entirely?” – Options: [“Yes, build profitable companies”, “Unicorns matter for the ecosystem”, “We don’t have enough of either”, “It’s aspirational not obsessive”]
+1. “Would you rather work for a startup or a multinational in the Middle East?” – Options: [“Startup”, “Multinational”, “Startup with multinational salary”, “I’m building my own”]
+1. “Is corporate social responsibility in MENA genuine or greenwashing?” – Options: [“Mostly greenwashing”, “Some are genuine”, “Nobody cares as long as it looks good”, “It’s improving”]
+1. “The Saudi Vision 2030: ahead of schedule, on track, or behind?” – Options: [“Ahead”, “On track”, “Behind but course-correcting”, “Too early to judge”]
+1. “Is family business still the most reliable path to wealth in this region?” – Options: [“Yes and that’s the problem”, “Yes and that’s fine”, “No, tech is the new path”, “Family + tech is the real play”]
+1. “Should the UAE introduce a minimum wage for all workers?” – Options: [“Yes, long overdue”, “No, market should decide”, “Only for certain sectors”, “It already exists for Emiratis”]
+1. “Are women-led startups in MENA getting equal access to capital?” – Options: [“Not even close”, “Improving”, “Equal access exists”, “The data says no”]
+1. “Is the informal economy a bigger problem than we admit?” – Options: [“Massive problem”, “It’s actually an advantage”, “Depends on the country”, “We don’t have the data”]
+1. “MENA’s e-commerce boom: who are the real winners?” – Options: [“Amazon/Noon”, “Small businesses”, “Logistics companies”, “Consumers”]
+1. “Does this region reward risk-taking or punish failure too harshly?” – Options: [“Punishes failure”, “Rewards risk-taking”, “Depends on who you are”, “Failure isn’t discussed enough”]
+1. “The average MENA startup dies in 18 months. The average VC fund takes 3 years to deploy. Who’s failing who?” – Options: [“VCs are too slow”, “Founders burn too fast”, “Both are mid”, “18 months is generous”]
+1. “Your LinkedIn says Serial Entrepreneur but your last 3 startups had the same 12 customers. Serially mid.” – Options: [“Serial pivoter is more accurate”, “12 loyal customers is a moat”, “LinkedIn bios are fiction”, “I’m in this photo and I don’t like it”]
+1. “MENA founders raise $2M and immediately get a Porsche Cayenne. Investors: y’all see this right?” – Options: [“The Cayenne is a networking tool”, “I’ve literally seen this happen”, “Founders need to look successful”, “That’s the LP’s money not theirs”]
+1. “Dubai has 40,000+ registered companies. 80% have fewer than 5 employees. Building businesses or buying visas?” – Options: [“Visa economics is real”, “Small doesn’t mean fake”, “Most are freelancer shells”, “Still more real than a pitch deck”]
+1. “Your co-founder brings the network. Three months in the network is one uncle and a group chat.” – Options: [“The uncle came through though”, “Co-founder breakups are the real pandemic”, “Network = one strong intro away”, “I am the network co-founder mind your business”]
+1. “Saudi Arabia created 450,000 SME licenses in 2024. How many have actual revenue?” – Options: [“Less than 10% let’s be real”, “Revenue takes time”, “The license IS the business plan”, “Better than zero licenses”]
+1. “Founders fly business class to conferences but pay their teams 30 days late. Accountability where?” – Options: [“Conference ROI is real though”, “Pay your people first always”, “The business class is on miles”, “I know exactly who you’re talking about”]
+1. “90% of MENA accelerator graduates never raise a follow-on round. Are accelerators building startups or content?” – Options: [“Demo day is the real product”, “Accelerators add value beyond funding”, “It’s a LinkedIn photo opportunity”, “The 10% that make it justify it”]
+1. “Family offices control $1T+ in the Gulf but most won’t back a founder without a warm intro. Meritocracy?” – Options: [“Warm intros are universal not regional”, “Family offices aren’t VCs”, “If your idea was good someone would intro you”, “The warm intro economy needs disrupting”]
+1. “Your company has 6 VPs, 4 directors, 2 actual builders, and an office dog. This is most MENA startups.” – Options: [“The dog is the most productive”, “Title inflation is a regional disease”, “I’m a VP and I build things”, “Accurate for Series A+”]
+1. “You’ve been pre-revenue for 3 years and call it deep tech. It’s not deep tech. You have no customers.” – Options: [“Pre-revenue is a vibe”, “Deep tech genuinely takes longer”, “3 years with no revenue is a hobby”, “The market isn’t ready (cope)”]
+1. “The average exit in MENA is $15M. The average VC fund tells LPs they’ll return 10x. Someone explain the math.” – Options: [“The math never mathed”, “There are outliers that carry”, “LPs don’t check”, “This is why we need secondaries”]
+
+### CITIES & LIFESTYLE (category: ‘cities’)
+
+1. “Dubai, Riyadh, or Cairo: where is the real future of the Middle East?” – Options: [“Dubai”, “Riyadh”, “Cairo”, “None of the above”]
+1. “Would you raise your kids in the Middle East?” – Options: [“Yes, absolutely”, “No, better options abroad”, “Depends on the country”, “Yes but I have concerns”]
+1. “Which Arab city has the best work-life balance?” – Options: [“Amman”, “Muscat”, “Abu Dhabi”, “None of them”]
+1. “Is Dubai too expensive now or is the value still there?” – Options: [“Too expensive”, “Still worth it”, “Depends on your salary”, “It was always expensive”]
+1. “Riyadh is changing fast. Is it changing in the right direction?” – Options: [“Right direction”, “Too fast too soon”, “Only for the wealthy”, “Ask again in 5 years”]
+1. “Which city in MENA will be the next global startup hub?” – Options: [“Riyadh”, “Cairo”, “Abu Dhabi”, “None, Dubai stays on top”]
+1. “Is the traffic in your city getting better or worse and does leadership care?” – Options: [“Worse, they don’t care”, “Worse, they’re trying”, “Better actually”, “I work from home”]
+1. “Is the expat lifestyle in the Gulf sustainable long-term?” – Options: [“Not at all”, “If you save aggressively”, “Only for high earners”, “It’s a trap”]
+1. “Would you give up a higher salary to live in your home country?” – Options: [“Yes without hesitation”, “No, money matters”, “Already did it”, “My home country can’t afford me”]
+1. “Is Beirut despite everything still the cultural heart of the Arab world?” – Options: [“Always will be”, “Not anymore”, “It’s the heart that keeps breaking”, “Culture moved to the Gulf”]
+1. “Dubai rent went up 30% in 2 years. Salaries went up 3%. But sure it’s still the city of opportunity.” – Options: [“Opportunity to go broke”, “Still better than back home”, “Salaries will catch up”, “I moved to Sharjah”]
+1. “Riyadh’s entertainment scene went from 0 to 100 in 3 years. But can you walk anywhere? The sidewalk test.” – Options: [“You need a car to buy water”, “They’re building walkability”, “Entertainment > sidewalks”, “Riyadh in summer? Nobody’s walking”]
+1. “You moved to Dubai for 2 years and it’s been 11. The airport is closer than your hometown.” – Options: [“I’m going back next year (lying)”, “Dubai IS home now”, “I’m stuck not staying”, “The 2-year plan is a regional meme”]
+1. “Cairo has 22 million people some of the best food on earth and the worst traffic. Would you still choose it?” – Options: [“Cairo is chaos I can’t quit”, “Great to visit impossible to live”, “The food justifies everything”, “I left Cairo and miss it daily”]
+1. “Doha built $200B in infrastructure for the World Cup. It’s been 3 years. What’s the vibe now?” – Options: [“Quiet luxury literally”, “It was always a company town”, “Best airport least nightlife”, “Doha doesn’t need your validation”]
+1. “You live in JBR pay AED 120K in rent eat at the same 3 restaurants and call it living your best life.” – Options: [“I’m in this caption and I’m upset”, “JBR is a lifestyle choice”, “Business Bay is where it’s at”, “AED 120K for JBR is a deal now”]
+1. “Amman has incredible talent cheap rent and no VC money. Is Jordan the most underrated city in MENA?” – Options: [“Amman is a sleeping giant”, “Underrated but under-invested”, “Talent leaves because there’s no money”, “Lebanon said the same thing 10 years ago”]
+1. “Bahrain is 30 minutes from Saudi but feels like a different planet. Flex or warning?” – Options: [“Bahrain is the vibe Saudi wants”, “30 minutes 30 years apart”, “Bahrain is underrated”, “The causeway traffic disagrees”]
+1. “You complain about Dubai but won’t move. You complain about your home country but won’t go back. Pick a struggle.” – Options: [“Both struggles are valid”, “Moving is not that simple”, “I complain because I care”, “I’m saving up to go back (lying)”]
+1. “Abu Dhabi has more cultural institutions per capita than most European capitals. But people still say there’s nothing to do.” – Options: [“Louvre Guggenheim and no nightlife”, “Abu Dhabi is for grown-ups”, “Culture ≠ things to do”, “Weekend in Dubai fixes it”]
+1. “Beirut’s GDP dropped 60% since 2019 but the restaurants are still packed. Explain the economics of denial.” – Options: [“Lebanese resilience is unmatched”, “It’s the diaspora money”, “Denial is a coping mechanism”, “Those restaurants are paid in cash ask no questions”]
+1. “KSA spent $1.5T on giga-projects. Egypt’s new capital cost $58B. Oman did nothing flashy and might outlast both.” – Options: [“Oman plays the long game”, “Giga-projects create giga-jobs”, “Egypt’s capital is underrated”, “Oman is everyone’s backup plan”]
+
+### IDENTITY & BELONGING (category: ‘identity’)
+
+1. “Are we building for ourselves or for Western validation?” – Options: [“For ourselves”, “For Western validation”, “For investors (same thing)”, “Both and that’s okay”]
+1. “What does it mean to be Arab in 2026?” – Options: [“Pride in heritage”, “A complicated identity”, “Whatever you make it”, “Less than it used to”]
+1. “Is the Arab diaspora more influential outside the region or inside it?” – Options: [“Outside”, “Inside”, “Different types of influence”, “They’ve checked out”]
+1. “Is the Middle East one region or is that a Western invention?” – Options: [“One region”, “Western invention”, “Multiple regions forced together”, “United by language only”]
+1. “Is there a growing generation gap in values between parents and children in MENA?” – Options: [“Massive and growing”, “Normal generational stuff”, “Bigger here than anywhere”, “Not really”]
+1. “Should Arab countries celebrate their pre-Islamic heritage more openly?” – Options: [“Yes absolutely”, “No, Islam defines us”, “They already do”, “It’s politically complicated”]
+1. “Do you feel more connected to your nationality or your city?” – Options: [“Nationality”, “City”, “Neither, I’m a global citizen”, “My neighborhood honestly”]
+1. “Is English or Arabic the language of success in this region?” – Options: [“English”, “Arabic”, “Both equally”, “Code-switching is the real language”]
+1. “Is the Arab World branding hurting countries that want to be seen individually?” – Options: [“Yes definitely”, “No, unity is strength”, “Only for smaller countries”, “Nobody thinks about this”]
+1. “Is religious identity in MENA getting stronger or weaker among Gen Z?” – Options: [“Weaker”, “Stronger”, “More private not weaker”, “Depends on the country”]
+1. “You code-switch between 3 languages 2 accents and a completely different personality depending on the meeting. Healthy?” – Options: [“It’s a superpower”, “It’s exhausting actually”, “Third culture kid syndrome”, “This is just being Arab abroad”]
+1. “The most Arab thing about half the diaspora is the food they post on Instagram. Are we losing the plot?” – Options: [“Hummus is identity”, “Culture is deeper than food”, “At least they’re connected somehow”, “The diaspora does more than you think”]
+1. “50% of MENA’s top talent was educated abroad and came back. The other 50% didn’t. Who’s right?” – Options: [“The ones who came back”, “The ones who stayed”, “Both made the right call”, “The ones who never left”]
+1. “You fly Emirates but can’t name a single Emirati friend. Living in the Gulf doesn’t mean you’re part of it.” – Options: [“It’s hard to meet nationals”, “I have Emirati friends actually”, “The segregation is structural”, “Fair point no excuses”]
+1. “Arab parents will sacrifice everything to give you a better life and then guilt you about it for 40 years.” – Options: [“The ROI on guilt is generational”, “Sacrifice with strings attached”, “They deserve gratitude though”, “I’m both the child and the parent now”]
+1. “Where are you really from? Asked by Arabs to other Arabs. We do the same thing we complain about.” – Options: [“We absolutely do this”, “It’s curiosity not racism”, “When WE do it it’s different”, “Nationality obsession is a Gulf sport”]
+1. “You left Lebanon/Iraq/Syria/Palestine due to crisis and now someone from the Gulf says you chose to leave.” – Options: [“Displacement is not a choice”, “People say this and it’s enraging”, “Empathy gap is real”, “Most Gulf residents don’t understand forced migration”]
+1. “45% of Arabs under 25 identify more with global internet culture than with their national identity. Good or terrifying?” – Options: [“Good borders are arbitrary”, “Terrifying culture is dying”, “Both at the same time”, “National identity was always a construct”]
+1. “Your kids speak better English than Arabic and you’re planning to fix that. You’re not going to fix that.” – Options: [“Don’t call me out like this”, “Arabic school every Saturday”, “My kids speak Arabic fine”, “English is survival Arabic is heritage”]
+1. “You have a passport that restricts your movement but you’ll defend that country with your whole chest online.” – Options: [“Home is home regardless”, “Patriotism isn’t rational”, “The passport will improve”, “You can love a place and critique its systems”]
+1. “Lebanese Palestinian Egyptian: everyone claims the food. Nobody claims the political dysfunction. Selective identity.” – Options: [“We claim both actually”, “Food is the only thing we agree on”, “Political dysfunction is inherited trauma”, “Hummus belongs to all of us”]
+1. “Gulf Arabs and Levantine Arabs in the same room pretending they have the same culture. Adorable.” – Options: [“We’re more similar than different”, “Completely different worlds”, “United by language divided by everything else”, “The real divide is class not geography”]
+
+### ECONOMY & FINANCE (category: ‘economy’)
+
+1. “Is the region’s wealth gap getting better or worse?” – Options: [“Getting worse”, “Getting better”, “It was always bad”, “Depends on the country”]
+1. “Will crypto replace traditional banking in MENA within 10 years?” – Options: [“Yes”, “No”, “Supplement not replace”, “Crypto is dead”]
+1. “Should GCC countries introduce income tax?” – Options: [“Yes it’s inevitable”, “No that’s the whole point”, “Only for high earners”, “VAT is enough”]
+1. “Is the cost of living in Dubai proportional to the quality of life?” – Options: [“Not anymore”, “Yes still worth it”, “Only if you earn above average”, “It never was”]
+1. “Oil money: curse or foundation for diversification?” – Options: [“Curse”, “Foundation”, “Both at the same time”, “Depends on the country”]
+1. “Which Gulf country is best managing its post-oil transition?” – Options: [“UAE”, “Saudi Arabia”, “Bahrain”, “None of them”]
+1. “Is Islamic finance a genuine alternative or a product with extra steps?” – Options: [“Genuine alternative”, “Extra steps same thing”, “Depends on the institution”, “I don’t understand it”]
+1. “Should Gulf governments reduce reliance on expat remittances?” – Options: [“Yes”, “No remittances help sending countries”, “It’s not their problem to solve”, “They already are”]
+1. “Is MENA’s real estate market in a bubble?” – Options: [“Yes, massive bubble”, “No, demand is real”, “Only in Dubai”, “We’ll know in 2 years”]
+1. “Does the region invest enough in its public health systems?” – Options: [“Not even close”, “Getting better”, “Private healthcare fills the gap”, “Compared to where?”]
+1. “Dubai’s GDP is $120B. The rent its residents pay might be $120B too. Is the economy just a landlord?” – Options: [“Landlord economy is the economy”, “There’s diversification happening”, “My landlord is richer than my CEO”, “This is global not just Dubai”]
+1. “GCC saved $4T+ in sovereign wealth. The average citizen’s personal savings rate is 8%. Trickle-down is a myth.” – Options: [“Sovereign wealth ≠ personal wealth”, “Jobs are the trickle-down”, “The gap is embarrassing”, “8% savings is generous”]
+1. “You make $10K/month in Dubai and somehow still live paycheck to paycheck. Where is the money going?” – Options: [“Brunch culture is expensive”, “Rent takes 40% before I breathe”, “I send money home”, “I genuinely don’t know”]
+1. “Islamic finance is a $4T industry. But you still can’t explain how it’s structurally different from conventional banking.” – Options: [“It’s the intention that matters”, “The structures are different Google it”, “It’s conventional banking in a thobe”, “I use it and don’t ask questions”]
+1. “Egypt devalued its currency 3 times in 3 years. The falafel sandwich is now the leading inflation indicator.” – Options: [“Falafel index is real”, “EGP will stabilize”, “Egypt’s fundamentals are strong (delusional)”, “The people absorb everything always”]
+1. “You bought crypto in 2021 at the top told everyone you were early and haven’t checked your portfolio since.” – Options: [“It’s a long-term hold”, “I’m still in profit (barely)”, “The portfolio is a graveyard”, “I’ve learned my lesson (I haven’t)”]
+1. “Saudi Arabia needs 500,000 new jobs/year to hit Vision 2030 targets. They’ve created 200K/year. Nobody mentions this.” – Options: [“The gap is concerning”, “Private sector is ramping”, “Government jobs will fill it”, “Saudization is working slowly”]
+1. “Average time to get paid by a client in the Gulf: 90-120 days. Average time for rent to be due: 30 days. Broken.” – Options: [“Cash flow kills more businesses than competition”, “Post-dated checks are violence”, “Get better clients”, “Invoice factoring exists use it”]
+1. “Real estate makes up 30% of Dubai’s GDP. If property prices drop 20% what’s the plan?” – Options: [“There is no plan B”, “Tourism carries the rest”, “Dubai always bounces back”, “This question made developers nervous”]
+1. “The average Gulf wedding costs $80K-$150K. The average marriage lasts… let’s not finish that sentence.” – Options: [“The wedding IS the ROI”, “Divorce rates say everything”, “Cultural obligation not choice”, “Elope and invest the $150K”]
+1. “You trust a random Telegram group for investment advice more than a licensed financial advisor.” – Options: [“The Telegram group has better returns”, “Financial advisors just sell insurance”, “I trust neither”, “The group admin drives a Lamborghini so…”]
+1. “Oil will be irrelevant in 30 years. Half the GCC still hasn’t meaningfully diversified. Clock’s ticking.” – Options: [“UAE and Saudi are diversifying”, “30 years is a long time”, “Kuwait and Iraq are in trouble”, “Renewables are the new oil anyway”]
+
+### WOMEN & EQUALITY (category: ‘women_equality’)
+
+1. “Should women have equal inheritance rights across the Middle East?” – Options: [“Yes”, “No, Sharia is clear”, “It’s more nuanced than that”, “This shouldn’t be a poll”]
+1. “Is the gender gap in MENA startups actually closing?” – Options: [“Slowly yes”, “Not at all”, “Only in certain sectors”, “We just talk about it more”]
+1. “Which country has made the most genuine progress on women’s rights?” – Options: [“Saudi Arabia (recently)”, “UAE”, “Tunisia”, “None enough”]
+1. “Is the region’s female leadership more symbolic or substantive?” – Options: [“Mostly symbolic”, “Becoming substantive”, “Depends on the org”, “Both”]
+1. “Should quotas for women on corporate boards be mandatory in MENA?” – Options: [“Yes, it’s the only way”, “No, merit should decide”, “Temporary quotas then phase out”, “Fix the pipeline first”]
+1. “Is the hijab debate in MENA settled or still very much alive?” – Options: [“Settled”, “Still very alive”, “Only alive for outsiders”, “It shouldn’t be a debate”]
+1. “Are women in the Gulf given equal access to career opportunities?” – Options: [“Yes”, “No”, “On paper yes, in practice no”, “Getting better”]
+1. “Is the marriage age gap (older men, younger women) a problem the region needs to address?” – Options: [“Yes”, “No, it’s cultural”, “Only when extreme”, “Mind your business”]
+1. “Saudi women couldn’t drive until 2018. Now they’re outperforming men in university enrollment. Imagine a 50-year head start.” – Options: [“Unstoppable when given the chance”, “The progress is real and fast”, “Enrollment ≠ employment though”, “This is the most important stat in the region”]
+1. “We respect women: said the company with 0 women in the C-suite and a women’s day Instagram post.” – Options: [“The Instagram post is doing the heavy lifting”, “We have women in leadership actually”, “Tokenism is everywhere not just MENA”, “Post the org chart not the graphic”]
+1. “65% of university graduates in the Gulf are women. 15% of senior leadership positions are held by women. Where’s the leak?” – Options: [“The pipeline isn’t the problem the ceiling is”, “Cultural expectations push women out”, “It’s changing slowly”, “Companies promote who they’re comfortable with”]
+1. “You call yourself a feminist at conferences but still expect your wife to manage the house. We see you bro.” – Options: [“Called out”, “I actually split responsibilities”, “Conference feminism is a genre”, “This goes both ways”]
+1. “A woman in MENA gets asked about work-life balance in every interview. A man never does. Same role. Same company.” – Options: [“Happens constantly”, “This is changing in my experience”, “The question should be illegal”, “I’ve asked this and now I feel bad”]
+1. “The highest-paid woman in most MENA companies still makes less than the lowest-paid man in the C-suite.” – Options: [“Progress is a comforting lie”, “Pay transparency would fix this”, “Not true at my company”, “The gap is global not just MENA”]
+1. “Gulf countries market themselves as progressive on women’s rights while kafala still exists for domestic workers.” – Options: [“Kafala reform is overdue”, “These are separate issues”, “You can’t claim progress selectively”, “Some countries have reformed it”]
+1. “Your startup’s founding team is 4 guys from the same university. You call it culture fit. We call it a pattern.” – Options: [“Diversity improves outcomes”, “Hire the best person regardless”, “Culture fit = comfort zone”, “This is most startups globally”]
+1. “Women-led startups in MENA get 2% of VC funding. Two percent. And VCs wonder why their portfolio returns are mid.” – Options: [“2% is criminal”, “Deal flow is the problem”, “Fund managers need to look different”, “Returns-wise women-led outperform”]
+1. “A man fails in business: he took a risk. A woman fails in business: maybe she wasn’t cut out for it.” – Options: [“Double standard is structural”, “This is changing generationally”, “I’ve seen this exact dynamic”, “Failure should be equal opportunity”]
+1. “54% of MENA women say they’ve been passed over for promotion due to gender. The other 46% might just not know it yet.” – Options: [“The 46% are in denial”, “54% is already devastating”, “Not every missed promotion is gender”, “Anonymous surveys tell the real story”]
+1. “The region celebrates strong women in marketing campaigns and then gives the actual budget to men. Every time.” – Options: [“Campaign feminism”, “Show me the budget allocation”, “Some brands genuinely invest”, “Marketing ≠ action”]
+
+### ARTS & EXPRESSION (category: ‘arts_expression’)
+
+1. “An Arab film gets shortlisted for the Oscars and the region celebrates. But the filmmaker had to leave the region to make it. Why can’t we make it here?” – Options: [“Censorship kills creativity at home”, “Funding goes to safe content only”, “The talent exists, the ecosystem doesn’t”, “Some are making it here, you just don’t know”]
+1. “There are gay Arabs. Millions of them. The region pretends they don’t exist. How long can that last?” – Options: [“The silence is cracking”, “It will last generations still”, “People know, they just don’t talk”, “This question alone is proof it can’t”]
+1. “Galleries in the Gulf spend millions on Western art while local artists can’t afford studio rent. Patronage or performance?” – Options: [“Performance, 100%”, “They buy Western to attract tourism”, “Local art scene is growing regardless”, “You can do both”]
+1. “A transgender person in MENA risks prison, violence, or death for existing. In 2026. Are we going to keep pretending this is just culture?” – Options: [“It’s a human rights crisis”, “The region isn’t ready for this conversation”, “People are suffering in silence”, “Culture is not an excuse for harm”]
+1. “Arabic calligraphy is one of humanity’s greatest art forms. We put it on hotel walls instead of in schools. Is the region losing its own artistic heritage?” – Options: [“We commercialized our culture”, “Calligraphy is alive and thriving”, “Heritage preservation is not a priority”, “Hotels are where tourists see it so it works”]
+1. “Name one Arab film from the last 5 years without Googling. The fact you can’t is the problem.” – Options: [“I actually can”, “I can’t and that’s embarrassing”, “Arab cinema isn’t marketed to us”, “Netflix hasn’t picked them up”]
+1. “Every MENA country censors art. Some just do it more quietly than others. Should artists have to self-censor to survive?” – Options: [“No artist should have to self-censor”, “Self-censorship is survival, not submission”, “The line between culture and censorship is blurry”, “If you can’t say it here, say it from abroad”]
+1. “The region’s most honest storytelling is happening in rap and street music. Not in museums. Not in galleries. On SoundCloud.” – Options: [“Street music is the real archive”, “Museums serve a different purpose”, “Both can coexist”, “The best Arab art has always been underground”]
+1. “LGBTQ+ Arabs exist in every country, every family, every industry. The region’s biggest open secret. When does the conversation actually start?” – Options: [“It’s already happening quietly”, “Not in our lifetime publicly”, “Online spaces are the conversation”, “When someone powerful enough says it first”]
+1. “Dubai Art Week generates $50M+ in sales. 90% of the buyers are expats or tourists. Is this the region’s art scene or a duty-free gallery?” – Options: [“Duty-free gallery is accurate”, “At least the money flows”, “Local collectors are growing”, “The art scene exists outside Art Week”]
+1. “A Saudi filmmaker can now make a movie. But can she make a movie about anything she actually wants? Freedom to create is not freedom to create freely.” – Options: [“Progress with a leash”, “Any progress is still progress”, “The best art finds a way around limits”, “Freedom and funding rarely coexist anywhere”]
+1. “Arab musicians used to define global genres. Fairuz, Umm Kulthum, Abdel Halim. Now our biggest export is DJ sets at beach clubs. What happened?” – Options: [“Commercialization killed depth”, “New talent exists, discovery is broken”, “You’re romanticizing the past”, “Streaming changed everything not just for us”]
+1. “Photography in Palestine and Lebanon is documenting genocide and collapse in real time. The world calls it content. It’s the most important art being made today.” – Options: [“It’s journalism, art, and resistance”, “The world doesn’t deserve this art”, “Documentation is the highest form of expression”, “Calling it content is violence”]
+1. “The first time most Arabs see queer representation is in Western media. Zero from our own storytellers. Is that because the stories don’t exist or because we’re not allowed to tell them?” – Options: [“The stories exist, the permission doesn’t”, “Western media doesn’t represent us either”, “Underground queer Arab art exists, find it”, “Both censorship and shame are the problem”]
+1. “Art Basel, Alserkal, Sharjah Biennial. The infrastructure is world-class. The creative freedom is not. Can you have a real art scene without real freedom?” – Options: [“No, freedom is the foundation”, “You can, it just looks different”, “Constraint breeds creativity”, “The infrastructure is the first step”]
+1. “Belly dance originated in the Arab world. Now the region is embarrassed by it. Meanwhile the West teaches it in gyms. Who owns culture when you abandon it?” – Options: [“We abandoned it and lost the right to complain”, “It was always more than what the West made it”, “The region didn’t abandon it, it just went private”, “Cultural ownership is a losing argument”]
+1. “There are more Arab creatives in Berlin, London, and Brooklyn than in any MENA city. Is that a brain drain or an escape route?” – Options: [“Escape route from censorship”, “Brain drain plain and simple”, “Diaspora art IS Arab art”, “Some went for freedom, some for funding”]
+1. “The region will build a $1B museum before it builds a single public library in every city. Priorities?” – Options: [“Museums are for tourists, libraries are for citizens”, “Both matter”, “Libraries are online now”, “This is painfully accurate”]
+1. “Drag culture has existed in Arab communities for centuries. Khawal, mukhannath, performance traditions. Now we act like it was invented in Brooklyn. Know your own history.” – Options: [“Most Arabs don’t know this history”, “It was erased deliberately”, “Knowing the history doesn’t change the present”, “This needs to be taught not just tweeted”]
+1. “If an Arab artist makes something beautiful about queer love, mental health, or religious doubt, should the region celebrate it or is it betrayal?” – Options: [“Celebrate, art should be free”, “It depends on how it’s done”, “The region will call it betrayal”, “The bravest art always feels like betrayal first”]
+
+-----
+
+## STEP 3: INSTALL FINGERPRINTJS
+
+```bash
+npm install @fingerprintjs/fingerprintjs
+```
+
+Create a utility at `src/lib/fingerprint.ts`:
+
+```typescript
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+
+let fpPromise: Promise<any> | null = null;
+
+export async function getFingerprint(): Promise<string> {
+  if (!fpPromise) {
+    fpPromise = FingerprintJS.load();
+  }
+  const fp = await fpPromise;
+  const result = await fp.get();
+  return result.visitorId;
+}
+```
+
+-----
+
+## STEP 4: VOTE SUBMISSION API
+
+Create an API route (or Supabase Edge Function) at `/api/vote` that handles:
+
+```
+POST /api/vote
+Body: { poll_id, option_index, fingerprint, country_code }
+
+Logic:
+1. Check if a vote already exists for this poll_id + fingerprint combination
+2. If duplicate: return { error: 'Already voted', status: 409 }
+3. If new: INSERT into votes table
+4. UPDATE the polls table: increment options[option_index].votes by 1 and total_votes by 1
+5. Return { success: true, updated_options, total_votes }
+```
+
+Use Supabase RPC or a direct update query to atomically increment the vote count:
+
+```sql
+-- Create this function in Supabase SQL editor
+CREATE OR REPLACE FUNCTION increment_vote(p_poll_id UUID, p_option_index INTEGER)
+RETURNS void AS $$
+BEGIN
+  UPDATE polls
+  SET
+    options = jsonb_set(
+      options,
+      ARRAY[p_option_index::text, 'votes'],
+      (COALESCE((options->p_option_index->>'votes')::int, 0) + 1)::text::jsonb
+    ),
+    total_votes = total_votes + 1,
+    updated_at = now()
+  WHERE id = p_poll_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+-----
+
+## STEP 5: POLL LISTING PAGE (/polls)
+
+Build the polls page at `/polls` with:
+
+- Header: “THE QUESTIONS NO ONE’S ASKING” with subtext “Vote on any of them. Share the ones that matter.”
+- Category filter tabs across the top: All / Tech & AI / Culture & Society / Business / Cities / Identity / Economy / Women & Equality / Arts & Expression
+- Clicking a tab filters the polls by category from Supabase
+- Each poll renders as a card showing: question text, category badge, total vote count, and a “VOTE NOW” button or link to `/polls/[slug]`
+- Cards should match the existing design system (dark/light mode, same fonts, same spacing)
+- Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop
+- Fetch polls from Supabase where status = ‘live’, ordered by created_at desc
+
+-----
+
+## STEP 6: INDIVIDUAL POLL PAGE (/polls/[slug])
+
+This is the most critical page. Build at `/polls/[slug]`:
+
+### Before voting:
+
+- Large question text at the top
+- Category badge
+- Live vote counter: “[X] votes” updating via Supabase Realtime subscription
+- 4 answer options rendered as tappable cards/buttons (full width on mobile, vertically stacked)
+- Each option shows just the text, no percentages yet
+
+### On vote:
+
+1. Call getFingerprint() to get visitor ID
+1. POST to /api/vote with poll_id, selected option_index, fingerprint, and country_code
+1. If 409 (already voted): skip to results (they’ve already voted)
+1. If success: play a brief confirmation animation (selected option highlights in crimson, checkmark appears, 200ms)
+1. After 500ms delay: trigger the share gate
+
+### Share gate (slides up from bottom as a modal/drawer):
+
+- Results are BLURRED in the background (CSS filter: blur(8px) on the results section)
+- Headline: “UNLOCK FULL RESULTS”
+- Subtext: “Share this debate or enter your email. Either unlocks the full breakdown.”
+- Counter text: “[X] people already know how this split. You don’t.”
+- Share buttons in this order, WhatsApp is PRIMARY and largest:
+1. WhatsApp (green accent, largest button)
+1. LinkedIn
+1. X / Twitter
+1. Telegram
+1. Copy Link
+- Below share buttons: email input field
+  - Placeholder: “your@email.com”
+  - Submit button: “UNLOCK RESULTS”
+  - Small text below: “No spam. Unsubscribe anytime.”
+
+### Share link generation:
+
+```typescript
+const shareMessage = `"${question}" — ${totalVotes.toLocaleString()} people voted. The region is split. Cast your vote:`;
+const shareUrl = `https://themiddleeasthustle.com/polls/${slug}?utm_source=whatsapp&utm_medium=share`;
+
+// WhatsApp
+const waLink = `https://wa.me/?text=${encodeURIComponent(shareMessage + ' ' + shareUrl)}`;
+
+// LinkedIn
+const liLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+
+// X / Twitter
+const xLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(shareUrl)}`;
+
+// Telegram
+const tgLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareMessage)}`;
+
+// Copy Link
+navigator.clipboard.writeText(shareUrl);
+```
+
+### On share button click OR email submit:
+
+- If share button: open the share link in a new window, then dismiss the gate and show results. We trust the click as a share. Don’t try to verify.
+- If email: POST email to /api/email-capture which saves to email_captures table and pushes to Beehiiv API (if Beehiiv key is available, otherwise just save locally). Then dismiss gate and show results.
+- Save to localStorage that this user has unlocked this poll (so refreshing doesn’t re-gate)
+
+### Results (after gate dismissed):
+
+- Animated progress bars for each option, staggered reveal:
+  - Each bar animates from 0% to its actual percentage
+  - 600ms per bar, 100ms delay between bars
+  - Use cubic-bezier(0.25, 1, 0.5, 1) easing
+  - The user’s selected option is highlighted in crimson
+  - Other options in muted color
+- Show percentage and vote count on each bar
+- Below the bars: “You voted with [X]% of respondents”
+- Country breakdown section (if enough data): show top 3-5 countries as small horizontal bars
+
+### Cross-sell section below results:
+
+- “MORE DEBATES” header
+- Show 3 related polls from the same category (or random live polls if not enough in category)
+- Each as a mini card linking to its own /polls/[slug] page
+
+-----
+
+## STEP 7: HERO POLL ON HOMEPAGE
+
+On the homepage, find the existing hero/featured section and wire it to pull the poll where `poll_type = 'hero'` and `is_featured = true` from Supabase. Render the same vote component as the individual poll page but embedded inline on the homepage. Same share gate mechanic applies.
+
+Also wire the debate cards grid to show 3 polls where `poll_type = 'card'` and `status = 'live'`.
+
+-----
+
+## STEP 8: OG META TAGS
+
+For each poll page, set dynamic meta tags for link previews:
+
+```html
+<title>[Question] — The Middle East Hustle</title>
+<meta property="og:title" content="[Question] — The Middle East Hustle" />
+<meta property="og:description" content="[X] people voted. The region is split. Cast your vote." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://themiddleeasthustle.com/polls/[slug]" />
+<meta name="twitter:card" content="summary_large_image" />
+```
+
+Use Next.js metadata API or head tags to generate these per page from the Supabase poll data.
+
+-----
+
+## STEP 9: REALTIME VOTE COUNTER
+
+Subscribe to Supabase Realtime on the polls table so that when anyone votes, the vote count updates live on the page without refresh:
+
+```typescript
+const channel = supabase
+  .channel('poll-votes')
+  .on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'polls',
+    filter: `id=eq.${pollId}`
+  }, (payload) => {
+    // Update local state with new options and total_votes from payload.new
+  })
+  .subscribe();
+```
+
+-----
+
+## IMPORTANT NOTES
+
+- Do NOT rebuild the homepage layout, navbar, footer, about page, or design system. They are done.
+- Match the existing design system exactly: same fonts, same colors, same spacing, same dark/light mode behavior.
+- Mobile-first. The vote flow must work perfectly on 375px width. WhatsApp share link must open correctly on iOS and Android.
+- All polls seed with status = ‘live’ so they’re immediately visible.
+- Store the user’s fingerprint and voted polls in localStorage as a backup to the database check, so the UI can show “you already voted” instantly without waiting for the API.
+- The share gate is NOT a paywall. It’s a distribution mechanic. Every user can unlock results for free by sharing OR entering an email. Never block results permanently.
