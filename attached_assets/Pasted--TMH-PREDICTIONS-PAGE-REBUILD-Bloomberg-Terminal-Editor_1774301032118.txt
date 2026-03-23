@@ -1,0 +1,417 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TMH — PREDICTIONS PAGE REBUILD
+Bloomberg Terminal × Editorial Newspaper
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The current predictions section is too simple.
+Rebuild it completely. The visual reference is
+a Bloomberg terminal crossed with a newspaper
+opinion page. Data-rich. Zero clutter.
+Every chart earns its place.
+
+Do NOT touch any other section of the app.
+
+────────────────────────────────────────
+CHART LIBRARY
+────────────────────────────────────────
+
+Use Chart.js (already in most React setups,
+or install: npm install chart.js react-chartjs-2)
+
+For trend lines use the chartjs-plugin-annotation
+library for reference lines, and chartjs-plugin-
+trendline for momentum lines.
+
+Alternatively, use Recharts which handles all
+of this natively:
+  npm install recharts
+  AreaChart, LineChart, ComposedChart, ReferenceLine,
+  ReferenceDot, Brush, Tooltip, Legend.
+
+Use Recharts. It is simpler and handles
+responsiveness better in React.
+
+────────────────────────────────────────
+SECTION LAYOUT
+────────────────────────────────────────
+
+Section eyebrow: "PREDICTIONS"
+Section title: "What Do You Think Actually Happens?"
+Section sub: "Not what should happen. What will."
+Font rules: same as rest of site (Barlow Condensed
+for all headings, DM Sans for body).
+
+Page structure (top to bottom):
+  1. Section header
+  2. MOMENTUM TICKER (new — see below)
+  3. FEATURED PREDICTION (full width, large)
+  4. PREDICTIONS GRID (2 columns, 4 cards)
+  5. CLOSED PREDICTIONS (resolved, greyed out)
+
+────────────────────────────────────────
+COMPONENT 1: MOMENTUM TICKER
+────────────────────────────────────────
+
+A Bloomberg-style data strip just below the
+section header. Dark background (#0D0D0D),
+one single row, showing each prediction as
+a tradeable-looking data point.
+
+Each item in the strip shows:
+  [Short prediction label]  YES [X]%  ▲/▼ [+/-X]%
+
+Arrow is green (▲) if YES% went up in the last
+24h, red (▼) if it went down. Delta shows by
+how much.
+
+Example items:
+  CINEMA SAUDI  YES 71%  ▲ +2.1%
+  $10B STARTUP  YES 44%  ▼ -1.3%
+  UAE INCOME TAX  YES 38%  ▲ +0.8%
+  ARABIC SCHOOLS  YES 58%  ▲ +1.4%
+  MENA CANNABIS  YES 29%  ▼ -0.6%
+
+Style:
+  Background: #0D0D0D (near black, distinct
+  from main bg)
+  Text: Barlow Condensed 700, 0.7rem, uppercase
+  Label: rgba(250,250,250,0.5)
+  YES %: white, slightly larger (0.85rem)
+  Up delta: #10B981 (green)
+  Down delta: #DC143C (crimson)
+  Items separated by a thin 1px vertical
+  rule in rgba(255,255,255,0.1)
+  Padding: 0.7rem 2rem per item
+  Scrollable on mobile
+  No animation needed — this is static data
+
+────────────────────────────────────────
+COMPONENT 2: FEATURED PREDICTION CARD
+(full width, large, with chart)
+────────────────────────────────────────
+
+Featured prediction:
+  "Will Your Job Still Exist in 5 Years?"
+  This ties the featured prediction to the
+  hero debate question. Category: Technology
+  Resolves: December 2031
+  Frame it as: "The region has spoken on
+  the debate. Now they're putting their
+  prediction on it."
+
+Card layout: 2-column grid
+  Left column (55%): chart area
+  Right column (45%): info + vote
+
+LEFT COLUMN — TREND CHART:
+  Use Recharts ComposedChart.
+  X-axis: months (Jan 2026 → current)
+  Y-axis: YES % confidence (0-100)
+
+  Show three data layers:
+    1. AREA: soft crimson area chart showing
+       YES% over time. Fill: rgba(220,20,60,0.1)
+       Stroke: rgba(220,20,60,0.6), strokeWidth 2
+
+    2. LINE: 7-day moving average trend line.
+       Stroke: #DC143C, strokeWidth 1.5,
+       strokeDasharray: none (solid)
+
+    3. REFERENCE LINE: horizontal dashed line
+       at 50% labelled "Tipping Point"
+       Stroke: rgba(255,255,255,0.2),
+       strokeDasharray: "4 4"
+       Label position: right, small text
+
+  Chart styling:
+    Background: transparent
+    Grid lines: horizontal only,
+      rgba(255,255,255,0.05), very subtle
+    No vertical grid lines
+    X-axis: Barlow Condensed, 0.65rem,
+      rgba(250,250,250,0.4)
+    Y-axis: same style, show 0/25/50/75/100
+    Tooltip: dark bg (#1a1a1a), white text,
+      shows date + YES% + 7-day change
+    No legend
+    Margin: top 10, right 20, bottom 20, left 0
+
+  Below the chart, one line of copy:
+  "Confidence has moved [+/-X]% in the last 30 days"
+  Style: DM Sans italic, 0.8rem,
+  green if up, crimson if down
+
+RIGHT COLUMN — INFO + VOTE:
+  Top badges row:
+    [Category badge] [RESOLVES: DEC 2031 amber badge]
+
+  Question text:
+  "Will the majority of jobs that exist today
+   still exist in this region by 2031?"
+  Barlow Condensed 900, 1.3rem, uppercase
+
+  Participation: "[X,XXX] predictions locked in"
+  DM Sans, 0.8rem, --text3
+
+  CONFIDENCE METER:
+  Two bars stacked (not side by side):
+
+    YES bar:
+      Label: "YES" left, "71%" right
+      Both: Barlow Condensed 700, 0.75rem
+      Bar: full width, height 12px,
+      fill: crimson (#DC143C),
+      border-radius 3px, animated fill
+      Below bar: micro text "Up 2.1% this week"
+      in green, 0.68rem DM Sans
+
+    NO bar:
+      Label: "NO" left, "29%" right
+      Bar fill: rgba(255,255,255,0.15)
+      No momentum text needed
+
+  Gap between bars: 0.6rem
+
+  VOTE BUTTONS:
+  Two buttons side by side, full row width:
+    YES: border 1.5px crimson, text crimson,
+      Barlow Condensed 900, 1rem, uppercase,
+      hover: fill crimson, text white
+    NO: border 1.5px var(--border), text --text2,
+      hover: fill var(--bg3)
+  Height: 52px each. Bold. Not subtle.
+
+  Below buttons:
+  "Your prediction is locked until the
+   resolution date. No changing your mind."
+  DM Sans italic, 0.72rem, --text3
+
+Card border: 1.5px solid rgba(220,20,60,0.2)
+Card background: var(--bg2)
+Card border-radius: 12px
+Card padding: 2rem
+
+────────────────────────────────────────
+COMPONENT 3: PREDICTION GRID CARDS
+(2 columns, each with mini chart)
+────────────────────────────────────────
+
+Four cards in a 2-column grid.
+Each card has a MINI SPARKLINE CHART at the top.
+
+MINI SPARKLINE:
+  Height: 80px
+  Use Recharts LineChart (no axes, no grid,
+  no tooltip, responsive width)
+  Single line showing YES% momentum over 8 weeks
+  Line colour: crimson if trending up,
+    rgba(255,255,255,0.3) if flat or down
+  Area fill: very subtle, 0.05 opacity
+  No axes. No labels. Pure data line.
+  This is the Bloomberg sparkline aesthetic.
+
+Below the sparkline:
+  Category + Resolves badges (same as before)
+  Question (Barlow Condensed 900, 1rem, uppercase)
+  Participation count
+  YES/NO confidence bars (compact, height 8px)
+  Vote buttons (smaller than featured, height 44px)
+  Momentum line: "UP 1.4% this week" or
+    "DOWN 0.8% this week" in green/crimson,
+    0.68rem DM Sans, below the bars
+
+THE 4 PREDICTION QUESTIONS:
+
+  Card 1:
+  "Saudi Arabia Will Have a Fully Operating
+   Cinema in Every Major City by End of 2026"
+  Category: Culture & Policy
+  Resolves: December 2026
+  Current: YES 71% / NO 29%
+  Momentum: UP 2.1%
+  Sparkline: rising from 62% → 71% over 8 weeks
+
+  Card 2:
+  "A MENA-Founded Startup Will Reach
+   $10B Valuation in 2026"
+  Category: Business
+  Resolves: December 2026
+  Current: YES 44% / NO 56%
+  Momentum: DOWN 1.3%
+  Sparkline: declining from 48% → 44% over 8 weeks
+
+  Card 3:
+  "UAE Will Introduce Some Form of Personal
+   Income Tax Within 3 Years"
+  Category: Economy
+  Resolves: March 2029
+  Current: YES 38% / NO 62%
+  Momentum: UP 0.8%
+  Sparkline: slow rise from 35% → 38%
+
+  Card 4:
+  "Arabic Will Become a Mandatory Subject
+   in All Dubai Private Schools Within 2 Years"
+  Category: Education
+  Resolves: September 2027
+  Current: YES 58% / NO 42%
+  Momentum: UP 1.4%
+  Sparkline: rising from 51% → 58%
+
+Card styling: same as featured card
+(var(--bg2), border, border-radius 10px)
+but smaller padding (1.4rem)
+
+────────────────────────────────────────
+COMPONENT 4: CLOSED PREDICTIONS
+(resolved section at bottom)
+────────────────────────────────────────
+
+Section eyebrow: "CLOSED PREDICTIONS"
+Section sub: "The region made its call. Here's what happened."
+
+Use this one placeholder resolved prediction:
+
+  Question: "Will the UAE Introduce a 4-Day
+  Work Week for Government Employees by 2025?"
+  Category: Policy
+  Result: YES — IT HAPPENED
+  Final YES%: 67%
+  Resolution date: December 2024
+
+Card style: same structure but desaturated.
+  Opacity: 0.65 on the whole card
+  Border: 1px solid rgba(255,255,255,0.06)
+  Top badge replaces amber deadline badge with:
+    Green badge: "RESOLVED — YES ▲"
+    Background: rgba(16,185,129,0.15)
+    Border: rgba(16,185,129,0.3)
+    Text: #10B981
+    Barlow Condensed 700
+
+  Show the final sparkline (flat at 67%
+  then a sharp uptick at resolution date)
+
+  Below chart: "The region called it.
+  67% predicted YES. They were right."
+  DM Sans italic, --text2
+
+  No vote buttons. This is closed.
+  Show only the final confidence bars (static).
+
+────────────────────────────────────────
+CHART DATA (use this mock data for all charts)
+────────────────────────────────────────
+
+Create a mockData.js or inline data object.
+All percentages are YES% over 8 weekly data points.
+
+FEATURED (jobs prediction):
+  [61, 63, 64, 62, 65, 67, 69, 71]
+
+CARD 1 (cinema saudi):
+  [62, 63, 65, 64, 66, 68, 70, 71]
+
+CARD 2 ($10B startup):
+  [48, 47, 46, 48, 46, 45, 44, 44]
+
+CARD 3 (income tax):
+  [35, 35, 36, 36, 37, 37, 38, 38]
+
+CARD 4 (arabic schools):
+  [51, 52, 53, 54, 55, 56, 57, 58]
+
+CLOSED (4-day work week):
+  [55, 58, 60, 62, 63, 65, 67, 67, 67, 80]
+  Last point represents resolution
+
+For the FEATURED full chart, expand to
+12 monthly data points:
+  Jan: 58, Feb: 59, Mar: 60, Apr: 61,
+  May: 62, Jun: 63, Jul: 64, Aug: 62,
+  Sep: 65, Oct: 67, Nov: 69, Dec: 71
+  X-axis labels: Jan Feb Mar Apr May Jun
+                 Jul Aug Sep Oct Nov Dec
+
+────────────────────────────────────────
+STYLING RULES FOR ALL CHARTS
+────────────────────────────────────────
+
+These rules apply to every chart on the page:
+
+1. Background: always transparent
+   Never white, never grey
+
+2. Grid lines: horizontal only
+   Stroke: rgba(255,255,255,0.04)
+   No vertical grid lines ever
+
+3. Axes text:
+   Font family: 'Barlow Condensed', sans-serif
+   Font size: 11px
+   Color: rgba(250,250,250,0.35)
+   Tick line: none
+   Axis line: rgba(255,255,255,0.08)
+
+4. Tooltip:
+   Background: #1a1a1a
+   Border: 1px solid rgba(220,20,60,0.3)
+   Border-radius: 6px
+   Font: DM Sans, 13px, white
+   Show: date label + YES% + change since last week
+   No shadow
+
+5. Sparklines (mini charts):
+   No axes. No grid. No tooltip.
+   Just the line. Responsive width.
+   height: 80px fixed
+
+6. Hover state on charts:
+   Show a thin vertical cursor line
+   (ReferenceLine in Recharts with
+   activeDot approach)
+   Cursor: rgba(220,20,60,0.4), 1px
+
+7. Animation:
+   All chart lines animate in on mount
+   Duration: 1200ms
+   Easing: ease-out
+   Recharts handles this natively with
+   isAnimationActive={true}
+
+8. Light mode:
+   Grid lines: rgba(0,0,0,0.05)
+   Axes text: rgba(26,26,26,0.4)
+   Area fill: rgba(220,20,60,0.07)
+   Everything else same
+
+────────────────────────────────────────
+MOBILE RULES
+────────────────────────────────────────
+
+On screens < 768px:
+
+  Featured card: stack to single column
+    Chart area on top (full width)
+    Info + vote below
+    Chart height: 180px on mobile
+
+  Grid cards: single column
+    Sparkline still shows (80px height)
+    Vote buttons: full width stacked
+
+  Momentum ticker: horizontally scrollable,
+    no wrapping, -webkit-overflow-scrolling: touch
+
+  All padding: reduce to 1.2rem
+
+────────────────────────────────────────
+NO OTHER CHANGES
+────────────────────────────────────────
+
+Do not change: debates, the voices section,
+sentiment map, hero poll, about page, navbar,
+footer, share gate, or any other section.
+
+Only the /predictions route and the predictions
+section on the homepage are affected.

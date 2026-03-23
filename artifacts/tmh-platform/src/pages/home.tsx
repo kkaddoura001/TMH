@@ -260,7 +260,7 @@ export default function Home() {
           <nav className="flex items-center justify-center gap-6 py-2 text-[10px] uppercase tracking-widest font-serif">
             {[
               { href: "/polls", label: "Debates" },
-              { href: "/#predictions", label: "Predictions" },
+              { href: "/predictions", label: "Predictions" },
               { href: "/profiles", label: "The Voices" },
               { href: "/#sentiment-map", label: "Sentiment Map" },
               { href: "/about", label: "About" },

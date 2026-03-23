@@ -21,7 +21,7 @@ export function Navbar() {
 
   const navLinks = [
     { label: "Debates", href: "/polls" },
-    { label: "Predictions", href: "/#predictions" },
+    { label: "Predictions", href: "/predictions" },
     { label: "The Voices", href: "/profiles" },
     { label: "Sentiment Map", href: "/#sentiment-map" },
     { label: "About", href: "/about" },
