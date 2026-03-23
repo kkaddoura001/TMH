@@ -60,7 +60,7 @@ artifacts-monorepo/
 - **Admin key** (`ADMIN_KEY`) — defaults to `"tmh-admin-2026"` if not set
 
 ### Pages
-- **Home** (`/`) — Hero featured poll with voting, trending polls strip, featured voices, category browser, rankings snapshot, weekly pulse preview
+- **Home** (`/`) — WSJ-style editorial front page: masthead → crimson live ticker → lead debate column + latest debates sidebar with "The Brief" data box → compact stat strip → debates grid → predictions → voices → topics → newsletter CTA
 - **Polls** (`/polls`) — Full poll browser with filter tabs (Latest/Trending/Most Voted/Ending Soon/Editor's Picks) and category sidebar
 - **Poll Detail** (`/polls/:id`) — Full poll with context, voting UI, animated result reveal, share CTA, related polls
 - **Profiles** (`/profiles`) — Searchable directory with country/sector/role filters

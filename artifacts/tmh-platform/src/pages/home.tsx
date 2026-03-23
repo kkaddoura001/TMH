@@ -5,8 +5,7 @@ import { PollCard } from "@/components/poll/PollCard"
 import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Link } from "wouter"
 import { cn } from "@/lib/utils"
-import { ArrowRight, ChevronRight } from "lucide-react"
-import { useVoter } from "@/hooks/use-voter"
+import { ArrowRight } from "lucide-react"
 
 const FLAG_MAP: Record<string, string> = {
   AE: "🇦🇪", SA: "🇸🇦", EG: "🇪🇬", JO: "🇯🇴", LB: "🇱🇧", KW: "🇰🇼",
@@ -14,12 +13,6 @@ const FLAG_MAP: Record<string, string> = {
   PS: "🇵🇸", TR: "🇹🇷", US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", IN: "🇮🇳", AU: "🇦🇺",
 }
 
-interface PlatformStats {
-  livePolls: number
-  totalVotes: number
-  countries: number
-  activeThisWeek: number
-}
 
 interface ActivityItem {
   countryCode: string | null
@@ -109,25 +102,6 @@ function LiveActivity() {
 }
 
 
-const OPINION_BUBBLES = [
-  // Top row — scattered across full width
-  { text: "I'd back a MENA founder over a Silicon Valley pitch any day.", likes: "1.9k", pos: { left: "3%", top: "5%" }, rotate: "-1.5deg", duration: "10s", delay: "0.8s" },
-  { text: "The best conversations in this region happen off the record.", likes: "4.8k", pos: { left: "24%", top: "3%" }, rotate: "1deg", duration: "8s", delay: "1.4s" },
-  { text: "Arab women run the actual business. Men sign the papers.", likes: "4.1k", pos: { right: "22%", top: "4%" }, rotate: "-0.5deg", duration: "9s", delay: "0.3s" },
-  { text: "Everyone has an exit strategy. Nobody talks about it at dinner.", likes: "1.8k", pos: { right: "3%", top: "6%" }, rotate: "2deg", duration: "7s", delay: "2s" },
-  // Mid-left & mid-right — at the edges
-  { text: "Dubai's success is 70% marketing. The other 30% is very, very real.", likes: "2.1k", pos: { left: "1%", top: "40%" }, rotate: "-2deg", duration: "7.5s", delay: "0s" },
-  { text: "This region builds in silence. Then the world acts surprised.", likes: "3.1k", pos: { right: "1%", top: "38%" }, rotate: "1.5deg", duration: "8.5s", delay: "1.2s" },
-  // Behind the headline — barely visible, adds texture
-  { text: "Wasta is the invisible hand of the MENA economy.", likes: "2.9k", pos: { left: "35%", top: "28%" }, rotate: "0.5deg", duration: "11s", delay: "0.6s" },
-  { text: "We celebrate it publicly. We question it privately.", likes: "5.3k", pos: { right: "33%", top: "32%" }, rotate: "-1deg", duration: "9.5s", delay: "2.8s" },
-  // Bottom row — scattered
-  { text: "Brain drain isn't a trend. It's a policy failure nobody admits.", likes: "3.4k", pos: { left: "5%", top: "72%" }, rotate: "1deg", duration: "8s", delay: "1s" },
-  { text: "The next unicorn from this region is being built in a bedroom.", likes: "2.7k", pos: { left: "26%", top: "78%" }, rotate: "-1.5deg", duration: "7s", delay: "2.5s" },
-  { text: "The opinions that matter most are the ones nobody says out loud.", likes: "6.2k", pos: { right: "24%", top: "75%" }, rotate: "0.8deg", duration: "9s", delay: "0.5s" },
-  { text: "We're not in transition. We're in transformation.", likes: "1.4k", pos: { right: "3%", top: "70%" }, rotate: "-0.5deg", duration: "8s", delay: "1.8s" },
-]
-
 const PREDICTIONS_DATA = [
   {
     id: 1,
@@ -167,61 +141,14 @@ const PREDICTIONS_DATA = [
   },
 ]
 
-const STATIC_QUESTIONS = [
-  { category: "Society", question: "Should Transgender People Have Legal Recognition Across MENA?" },
-  { category: "Identity", question: "Is Islam Holding the Arab World Back — or Is That Question Itself the Problem?" },
-  { category: "Business", question: "Is Dubai's Success Real — or Just Very Good Marketing?" },
-  { category: "Politics", question: "Should the Arab League Be Disbanded?" },
-  { category: "Culture", question: "Is Arranged Marriage Still Relevant in 2026?" },
-  { category: "Economy", question: "Is the Gulf's Wealth Distributed Fairly?" },
-  { category: "Tech", question: "Should AI Tools Be Available in Arabic Before English in This Region?" },
-  { category: "Society", question: "Are Expats in the Gulf Treated as Second-Class?" },
-  { category: "Identity", question: "Is There Such a Thing as 'Arab Identity' Anymore?" },
-  { category: "Future", question: "Will Any MENA Country Legalise Cannabis Within 10 Years?" },
-]
-
-const SENTIMENT_COUNTRIES = [
-  { flag: "🇦🇪", name: "UAE", topAnswer: "Probably, but I'm adapting fast", pct: 61 },
-  { flag: "🇸🇦", name: "Saudi Arabia", topAnswer: "Absolutely — I'm irreplaceable", pct: 54 },
-  { flag: "🇪🇬", name: "Egypt", topAnswer: "Honestly? I'm not sure anymore", pct: 58 },
-  { flag: "🇯🇴", name: "Jordan", topAnswer: "Probably not — and I'm doing nothing about it", pct: 43 },
-  { flag: "🇱🇧", name: "Lebanon", topAnswer: "Honestly? I'm not sure anymore", pct: 67 },
-  { flag: "🇧🇭", name: "Bahrain", topAnswer: "Probably, but I'm adapting fast", pct: 55 },
-  { flag: "🇰🇼", name: "Kuwait", topAnswer: "Absolutely — I'm irreplaceable", pct: 62 },
-  { flag: "🇶🇦", name: "Qatar", topAnswer: "Absolutely — I'm irreplaceable", pct: 59 },
-  { flag: "🇮🇶", name: "Iraq", topAnswer: "Honestly? I'm not sure anymore", pct: 71 },
-  { flag: "🇴🇲", name: "Oman", topAnswer: "Probably, but I'm adapting fast", pct: 48 },
-]
 
 export default function Home() {
   const { data: featuredPoll, isLoading: featuredLoading } = useGetFeaturedPoll()
-  const { data: trendingPolls, isLoading: trendingLoading } = useListPolls({ filter: "trending", limit: 4 })
+  const { data: trendingPolls, isLoading: trendingLoading } = useListPolls({ filter: "trending", limit: 5 })
   const { data: featuredProfiles, isLoading: profilesLoading } = useListProfiles({ filter: "featured", limit: 8 })
   const { data: categories } = useListCategories()
-  const { profile, totalVotesAllTime } = useVoter()
-
   const [ctaEmail, setCtaEmail] = useState("")
   const [ctaJoined, setCtaJoined] = useState(() => !!localStorage.getItem("tmh_cta_joined"))
-  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
-
-  useEffect(() => {
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
-    fetch(`${baseUrl}/api/stats`)
-      .then(r => r.json())
-      .then(d => setPlatformStats(d))
-      .catch(() => {})
-  }, [])
-
-  const totalVotes = platformStats?.totalVotes ?? featuredPoll?.totalVotes ?? 0
-
-  const heroSubhead = (() => {
-    if (totalVotesAllTime > 0 && profile) {
-      return `You've cast ${totalVotesAllTime} vote${totalVotesAllTime !== 1 ? "s" : ""} across the region.`
-    }
-    return totalVotes > 0
-      ? `${totalVotes.toLocaleString()} votes cast — and the region is divided.`
-      : "The digital town square the Middle East has never had."
-  })()
 
   const handleCtaSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -280,121 +207,89 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── HERO ── */}
-      <section
-        className="bg-background section-fadein border-b border-border"
-        style={{ position: "relative", minHeight: "520px", overflow: "hidden" }}
-      >
-        {/* Bubbles scattered across the full hero — lg screens only */}
-        {OPINION_BUBBLES.map((b, i) => (
-          <div
-            key={i}
-            className="hidden lg:block absolute pointer-events-none"
-            style={{ ...b.pos, "--r": b.rotate, "--d": b.duration, "--dl": b.delay, opacity: 0.38, zIndex: 1 } as React.CSSProperties}
-          >
-            <div className="tmh-bubble pointer-events-auto">
-              <p>{b.text}</p>
-              <div className="tmh-reaction">
-                <span className="tmh-reaction-heart">♥</span>
-                <span className="tmh-reaction-count">{b.likes}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Headline — sits above all bubbles */}
-        <div
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24"
-          style={{ position: "relative", zIndex: 10 }}
-        >
-          <div className="h-1 w-16 bg-primary mb-8" />
-          <h2 className="font-display font-black uppercase text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-foreground mb-6">
-            Opinions No One<br />Dares to Say.<br />
-            <span style={{ color: "#DC143C" }}>Out Loud.</span>
-          </h2>
-          <p className="text-lg md:text-xl text-muted-foreground font-sans max-w-xl">
-            {heroSubhead}
-          </p>
-        </div>
-      </section>
-
-      {/* ── THE REGION HAS SPOKEN ── */}
-      <section className="border-b border-border py-14 bg-foreground text-background">
+      {/* ── FRONT PAGE: Lead Debate + Sidebar ── */}
+      <section className="py-8 bg-background border-b border-border section-fadein">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[9px] uppercase tracking-[0.35em] font-bold text-background/40 mb-10 font-serif">
-            The Region Has Spoken
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-0 md:divide-x md:divide-background/10">
-            <div className="md:pr-10">
-              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>64%</div>
-              <p className="text-background/55 font-sans text-sm leading-relaxed">say their exit strategy is a real plan — not a backup option.</p>
-            </div>
-            <div className="md:px-10">
-              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>1 in 3</div>
-              <p className="text-background/55 font-sans text-sm leading-relaxed">MENA professionals seriously considered leaving their country in the last 12 months.</p>
-            </div>
-            <div className="md:pl-10">
-              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>9 in 10</div>
-              <p className="text-background/55 font-sans text-sm leading-relaxed">agree: the most honest conversations in this region happen in private.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
 
-      {/* ── TODAY'S LEAD DEBATE ── */}
-      <div className="py-16 bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {featuredLoading ? (
-            <div className="h-96 bg-secondary animate-pulse border border-border" />
-          ) : featuredPoll ? (
-            <div className="w-full">
-              <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-6 flex items-center gap-2 font-serif">
+            {/* LEFT: Today's Lead Debate */}
+            <div className="lg:pr-8 lg:border-r lg:border-border pb-8 lg:pb-0">
+              <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-5 flex items-center gap-2 font-serif">
                 <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                 Today's Lead Debate
               </div>
-              <PollCard poll={featuredPoll} featured />
+              {featuredLoading ? (
+                <div className="h-96 bg-secondary animate-pulse border border-border" />
+              ) : featuredPoll ? (
+                <PollCard poll={featuredPoll} featured />
+              ) : null}
             </div>
-          ) : null}
-        </div>
-      </div>
 
-      {/* ── QUESTION STRIP ── */}
-      <section className="py-12 bg-secondary/30 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="font-serif font-black uppercase text-[11px] tracking-[0.3em] text-primary mb-1">
-                The Questions Everyone's Avoiding
-              </h2>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-serif">
-                Vote on any of them. Share the ones that make people uncomfortable.
+            {/* RIGHT: Sidebar */}
+            <div className="lg:pl-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-border">
+              <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-4 font-serif">
+                Latest Debates
               </p>
-            </div>
-            <Link href="/polls" className="hidden sm:flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">
-              All Debates <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-            {STATIC_QUESTIONS.map((q, i) => (
-              <Link key={i} href="/polls">
-                <div className="flex-shrink-0 w-72 bg-card border border-border p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:border-primary transition-all duration-200 cursor-pointer">
-                  <span className="text-[9px] uppercase tracking-[0.25em] font-bold text-primary font-serif">{q.category}</span>
-                  <p className="font-serif font-black uppercase text-sm leading-tight text-foreground line-clamp-4">
-                    {q.question}
-                  </p>
-                  <div className="mt-auto pt-2 border-t border-border flex items-center justify-between">
-                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-serif">Weigh in →</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
-                  </div>
+
+              {trendingLoading ? (
+                <div className="space-y-4">
+                  {[1,2,3,4].map(i => <div key={i} className="h-16 bg-secondary animate-pulse" />)}
                 </div>
-              </Link>
-            ))}
+              ) : (
+                <div>
+                  {trendingPolls?.polls.slice(0, 5).map((poll) => (
+                    <Link key={poll.id} href={`/polls/${poll.id}`}>
+                      <div className="py-3 border-b border-border group cursor-pointer">
+                        <p className="text-[9px] uppercase tracking-widest text-primary font-serif font-bold">{poll.categoryName}</p>
+                        <p className="font-serif font-black uppercase text-[13px] leading-tight text-foreground mt-1 group-hover:text-primary transition-colors">
+                          {poll.question.length > 90 ? poll.question.slice(0, 90) + "…" : poll.question}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1 font-serif">{(poll.totalVotes ?? 0).toLocaleString()} votes</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* Data Insight Box */}
+              <div className="mt-6 p-5 bg-foreground text-background">
+                <p className="text-[9px] uppercase tracking-[0.3em] font-bold text-background/40 mb-3 font-serif">The Brief</p>
+                <div className="font-display font-black text-primary leading-none mb-2" style={{ fontSize: "2.5rem" }}>64%</div>
+                <p className="text-background/55 font-sans text-xs leading-relaxed">say their exit strategy is a real plan — not a backup option.</p>
+                <Link href="/sentiment-map" className="text-[9px] uppercase tracking-widest font-bold text-primary hover:text-background mt-3 inline-block font-serif">
+                  Read The Brief →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* ── STAT STRIP ── */}
+      <div className="bg-foreground text-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[9px] uppercase tracking-[0.35em] font-bold text-background/40 font-serif">The Region Has Spoken</p>
+          <div className="flex items-center gap-8 sm:gap-12">
+            <div className="text-center">
+              <span className="font-display font-black text-primary text-2xl leading-none">64%</span>
+              <p className="text-[9px] text-background/50 font-sans mt-1">say exit is a real plan</p>
+            </div>
+            <div className="w-px h-8 bg-background/10 hidden sm:block" />
+            <div className="text-center">
+              <span className="font-display font-black text-primary text-2xl leading-none">1 in 3</span>
+              <p className="text-[9px] text-background/50 font-sans mt-1">considered leaving</p>
+            </div>
+            <div className="w-px h-8 bg-background/10 hidden sm:block" />
+            <div className="text-center">
+              <span className="font-display font-black text-primary text-2xl leading-none">9 in 10</span>
+              <p className="text-[9px] text-background/50 font-sans mt-1">talk honestly in private</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── THIS WEEK'S DEBATES ── */}
-      <section className="py-20 bg-background border-b border-border">
+      <section className="py-16 bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12 border-l-4 border-primary pl-4">
             <h2 className="font-serif font-black uppercase text-2xl text-foreground">
@@ -538,8 +433,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SENTIMENT MAP ── */}
-      <SentimentMap />
 
       {/* ── EXPLORE TOPICS ── */}
       {categories?.categories && categories.categories.length > 0 && (
@@ -614,46 +507,6 @@ export default function Home() {
         </div>
       </section>
     </Layout>
-  )
-}
-
-function SentimentMap() {
-  return (
-    <section id="sentiment-map" className="py-16 bg-secondary/20 border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <div className="border-l-4 border-primary pl-4">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">Split by Country</p>
-            <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-              Same Question. Very Different Answers.
-            </h2>
-          </div>
-        </div>
-        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
-          {SENTIMENT_COUNTRIES.map(c => (
-            <div
-              key={c.name}
-              className="p-4 rounded-lg border border-border hover:border-border/60 transition-colors flex flex-col gap-2"
-              style={{ background: "var(--bg2, hsl(var(--card)))" }}
-            >
-              <div className="flex items-center gap-2">
-                <span style={{ fontSize: "2rem" }}>{c.flag}</span>
-                <span className="font-bold uppercase tracking-wider text-sm text-foreground font-serif">{c.name}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground font-sans leading-snug">
-                {c.pct}% say: "{c.topAnswer}"
-              </p>
-              <div className="h-[3px] w-full rounded overflow-hidden bg-border">
-                <div className="h-full rounded transition-all" style={{ width: `${c.pct}%`, background: "#DC143C" }} />
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 text-[12px] text-muted-foreground font-sans italic text-center">
-          The region agrees on the question. It rarely agrees on the answer.
-        </p>
-      </div>
-    </section>
   )
 }
 
