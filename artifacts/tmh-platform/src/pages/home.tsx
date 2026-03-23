@@ -110,14 +110,22 @@ function LiveActivity() {
 
 
 const OPINION_BUBBLES = [
-  { text: "Dubai's success is 70% marketing. The other 30% is very, very real.", likes: "2.1k", pos: { left: "2%", top: "8%" }, rotate: "-2deg", duration: "7s", delay: "0s" },
-  { text: "Brain drain isn't a trend. It's a policy failure nobody admits out loud.", likes: "3.4k", pos: { left: "4%", top: "52%" }, rotate: "1.5deg", duration: "8.5s", delay: "1s" },
-  { text: "Everyone I know has an exit strategy. Nobody talks about it at dinner.", likes: "1.8k", pos: { left: "1%", top: "77%" }, rotate: "-1deg", duration: "6s", delay: "2s" },
-  { text: "Arab women run the actual business. Men sign the papers.", likes: "4.1k", pos: { right: "2%", top: "6%" }, rotate: "2deg", duration: "9s", delay: "0.5s" },
-  { text: "The next unicorn from this region is being built in a bedroom right now.", likes: "2.7k", pos: { right: "2%", top: "47%" }, rotate: "-2.5deg", duration: "7.5s", delay: "1.5s" },
-  { text: "We celebrate Vision 2030 publicly and question it privately.", likes: "5.3k", pos: { right: "3%", top: "74%" }, rotate: "1deg", duration: "8s", delay: "3s" },
-  { text: "I'd back a MENA founder over a Silicon Valley pitch any day of the week.", likes: "1.9k", pos: { left: "22%", top: "2%" }, rotate: "0deg", duration: "10s", delay: "0.8s" },
-  { text: "The opinions that matter most in this region are the ones nobody says out loud.", likes: "6.2k", pos: { right: "21%", top: "2%" }, rotate: "0deg", duration: "7s", delay: "2.2s" },
+  // Top row — scattered across full width
+  { text: "I'd back a MENA founder over a Silicon Valley pitch any day.", likes: "1.9k", pos: { left: "3%", top: "5%" }, rotate: "-1.5deg", duration: "10s", delay: "0.8s" },
+  { text: "The best conversations in this region happen off the record.", likes: "4.8k", pos: { left: "24%", top: "3%" }, rotate: "1deg", duration: "8s", delay: "1.4s" },
+  { text: "Arab women run the actual business. Men sign the papers.", likes: "4.1k", pos: { right: "22%", top: "4%" }, rotate: "-0.5deg", duration: "9s", delay: "0.3s" },
+  { text: "Everyone has an exit strategy. Nobody talks about it at dinner.", likes: "1.8k", pos: { right: "3%", top: "6%" }, rotate: "2deg", duration: "7s", delay: "2s" },
+  // Mid-left & mid-right — at the edges
+  { text: "Dubai's success is 70% marketing. The other 30% is very, very real.", likes: "2.1k", pos: { left: "1%", top: "40%" }, rotate: "-2deg", duration: "7.5s", delay: "0s" },
+  { text: "This region builds in silence. Then the world acts surprised.", likes: "3.1k", pos: { right: "1%", top: "38%" }, rotate: "1.5deg", duration: "8.5s", delay: "1.2s" },
+  // Behind the headline — barely visible, adds texture
+  { text: "Wasta is the invisible hand of the MENA economy.", likes: "2.9k", pos: { left: "35%", top: "28%" }, rotate: "0.5deg", duration: "11s", delay: "0.6s" },
+  { text: "We celebrate it publicly. We question it privately.", likes: "5.3k", pos: { right: "33%", top: "32%" }, rotate: "-1deg", duration: "9.5s", delay: "2.8s" },
+  // Bottom row — scattered
+  { text: "Brain drain isn't a trend. It's a policy failure nobody admits.", likes: "3.4k", pos: { left: "5%", top: "72%" }, rotate: "1deg", duration: "8s", delay: "1s" },
+  { text: "The next unicorn from this region is being built in a bedroom.", likes: "2.7k", pos: { left: "26%", top: "78%" }, rotate: "-1.5deg", duration: "7s", delay: "2.5s" },
+  { text: "The opinions that matter most are the ones nobody says out loud.", likes: "6.2k", pos: { right: "24%", top: "75%" }, rotate: "0.8deg", duration: "9s", delay: "0.5s" },
+  { text: "We're not in transition. We're in transformation.", likes: "1.4k", pos: { right: "3%", top: "70%" }, rotate: "-0.5deg", duration: "8s", delay: "1.8s" },
 ]
 
 const PREDICTIONS_DATA = [
@@ -273,58 +281,82 @@ export default function Home() {
       </div>
 
       {/* ── HERO ── */}
-      <section className="bg-background border-b border-border section-fadein">
-
-        {/* Headline zone — bubbles float HERE only, never over the poll */}
-        <div className="relative" style={{ minHeight: "300px" }}>
-          {/* Floating opinion bubbles — large screens only, anchored to headline zone */}
-          {OPINION_BUBBLES.map((b, i) => (
-            <div
-              key={i}
-              className="hidden lg:block absolute z-10 pointer-events-none"
-              style={{ ...b.pos, "--r": b.rotate, "--d": b.duration, "--dl": b.delay, opacity: 0.55 } as React.CSSProperties}
-            >
-              <div className="tmh-bubble pointer-events-auto">
-                <p>{b.text}</p>
-                <div className="tmh-reaction">
-                  <span className="tmh-reaction-heart">♥</span>
-                  <span className="tmh-reaction-count">{b.likes}</span>
-                </div>
+      <section
+        className="bg-background section-fadein border-b border-border"
+        style={{ position: "relative", minHeight: "520px", overflow: "hidden" }}
+      >
+        {/* Bubbles scattered across the full hero — lg screens only */}
+        {OPINION_BUBBLES.map((b, i) => (
+          <div
+            key={i}
+            className="hidden lg:block absolute pointer-events-none"
+            style={{ ...b.pos, "--r": b.rotate, "--d": b.duration, "--dl": b.delay, opacity: 0.38, zIndex: 1 } as React.CSSProperties}
+          >
+            <div className="tmh-bubble pointer-events-auto">
+              <p>{b.text}</p>
+              <div className="tmh-reaction">
+                <span className="tmh-reaction-heart">♥</span>
+                <span className="tmh-reaction-count">{b.likes}</span>
               </div>
-            </div>
-          ))}
-
-          {/* Headline content — z-20 so it always sits above the bubbles */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8 relative z-20">
-            <div className="mb-10">
-              <div className="h-1 w-16 bg-primary mb-6" />
-              <h2 className="font-display font-black uppercase text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-foreground mb-6">
-                Opinions No One<br />Dares to Say.<br /><span style={{ color: "#DC143C" }}>Out Loud.</span>
-              </h2>
-              <p className="text-lg md:text-xl text-muted-foreground font-sans">
-                {heroSubhead}
-              </p>
             </div>
           </div>
-        </div>
+        ))}
 
-        {/* Featured Poll — entirely outside the bubble zone */}
-        <div className="pb-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {featuredLoading ? (
-              <div className="h-96 bg-secondary animate-pulse border border-border" />
-            ) : featuredPoll ? (
-              <div className="w-full">
-                <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-4 flex items-center gap-2 font-serif">
-                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                  Today's Lead Debate
-                </div>
-                <PollCard poll={featuredPoll} featured />
-              </div>
-            ) : null}
+        {/* Headline — sits above all bubbles */}
+        <div
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24"
+          style={{ position: "relative", zIndex: 10 }}
+        >
+          <div className="h-1 w-16 bg-primary mb-8" />
+          <h2 className="font-display font-black uppercase text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-foreground mb-6">
+            Opinions No One<br />Dares to Say.<br />
+            <span style={{ color: "#DC143C" }}>Out Loud.</span>
+          </h2>
+          <p className="text-lg md:text-xl text-muted-foreground font-sans max-w-xl">
+            {heroSubhead}
+          </p>
+        </div>
+      </section>
+
+      {/* ── THE REGION HAS SPOKEN ── */}
+      <section className="border-b border-border py-14 bg-foreground text-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-[9px] uppercase tracking-[0.35em] font-bold text-background/40 mb-10 font-serif">
+            The Region Has Spoken
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-0 md:divide-x md:divide-background/10">
+            <div className="md:pr-10">
+              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>64%</div>
+              <p className="text-background/55 font-sans text-sm leading-relaxed">say their exit strategy is a real plan — not a backup option.</p>
+            </div>
+            <div className="md:px-10">
+              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>1 in 3</div>
+              <p className="text-background/55 font-sans text-sm leading-relaxed">MENA professionals seriously considered leaving their country in the last 12 months.</p>
+            </div>
+            <div className="md:pl-10">
+              <div className="font-display font-black text-primary leading-none mb-3" style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}>9 in 10</div>
+              <p className="text-background/55 font-sans text-sm leading-relaxed">agree: the most honest conversations in this region happen in private.</p>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ── TODAY'S LEAD DEBATE ── */}
+      <div className="py-16 bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {featuredLoading ? (
+            <div className="h-96 bg-secondary animate-pulse border border-border" />
+          ) : featuredPoll ? (
+            <div className="w-full">
+              <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-6 flex items-center gap-2 font-serif">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                Today's Lead Debate
+              </div>
+              <PollCard poll={featuredPoll} featured />
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       {/* ── QUESTION STRIP ── */}
       <section className="py-12 bg-secondary/30 border-b border-border">
