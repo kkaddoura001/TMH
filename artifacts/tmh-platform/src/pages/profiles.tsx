@@ -2,7 +2,7 @@ import { useState, useMemo } from "react"
 import { useListProfiles } from "@workspace/api-client-react"
 import { Layout } from "@/components/layout/Layout"
 import { ProfileCard } from "@/components/profile/ProfileCard"
-import { Search, Filter } from "lucide-react"
+import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function Profiles() {
@@ -33,17 +33,37 @@ export default function Profiles() {
 
   return (
     <Layout>
-      <div className="bg-background border-b border-border py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-1 w-12 bg-primary mb-6" />
-          <h1 className="font-serif font-black uppercase text-5xl md:text-7xl text-foreground mb-6 leading-none tracking-tight">
+      <div className="bg-foreground text-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
             The Voices
-          </h1>
-          <p className="text-lg text-muted-foreground font-sans max-w-2xl mb-10">
-            The founders, operators, and change-makers shaping the Middle East. Real People. Real Hustle. Real Change.
           </p>
+          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            Meet the People<br />Moving This Region.
+          </h1>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
+            Founders. Operators. Changemakers. Finally counted.
+          </p>
+        </div>
 
-          <div className="max-w-2xl relative group mb-4">
+        <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 0", display: "flex", alignItems: "center", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{data?.profiles?.length ?? "—"}</span> Voices
+          </span>
+          <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{countries.length || "—"}</span> Countries
+          </span>
+          <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>1</span> Region
+          </span>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex-1 relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-foreground transition-colors" />
             <input
               type="text"
@@ -53,54 +73,41 @@ export default function Profiles() {
               className="w-full pl-12 pr-4 py-4 bg-background border border-border focus:outline-none focus:border-foreground text-foreground transition-all text-base font-medium font-sans"
             />
           </div>
-
-          <div className="max-w-2xl">
-            <select
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              className="w-full px-4 py-3 bg-background border border-border focus:outline-none focus:border-foreground text-foreground text-sm font-sans font-medium appearance-none cursor-pointer"
-            >
-              <option value="all">All Countries</option>
-              {countries.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+            className="px-4 py-4 bg-background border border-border text-foreground font-sans text-sm focus:outline-none focus:border-foreground"
+          >
+            <option value="all">All Countries</option>
+            {countries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4 border-b border-border">
-          <div className="flex items-center gap-4">
-            <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
-            {filters.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setFilter(f.id)}
-                className={cn(
-                  "pb-1 text-xs uppercase tracking-widest font-bold transition-colors whitespace-nowrap",
-                  filter === f.id
-                    ? "border-b-2 border-primary text-primary"
-                    : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground whitespace-nowrap pl-4">
-            {filtered.length} profiles
-          </div>
+        <div className="flex gap-2 mb-10 flex-wrap">
+          {filters.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                "px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold transition-colors border",
+                filter === f.id
+                  ? "bg-foreground text-background border-foreground"
+                  : "text-muted-foreground border-border hover:text-foreground hover:border-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="h-64 bg-secondary animate-pulse border border-border" />)}
+            {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="h-80 bg-secondary animate-pulse border border-border" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-24 border border-border border-dashed bg-secondary/30">
-            <p className="font-serif font-bold text-2xl uppercase text-foreground tracking-wider mb-2">No profiles found</p>
-            <p className="text-sm text-muted-foreground font-sans">Try adjusting your search criteria.</p>
+          <div className="text-center py-20 border border-border border-dashed bg-secondary/30">
+            <h3 className="font-serif font-bold text-xl uppercase tracking-wider text-foreground mb-2">No profiles found</h3>
+            <p className="text-sm text-muted-foreground font-sans">Try adjusting your search or filters.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

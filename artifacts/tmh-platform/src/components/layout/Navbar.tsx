@@ -20,7 +20,7 @@ export function Navbar() {
     { label: "Debates", href: "/polls" },
     { label: "Predictions", href: "/predictions" },
     { label: "The Voices", href: "/profiles" },
-    { label: "Sentiment Map", href: "/#sentiment-map" },
+    { label: "The Brief", href: "/sentiment-map" },
     { label: "About", href: "/about" },
   ]
 

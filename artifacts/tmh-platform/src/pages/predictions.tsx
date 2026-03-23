@@ -212,10 +212,11 @@ function VoteButtons({ height = 52, locked = false }: { height?: number; locked?
 // ─── MOMENTUM TICKER ─────────────────────────────────────────────────────────
 
 function MomentumTicker() {
+  const doubled = [...TICKER_DATA, ...TICKER_DATA]
   return (
-    <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
-      <div style={{ display: "flex", alignItems: "center", minWidth: "max-content" }}>
-        {TICKER_DATA.map((item, i) => (
+    <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
+      <div className="tmh-ticker-scroll">
+        {doubled.map((item, i) => (
           <div
             key={i}
             style={{

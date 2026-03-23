@@ -12,6 +12,7 @@ import ProfileDetail from "@/pages/profile-detail"
 import Rankings from "@/pages/rankings"
 import WeeklyPulse from "@/pages/weekly-pulse"
 import Predictions from "@/pages/predictions"
+import SentimentMap from "@/pages/sentiment-map"
 import About from "@/pages/about"
 import Apply from "@/pages/apply"
 import Join from "@/pages/join"
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/rankings" component={Rankings} />
       <Route path="/weekly-pulse" component={WeeklyPulse} />
       <Route path="/predictions" component={Predictions} />
+      <Route path="/sentiment-map" component={SentimentMap} />
       <Route path="/about" component={About} />
       <Route path="/apply" component={Apply} />
       <Route path="/join" component={Join} />
