@@ -4,33 +4,33 @@ import { Layout } from "@/components/layout/Layout"
 const BELIEFS = [
   {
     num: "01",
-    title: "Every Vote Is a Statement",
-    body: "We didn't build a survey tool. We built a declaration machine. When someone from Cairo and someone from Riyadh vote the same way on the same question, something real is happening. We exist to document it.",
+    title: "A Social Experiment",
+    body: "Every question is a controlled provocation. The point is not agreement. The point is honesty.",
   },
   {
     num: "02",
-    title: "Results Are the Reward",
-    body: "Sharing isn't a barrier. It's the mechanic. The moment you share a TMH debate, you're adding to the story. Every distribution is a data point. Every data point is a voice.",
+    title: "No Editorial Agenda",
+    body: "We write the questions. We never write the answers. What the region thinks is the region's business.",
   },
   {
     num: "03",
-    title: "The Hustlers Are the Heart",
-    body: "Profiles on this platform aren't résumés. They're records. Of people who built something real in conditions that would have broken most. We document them because the world should know who they are.",
+    title: "Private Opinions, Public Data",
+    body: "Your vote is anonymous. The aggregate is not. That gap is where the truth lives.",
   },
   {
     num: "04",
-    title: "No Fluff. Just Truth.",
-    body: "TMH doesn't do polished bios and safe opinions. We ask the questions that make people put their phone down and say 'wait — what?' If a question can't split a WhatsApp group, it doesn't go live.",
+    title: "The Questions No One Asks",
+    body: "Not because they're dangerous. Because nobody built the room yet. We built the room.",
   },
   {
     num: "05",
-    title: "400 Million, One Square",
-    body: "This region has never had a digital town square. A place where opinion becomes data, data becomes narrative, and narrative becomes pressure. That's what we're building. One question at a time.",
+    title: "Strength in Adversity",
+    body: "With 50% of our population under 30, we are one of the youngest, most opinionated regions on earth. That is not a problem. That is the point.",
   },
   {
     num: "06",
-    title: "Community First. Always.",
-    body: "Revenue enhances the experience — it never interrupts it. The share gate is a distribution mechanic, not a paywall. There is always a free path. That's a promise.",
+    title: "Real People Only",
+    body: "No bots. No astroturfing. No sponsored opinions. Just the region, speaking for itself.",
   },
 ]
 
@@ -44,39 +44,59 @@ export default function About() {
             Est. 2026 · Dubai · Founded by Kareem Kaddoura
           </div>
           <h1 className="font-display font-black text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight mb-8">
-            This Isn't a Platform.<br />
-            <span className="text-primary">It's a Purpose.</span>
+            About The Middle<br />
+            <span className="text-primary">East Hustle.</span>
           </h1>
-          <p className="text-xl text-background/60 font-sans max-w-2xl leading-relaxed">
-            400 million people. One region. And until now, almost nobody asking them what they actually think.
+          <p className="text-xl text-background/60 font-sans max-w-2xl leading-relaxed italic font-display" style={{ maxWidth: "760px" }}>
+            "The more I know, the more I don't. But at least now we're asking out loud."
           </p>
         </div>
       </div>
 
-      {/* The Real Story */}
+      {/* Founder Statement */}
       <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
         <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
-          I started The Middle East Hustle because I was tired. Tired of the region being defined by its crises instead of its people. Tired of watching the world's conversation about us happen without us. Tired of founders, operators, and builders doing extraordinary things in complete silence while the noise came from everywhere else.
+          This started as a question I kept asking at dinner tables, in taxis, in boardrooms, and in WhatsApp groups at midnight: what does the Middle East actually think?
         </p>
 
-        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-8">
-          This region has $3.6 trillion in economic potential. Half its population is under 30. It's producing unicorns, Oscar-shortlisted films, world-class scientists, and the kind of entrepreneurs who build companies in the middle of wars, economic collapses, and systems designed to stop them. And yet the dominant narrative is still conflict, oil, and monarchy.
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          Not what we're told it thinks. Not what leaders say it thinks. Not what Western media assumes it thinks. What the 400 million people who live here, work here, raise children here, and build things here — actually think.
+        </p>
+
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          There was no single place to find out. So I built one.
         </p>
 
         <blockquote className="font-display text-2xl md:text-3xl border-l-4 border-primary pl-6 py-4 my-12 text-foreground leading-snug">
-          "TMH is the digital town square the Middle East has never had — where 400 million people finally have one place to say what they actually think."
+          "The Middle East Hustle is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
         </blockquote>
 
-        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-8">
-          Every poll on this platform is a small act of documentation. What do founders in Cairo really think about brain drain? What does a 25-year-old in Riyadh actually believe about AI and her job? Where does the region's most influential talent want to be in 10 years — and why are so many of them hedging their answer?
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          I don't have the answers. Nobody does. But for the first time, we're collecting them — honestly, anonymously, at scale.
         </p>
 
-        <p className="text-base text-muted-foreground font-sans leading-relaxed">
-          The TMH Directory is a record of the people actually building this place. Not the ones with the best PR. Not the ones with the most followers. The ones who stayed, who came back, who built something real in conditions that would have broken most people.
+        <p className="text-base font-sans leading-relaxed text-foreground font-bold">
+          — Kareem Kaddoura, Founder
         </p>
       </div>
 
-      {/* What We Stand For */}
+      {/* Why This Exists */}
+      <div className="max-w-3xl mx-auto px-4 pb-20 border-b border-border">
+        <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-6 border-l-4 border-primary pl-4">
+          Why This Exists
+        </h2>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          Because the region has opinions it keeps to itself. Because the debates that matter most — about identity, money, religion, gender, power, and the future — happen in private and disappear.
+        </p>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          TMH makes them permanent. Not to provoke. Not to divide. But because a region that cannot hear itself think cannot grow.
+        </p>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed">
+          We are not a media company. We are not a polling firm. We are the region's first collective mirror — holding up questions and letting 400 million people answer for themselves.
+        </p>
+      </div>
+
+      {/* Beliefs */}
       <div className="py-20 bg-secondary/20 border-t border-border border-b">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif font-black uppercase text-3xl border-b-2 border-foreground pb-4 mb-12 text-foreground">
@@ -103,7 +123,7 @@ export default function About() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { num: "67", label: "Founding Hustlers" },
+              { num: "67", label: "Founding Voices" },
               { num: "135+", label: "Active Debates" },
               { num: "12", label: "Topic Categories" },
               { num: "400M", label: "Potential Voices" },
@@ -117,11 +137,11 @@ export default function About() {
         </div>
       </div>
 
-      {/* Signed Close */}
+      {/* Closing */}
       <div className="py-20 border-t border-border">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <p className="font-display text-3xl text-foreground mb-2 leading-snug">
-            "Real People. Real Hustle.<br />Real Change."
+          <p className="font-display text-3xl text-foreground mb-2 leading-snug italic">
+            "Bringing the voices of the Middle East<br />into one room. Finally."
           </p>
           <p className="text-sm text-muted-foreground font-sans mb-12">
             — Kareem Kaddoura, Founder · The Middle East Hustle · Dubai, 2026
@@ -137,13 +157,13 @@ export default function About() {
               href="/profiles"
               className="border border-foreground text-foreground px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-foreground hover:text-background transition-colors font-serif"
             >
-              Meet the Hustlers
+              Meet The Voices
             </Link>
             <Link
               href="/apply"
               className="border border-primary text-primary px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-colors font-serif"
             >
-              Become a Hustler
+              Join The Voices
             </Link>
           </div>
         </div>

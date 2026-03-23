@@ -108,27 +108,6 @@ function LiveActivity() {
   )
 }
 
-function PlatformStatsBar({ stats }: { stats: PlatformStats | null }) {
-  if (!stats) return null
-  const items = [
-    { label: "Total Votes", value: stats.totalVotes.toLocaleString() },
-    { label: "Live Debates", value: stats.livePolls.toLocaleString() },
-    { label: "Countries", value: `${stats.countries}+` },
-    { label: "Active This Week", value: stats.activeThisWeek.toLocaleString() },
-  ]
-  return (
-    <div className="border-t border-border py-3">
-      <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
-        {items.map(({ label, value }) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className="font-display font-black text-base text-foreground tabular-nums">{value}</span>
-            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-serif">{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 const OPINION_BUBBLES = [
   { text: "I've been using AI to do my junior analyst's work for 6 months. They have no idea.", likes: "1.4k", pos: { left: "2%", top: "8%" }, rotate: "-2deg", duration: "7s", delay: "0s" },
@@ -229,7 +208,7 @@ export default function Home() {
 
   const heroSubhead = (() => {
     if (totalVotesAllTime > 0 && profile) {
-      return `You've cast ${totalVotesAllTime} vote${totalVotesAllTime !== 1 ? "s" : ""}. ${totalVotes.toLocaleString()} total have been cast across the region.`
+      return `You've cast ${totalVotesAllTime} vote${totalVotesAllTime !== 1 ? "s" : ""} across the region.`
     }
     return totalVotes > 0
       ? `${totalVotes.toLocaleString()} votes cast — and the region is divided.`
@@ -292,7 +271,6 @@ export default function Home() {
             ))}
           </nav>
 
-          <PlatformStatsBar stats={platformStats} />
         </div>
       </div>
 
@@ -328,7 +306,7 @@ export default function Home() {
           {OPINION_BUBBLES.map((b, i) => (
             <div
               key={i}
-              className="hidden xl:block absolute z-20 pointer-events-none"
+              className="hidden md:block absolute z-20 pointer-events-none"
               style={{ ...b.pos, "--r": b.rotate, "--d": b.duration, "--dl": b.delay } as React.CSSProperties}
             >
               <div className="tmh-bubble pointer-events-auto">

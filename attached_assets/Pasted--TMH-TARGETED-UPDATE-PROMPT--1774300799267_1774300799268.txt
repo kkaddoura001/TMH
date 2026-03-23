@@ -1,0 +1,221 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TMH — TARGETED UPDATE PROMPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do NOT rebuild anything. Apply these specific
+changes only. Everything else stays as is.
+
+────────────────────────────────────────
+1. REMOVE THE STATS BAR ENTIRELY
+────────────────────────────────────────
+
+Delete the stats strip that reads:
+"1,036,933 TOTAL VOTES  |  332 LIVE DEBATES
+|  2+ COUNTRIES  |  6 ACTIVE THIS WEEK"
+
+Remove it from the homepage completely.
+Do not replace it with anything.
+
+General rule going forward: no stat counters,
+no metrics strips, no dashboards visible to
+the public user. Numbers only appear inside
+poll results and on individual debate cards
+(vote counts per question). Everywhere else:
+clean. Let the questions do the work.
+
+────────────────────────────────────────
+2. HERO SECTION — UPDATE THE FRAMING LINE
+────────────────────────────────────────
+
+The line that currently reads:
+"AI isn't coming for jobs — it already has.
+The question is whether you've admitted it yet."
+
+Keep it exactly as is. It works.
+
+But directly ABOVE the poll question
+(between the category badge and the headline),
+add one small editorial line:
+
+  "TODAY'S LEAD DEBATE"
+
+Style: Barlow Condensed 700, 0.62rem,
+uppercase, letter-spacing 0.18em,
+color: var(--green) with a small green
+pulse dot to the left of it.
+This is already in the screenshot and
+looks correct — keep it exactly as is.
+
+────────────────────────────────────────
+3. OPINION BUBBLES — ANCHOR TO HERO ONLY
+────────────────────────────────────────
+
+The floating opinion bubbles should exist
+ONLY within the hero debate section —
+the zone containing the main poll question.
+
+They must not appear anywhere else on the
+page (not near debates, not near predictions).
+
+The bubbles frame the hero question like a
+room full of people already mid-argument
+before you've even voted. That is the
+intentional effect. They are NOT decorative
+— they are the social proof that this debate
+is already alive.
+
+Ensure the hero section container has:
+  position: relative
+  overflow: visible (so bubbles can extend
+  slightly beyond the container edge)
+
+Bubbles should be absolutely positioned
+within this container only.
+
+On mobile (< 768px): hide all bubbles.
+The question stands alone on mobile.
+
+────────────────────────────────────────
+4. REWRITE THE ABOUT PAGE — COMPLETELY
+────────────────────────────────────────
+
+The current About page is generic.
+Rewrite it entirely with the following
+copy. Do not change the visual layout or
+card structure — only replace the text.
+
+PAGE TITLE:
+"About The Middle East Hustle"
+
+OPENING PULL QUOTE (large, Playfair Display
+700 italic, centred, max-width 760px):
+
+  "The more I know, the more I don't.
+   But at least now we're asking out loud."
+
+FOUNDER STATEMENT (body text, left column):
+
+  This started as a question I kept asking
+  at dinner tables, in taxis, in boardrooms,
+  and in WhatsApp groups at midnight:
+  what does the Middle East actually think?
+
+  Not what we're told it thinks.
+  Not what leaders say it thinks.
+  Not what Western media assumes it thinks.
+  What the 400 million people who live here,
+  work here, raise children here, and build
+  things here — actually think.
+
+  There was no single place to find out.
+  So I built one.
+
+  The Middle East Hustle is a social
+  experiment disguised as a platform.
+  Every debate is a room I'm placing the
+  region inside. Every vote is a voice that
+  would otherwise never be counted. Every
+  prediction is a bet on where we're headed.
+
+  I don't have the answers. Nobody does.
+  But for the first time, we're collecting
+  them — honestly, anonymously, at scale.
+
+  — Kareem Kaddoura, Founder
+
+MISSION BLOCK TITLE: "Why This Exists"
+
+MISSION BLOCK TEXT:
+
+  Because the region has opinions it keeps
+  to itself. Because the debates that matter
+  most — about identity, money, religion,
+  gender, power, and the future — happen
+  in private and disappear.
+
+  TMH makes them permanent. Not to provoke.
+  Not to divide. But because a region that
+  cannot hear itself think cannot grow.
+
+  We are not a media company. We are not a
+  polling firm. We are the region's first
+  collective mirror — holding up questions
+  and letting 400 million people answer
+  for themselves.
+
+BELIEF CARDS — replace titles and text:
+
+  Card 1:
+  Title: "A SOCIAL EXPERIMENT"
+  Text: "Every question is a controlled
+  provocation. The point is not agreement.
+  The point is honesty."
+
+  Card 2:
+  Title: "NO EDITORIAL AGENDA"
+  Text: "We write the questions. We never
+  write the answers. What the region thinks
+  is the region's business."
+
+  Card 3:
+  Title: "PRIVATE OPINIONS, PUBLIC DATA"
+  Text: "Your vote is anonymous. The
+  aggregate is not. That gap is where
+  the truth lives."
+
+  Card 4:
+  Title: "THE QUESTIONS NO ONE ASKS"
+  Text: "Not because they're dangerous.
+  Because nobody built the room yet.
+  We built the room."
+
+  Card 5:
+  Title: "STRENGTH IN ADVERSITY"
+  Text: "With 50% of our population under
+  30, we are one of the youngest, most
+  opinionated regions on earth. That
+  is not a problem. That is the point."
+
+  Card 6:
+  Title: "REAL PEOPLE ONLY"
+  Text: "No bots. No astroturfing. No
+  sponsored opinions. Just the region,
+  speaking for itself."
+
+CLOSING LINE (large, centred, italic):
+  "Bringing the voices of the Middle East
+   into one room. Finally."
+
+Do NOT change: card layout, grid structure,
+founder avatar/initials, newsletter CTA
+below the beliefs, or any visual styling.
+Only the text content changes.
+
+────────────────────────────────────────
+5. UPDATE "YOU'VE CAST X VOTES" LINE
+────────────────────────────────────────
+
+The line at the top that reads:
+"You've cast 2 votes. 1,036,933 total
+have been cast across the region."
+
+Change to simply:
+"You've cast [X] votes across the region."
+
+Remove the total vote count from this line.
+The number of votes the USER has cast is
+meaningful and personal. The total platform
+number is noise. Remove the noise.
+
+────────────────────────────────────────
+NO OTHER CHANGES
+────────────────────────────────────────
+
+Do not change: fonts, colours, vote mechanic,
+share gate, prediction cards, debate cards,
+question strip, The Voices section, sentiment
+map, navbar, footer, dark/light mode, or any
+backend logic.
+
+These are content and copy changes only,
+plus the removal of the stats strip.
