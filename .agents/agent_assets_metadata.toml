@@ -6,3 +6,9 @@ id = "PpUWBZ-Ksmq_mdxZULN8_"
 uri = "file:///tmp/the-middle-east-hustle.tar.gz"
 type = "unspecified"
 title = "The Middle East Hustle — Source Code"
+
+[[outputs]]
+id = "hR_x6gI5cwQqgse5TEMRy"
+uri = "file://tmh-platform-backup.zip"
+type = "unspecified"
+title = "TMH Platform — Full Code Backup"
