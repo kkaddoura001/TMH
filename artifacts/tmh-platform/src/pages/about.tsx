@@ -41,11 +41,10 @@ export default function About() {
       <div className="bg-foreground text-background py-20 lg:py-32 border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-8 font-serif">
-            Est. 2026 · Dubai · Founded by Kareem Kaddoura
+            Est. 2026 · Founded by Kareem Kaddoura
           </div>
           <h1 className="font-display font-black text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight mb-8">
-            About The Middle<br />
-            <span className="text-primary">East Hustle.</span>
+            About TMH<span className="text-primary">.</span>
           </h1>
           <p className="text-xl text-background/60 font-sans max-w-2xl leading-relaxed italic font-display" style={{ maxWidth: "760px" }}>
             "The more I know, the more I don't. But at least now we're asking out loud."
