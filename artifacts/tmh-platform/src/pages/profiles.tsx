@@ -5,20 +5,43 @@ import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+const IMPACT_STATEMENTS: Record<string, string> = {
+  "Kitopi": "Scaled cloud kitchens across 5 countries — redefining how the region eats",
+  "Replit": "Made coding accessible to millions worldwide — democratizing software creation",
+  "Sarwa": "AED 10B+ in trading volume — making investing accessible to every Arab",
+  "CoinMENA": "Opened crypto access for Arabs — building financial freedom across MENA",
+  "Washmen": "Disrupted laundry in the Gulf — and cancelled a sponsorship over Gaza",
+  "Deliveroo": "Built Deliveroo MENA from zero to millions of orders",
+  "Binance FZE (Dubai)": "Leading Binance Dubai — reshaping how money moves in the Middle East",
+  "MUNCH:ON (acquired by Careem)": "Built MUNCH:ON and sold it to Careem — solving corporate lunch with tech",
+  "Plug and Play": "Championing Arab and African startup ecosystems from the ground up",
+  "Brookings Institution / AGFE": "A Palestinian refugee who built pathways to education where none existed",
+  "Fiker Institute": "Building the Arab world's first serious geopolitical think tank",
+  "Sharjah Entrepreneurship Center (Sheraa)": "Turned Sharjah into a startup powerhouse — empowering the next generation",
+  "MSA Capital / MSA Novo": "One of MENA's most active emerging market VC funds — transforming obstacles into opportunity",
+  "Arzan Venture Capital": "Dentist turned VC — 9 exits and counting, now building again in stealth",
+  "Saudi Exchange": "Helping build one of the world's fastest-growing capital markets",
+  "The Middle East Hustle": "Building the region's opinion layer — where MENA's voice gets counted",
+  "Tuhoon / Wamda Capital": "Tackling the mental health crisis no one talks about in MENA",
+  "Revolut UAE": "Founded Souqalmal, now leading Revolut UAE — making finance transparent for Arabs",
+}
+
 function VoicesTicker({ profiles }: { profiles: Array<{ name: string; company?: string | null; quote: string }> }) {
-  const quotesWithNames = profiles
-    .filter(p => p.quote && p.quote.length > 10 && p.quote.length < 120)
-    .map(p => ({
-      name: p.name.split(" ")[0].toUpperCase(),
-      company: p.company || "",
-      quote: p.quote.replace(/^["']|["']$/g, ""),
-    }))
+  const items = profiles
+    .filter(p => p.company && p.name)
+    .map(p => {
+      const impact = IMPACT_STATEMENTS[p.company || ""]
+      if (impact) return `${p.name.split(" ")[0].toUpperCase()}, ${p.company} · ${impact}`
+      if (p.quote && p.quote.length > 10 && p.quote.length < 100) {
+        return `${p.name.split(" ")[0].toUpperCase()}, ${p.company} · "${p.quote.replace(/^["']|["']$/g, "")}"`
+      }
+      return null
+    })
+    .filter(Boolean)
 
-  if (quotesWithNames.length === 0) return null
+  if (items.length === 0) return null
 
-  const tickerText = quotesWithNames
-    .map(q => `"${q.quote}" — ${q.name}${q.company ? `, ${q.company}` : ""}`)
-    .join("    ·    ")
+  const tickerText = items.join("    ·    ")
 
   return (
     <div style={{
@@ -45,7 +68,7 @@ function VoicesTicker({ profiles }: { profiles: Array<{ name: string; company?: 
         color: "#fff",
         zIndex: 2,
       }}>
-        WISDOM
+        IMPACT
       </div>
       <div style={{ flex: 1, overflow: "hidden" }}>
         <span

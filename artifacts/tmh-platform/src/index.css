@@ -308,7 +308,7 @@
   to   { transform: translateX(-50%); }
 }
 .tmh-ticker-scroll {
-  animation: tmhTickerScroll 38s linear infinite;
+  animation: tmhTickerScroll 90s linear infinite;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
