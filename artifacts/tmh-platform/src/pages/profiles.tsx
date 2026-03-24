@@ -43,7 +43,7 @@ function VoicesTicker({ profiles }: { profiles: Array<{ name: string; company?: 
 
   return (
     <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
-      <div className="tmh-ticker-scroll">
+      <div className="tmh-ticker-scroll-slow">
         {doubled.map((item, i) => (
           <div
             key={i}

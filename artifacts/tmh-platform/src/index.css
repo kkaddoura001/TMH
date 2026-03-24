@@ -314,6 +314,13 @@
   align-items: center;
 }
 .tmh-ticker-scroll:hover { animation-play-state: paused; }
+.tmh-ticker-scroll-slow {
+  animation: tmhTickerScroll 200s linear infinite;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+.tmh-ticker-scroll-slow:hover { animation-play-state: paused; }
 
 /* ── Share gate entrance ── */
 @keyframes gateSlideIn {
