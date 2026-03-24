@@ -1,6 +1,37 @@
 import { Link } from "wouter"
 import { Layout } from "@/components/layout/Layout"
 
+const PILLARS = [
+  {
+    num: "01",
+    title: "Debates",
+    body: "The questions no one asks out loud — about identity, money, religion, gender, power, and the future. Every debate is anonymous. Every vote is permanent. What the region thinks stays on record.",
+    link: "/polls",
+    cta: "Enter the Debates",
+  },
+  {
+    num: "02",
+    title: "Predictions",
+    body: "Not what should happen — what will. A Bloomberg-style prediction market for MENA's biggest questions. Track confidence over time, watch consensus shift, and bet on where the region is headed.",
+    link: "/predictions",
+    cta: "Make a Prediction",
+  },
+  {
+    num: "03",
+    title: "The Pulse",
+    body: "Exploding Topics for MENA. 12 data-driven trend cards tracking what's actually moving — from the $1.2B creator economy to the 312% surge in mental health searches. Real-time population counter. Live tickers. The region's vital signs.",
+    link: "/mena-pulse",
+    cta: "Read The Pulse",
+  },
+  {
+    num: "04",
+    title: "The Voices",
+    body: "94 founders, operators, and changemakers from 10 countries — curated, not applied-for. Each Voice has a story, a lesson, and a quote. This is the region's leadership index, built one profile at a time.",
+    link: "/profiles",
+    cta: "Meet The Voices",
+  },
+]
+
 const BELIEFS = [
   {
     num: "01",
@@ -24,8 +55,8 @@ const BELIEFS = [
   },
   {
     num: "05",
-    title: "Strength in Adversity",
-    body: "With 50% of our population under 30, we are one of the youngest, most opinionated regions on earth. That is not a problem. That is the point.",
+    title: "Youngest Region on Earth",
+    body: "60% of MENA is under 30. 541 million people. That's not a demographic stat — it's 541 million opinions waiting to be heard.",
   },
   {
     num: "06",
@@ -41,19 +72,88 @@ export default function About() {
       <div className="bg-foreground text-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
-            Est. 2026 · Founded by Kareem Kaddoura
+            Est. 2026 · Dubai · Founded by Kareem Kaddoura
           </p>
           <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
-            About TMH
+            The Region's First<br />Collective Mirror.
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
-            The more I know, the more I don't. But at least now we're asking out loud.
+            541 million people. Zero platforms asking what they think. Until now.
           </p>
+        </div>
+      </div>
+
+      {/* What TMH Is */}
+      <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
+        <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
+          What Is TMH?
+        </h2>
+        <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
+          The Middle East Hustle is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment.
+        </p>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          We ask the questions nobody else asks. We collect anonymous votes from across 20 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.
+        </p>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
+          Think of it as the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology, and built for the 541 million people who live, work, and build in the Middle East and North Africa.
+        </p>
+        <p className="text-base text-muted-foreground font-sans leading-relaxed">
+          Everything on TMH — every debate, every prediction, every trend, every Voice — adds to a living dataset of what the region actually thinks. Not what governments report. Not what Western media assumes. What real people vote for when nobody's watching.
+        </p>
+      </div>
+
+      {/* The Four Pillars */}
+      <div className="py-20 bg-secondary/20 border-b border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif font-black uppercase text-3xl border-b-2 border-foreground pb-4 mb-12 text-foreground">
+            The Platform
+          </h2>
+          <div className="grid md:grid-cols-2 gap-10">
+            {PILLARS.map(p => (
+              <div key={p.num} className="relative">
+                <span className="text-6xl font-display font-black text-foreground/8 leading-none select-none block">{p.num}</span>
+                <div className="-mt-3">
+                  <h3 className="font-serif font-black uppercase text-lg border-b border-border pb-2 mb-3 text-foreground tracking-wide">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-sans leading-relaxed mb-4">{p.body}</p>
+                  <Link
+                    href={p.link}
+                    className="inline-block text-xs font-serif font-bold uppercase tracking-widest text-primary hover:text-foreground transition-colors border-b border-primary pb-0.5"
+                  >
+                    {p.cta} →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Numbers */}
+      <div className="bg-foreground text-background py-16 border-b border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { num: "94", label: "Founding Voices" },
+              { num: "135+", label: "Active Debates" },
+              { num: "20", label: "MENA Countries" },
+              { num: "541M", label: "People in MENA" },
+            ].map(stat => (
+              <div key={stat.label}>
+                <div className="font-display font-black text-4xl md:text-5xl text-primary leading-none mb-2">{stat.num}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-background/50 font-serif">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Founder Statement */}
       <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
+        <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
+          From the Founder
+        </h2>
         <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
           This started as a question I kept asking at dinner tables, in taxis, in boardrooms, and in WhatsApp groups at midnight: what does the Middle East actually think?
         </p>
@@ -67,31 +167,15 @@ export default function About() {
         </p>
 
         <blockquote className="font-display text-2xl md:text-3xl border-l-4 border-primary pl-6 py-4 my-12 text-foreground leading-snug">
-          "The Middle East Hustle is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
+          "TMH is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
         </blockquote>
 
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          I don't have the answers. Nobody does. But for the first time, we're collecting them — honestly, anonymously, at scale.
+          I don't have the answers. Nobody does. But for the first time, we're collecting them — honestly, anonymously, at scale. Every vote, every prediction, every profile adds to a picture of the region that has never existed before.
         </p>
 
         <p className="text-base font-sans leading-relaxed text-foreground font-bold">
           — Kareem Kaddoura, Founder
-        </p>
-      </div>
-
-      {/* Why This Exists */}
-      <div className="max-w-3xl mx-auto px-4 pb-20 border-b border-border">
-        <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-6 border-l-4 border-primary pl-4">
-          Why This Exists
-        </h2>
-        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          Because the region has opinions it keeps to itself. Because the debates that matter most — about identity, money, religion, gender, power, and the future — happen in private and disappear.
-        </p>
-        <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          TMH makes them permanent. Not to provoke. Not to divide. But because a region that cannot hear itself think cannot grow.
-        </p>
-        <p className="text-base text-muted-foreground font-sans leading-relaxed">
-          We are not a media company. We are not a polling firm. We are the region's first collective mirror — holding up questions and letting 541 million people answer for themselves.
         </p>
       </div>
 
@@ -111,25 +195,6 @@ export default function About() {
                   </h3>
                   <p className="text-sm text-muted-foreground font-sans leading-relaxed">{b.body}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Numbers */}
-      <div className="bg-foreground text-background py-16 border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { num: "94", label: "Founding Voices" },
-              { num: "135+", label: "Active Debates" },
-              { num: "12", label: "Topic Categories" },
-              { num: "541M", label: "Potential Voices" },
-            ].map(stat => (
-              <div key={stat.label}>
-                <div className="font-display font-black text-4xl md:text-5xl text-primary leading-none mb-2">{stat.num}</div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-background/50 font-serif">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -177,10 +242,10 @@ export default function About() {
               We believe that anonymous, honest data from real people is more valuable than any op-ed, any government report, any think-tank white paper. We believe the region knows itself better than anyone watching from the outside.
             </p>
             <p>
-              We built TMH to be the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology. The questions are provocative because the region deserves provocative questions. The data is honest because anything less is a waste of everyone's time.
+              The questions are provocative because the region deserves provocative questions. The data is honest because anything less is a waste of everyone's time.
             </p>
             <p className="text-foreground font-bold">
-              This is MENA's living dataset. Every vote, every prediction, every profile adds to a picture of the region that has never existed before.
+              This is MENA's living dataset — and it grows with every vote.
             </p>
           </div>
         </div>
@@ -203,16 +268,16 @@ export default function About() {
               Cast Your Vote
             </Link>
             <Link
-              href="/profiles"
+              href="/mena-pulse"
               className="border border-foreground text-foreground px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-foreground hover:text-background transition-colors font-serif"
             >
-              Meet The Voices
+              Read The Pulse
             </Link>
             <Link
-              href="/apply"
+              href="/profiles"
               className="border border-primary text-primary px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-colors font-serif"
             >
-              Join The Voices
+              Meet The Voices
             </Link>
           </div>
         </div>

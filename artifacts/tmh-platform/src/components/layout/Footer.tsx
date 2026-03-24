@@ -1,11 +1,11 @@
 import { Link } from "wouter"
 
 const NAV = [
-  { label: "Debates", href: "/polls" },
-  { label: "The Voices", href: "/profiles" },
-  { label: "The Pulse", href: "/mena-pulse" },
-  { label: "Predictions", href: "/predictions" },
   { label: "About", href: "/about" },
+  { label: "The Pulse", href: "/mena-pulse" },
+  { label: "Debates", href: "/polls" },
+  { label: "Predictions", href: "/predictions" },
+  { label: "The Voices", href: "/profiles" },
   { label: "Join The Voices", href: "/apply" },
 ]
 

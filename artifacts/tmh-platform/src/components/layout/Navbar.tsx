@@ -17,11 +17,11 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
+    { label: "About", href: "/about" },
+    { label: "The Pulse", href: "/mena-pulse" },
     { label: "Debates", href: "/polls" },
     { label: "Predictions", href: "/predictions" },
     { label: "The Voices", href: "/profiles" },
-    { label: "The Pulse", href: "/mena-pulse" },
-    { label: "About", href: "/about" },
   ]
 
   return (
