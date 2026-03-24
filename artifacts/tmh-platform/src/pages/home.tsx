@@ -19,39 +19,55 @@ function usePopulationCounter() {
   }, [])
   const [pop, setPop] = useState(calcPop)
   useEffect(() => {
-    const id = setInterval(() => setPop(calcPop()), 3800)
+    const id = setInterval(() => setPop(calcPop()), 1000)
     return () => clearInterval(id)
   }, [calcPop])
   return pop
 }
 
-function LivePopNumber({ value, className }: { value: number; className?: string }) {
+function FlipDigit({ char, prevChar }: { char: string; prevChar: string }) {
+  const isNumber = char >= "0" && char <= "9"
+  const changed = char !== prevChar && isNumber
+
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        position: "relative",
+        overflow: "hidden",
+        height: "1em",
+        lineHeight: 1,
+      }}
+      className="tabular-nums"
+    >
+      <span
+        key={char}
+        style={{
+          display: "inline-block",
+          animation: changed ? "digit-flip-in 0.5s cubic-bezier(0.23,1,0.32,1) forwards" : "none",
+          color: changed ? "#DC143C" : "inherit",
+          transition: "color 1.5s ease",
+        }}
+      >
+        {char}
+      </span>
+    </span>
+  )
+}
+
+function LivePopNumber({ value, className, style }: { value: number; className?: string; style?: React.CSSProperties }) {
   const formatted = value.toLocaleString("en-US")
   const prevRef = useRef(formatted)
-  const [digits, setDigits] = useState(formatted.split(""))
+  const prevFormatted = prevRef.current
 
   useEffect(() => {
-    const prev = prevRef.current
-    const next = formatted
-    prevRef.current = next
-    if (prev === next) return
-    setDigits(next.split(""))
+    prevRef.current = formatted
   }, [formatted])
 
   return (
-    <span className={className} aria-label={`${value} people`}>
-      {digits.map((d, i) => (
-        <span
-          key={`${i}-${d}`}
-          style={{
-            display: "inline-block",
-            transition: "transform 0.6s cubic-bezier(0.23,1,0.32,1), opacity 0.4s ease",
-            ...(d !== formatted[i] ? {} : {}),
-          }}
-          className={d >= "0" && d <= "9" ? "tabular-nums" : ""}
-        >
-          {d}
-        </span>
+    <span className={className} style={style} aria-label={`${value} people`}>
+      {formatted.split("").map((d, i) => (
+        <FlipDigit key={i} char={d} prevChar={prevFormatted[i] || d} />
       ))}
     </span>
   )
@@ -232,6 +248,11 @@ export default function Home() {
         @media (prefers-reduced-motion: reduce) {
           .bubble-float-1, .bubble-float-2, .bubble-float-3 { animation: none; }
         }
+        @keyframes digit-flip-in {
+          0% { transform: translateY(-100%); opacity: 0; }
+          60% { transform: translateY(5%); opacity: 1; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
       `}</style>
 
       {/* ── MASTHEAD ── */}
@@ -247,8 +268,13 @@ export default function Home() {
             <h1 className="font-display font-black text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight text-foreground leading-none" style={{ lineHeight: 0.95 }}>
               The Middle East Hustle
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-serif mt-2">
-              The voice of <LivePopNumber value={menaPop} className="tabular-nums" />.
+            <p className="uppercase tracking-[0.22em] text-muted-foreground font-serif mt-3 flex flex-col items-center gap-1">
+              <span className="text-[10px]">The voice of</span>
+              <LivePopNumber
+                value={menaPop}
+                className="font-display font-black tracking-tight"
+                style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", color: "#DC143C", letterSpacing: "-0.02em" }}
+              />
             </p>
           </div>
 
