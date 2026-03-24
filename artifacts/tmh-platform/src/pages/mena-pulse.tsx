@@ -423,7 +423,7 @@ export default function MenaPulse() {
           </span>
           <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
-            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>20</span> Countries
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>19</span> Countries
           </span>
           <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>

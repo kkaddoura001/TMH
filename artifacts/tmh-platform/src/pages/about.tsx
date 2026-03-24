@@ -92,7 +92,7 @@ export default function About() {
           The Middle East Hustle is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment.
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          We ask the questions nobody else asks. We collect anonymous votes from across 20 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.
+          We ask the questions nobody else asks. We collect anonymous votes from across 19 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
           Think of it as the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology, and built for the 541 million people who live, work, and build in the Middle East and North Africa.
@@ -137,7 +137,7 @@ export default function About() {
             {[
               { num: "94", label: "Founding Voices" },
               { num: "135+", label: "Active Debates" },
-              { num: "20", label: "MENA Countries" },
+              { num: "19", label: "MENA Countries" },
               { num: "541M", label: "People in MENA" },
             ].map(stat => (
               <div key={stat.label}>
@@ -208,17 +208,34 @@ export default function About() {
             The Region We Cover
           </h2>
           <p className="text-sm text-foreground/60 font-sans mb-8 pl-5">
-            20 countries. 541 million people. One platform.
+            19 countries. 541 million people. One platform.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {[
-              "UAE", "Saudi Arabia", "Egypt", "Jordan", "Lebanon",
-              "Qatar", "Bahrain", "Kuwait", "Oman", "Iraq",
-              "Morocco", "Tunisia", "Algeria", "Libya", "Sudan",
-              "Palestine", "Syria", "Yemen", "Iran", "Israel",
+              { name: "Egypt", flag: "🇪🇬", pop: "112M" },
+              { name: "Iran", flag: "🇮🇷", pop: "89M" },
+              { name: "Iraq", flag: "🇮🇶", pop: "44M" },
+              { name: "Saudi Arabia", flag: "🇸🇦", pop: "37M" },
+              { name: "Morocco", flag: "🇲🇦", pop: "37M" },
+              { name: "Algeria", flag: "🇩🇿", pop: "46M" },
+              { name: "Sudan", flag: "🇸🇩", pop: "48M" },
+              { name: "Yemen", flag: "🇾🇪", pop: "34M" },
+              { name: "Syria", flag: "🇸🇾", pop: "23M" },
+              { name: "UAE", flag: "🇦🇪", pop: "10M" },
+              { name: "Jordan", flag: "🇯🇴", pop: "11M" },
+              { name: "Tunisia", flag: "🇹🇳", pop: "12M" },
+              { name: "Libya", flag: "🇱🇾", pop: "7M" },
+              { name: "Lebanon", flag: "🇱🇧", pop: "5.5M" },
+              { name: "Palestine", flag: "🇵🇸", pop: "5.5M" },
+              { name: "Oman", flag: "🇴🇲", pop: "4.6M" },
+              { name: "Kuwait", flag: "🇰🇼", pop: "4.3M" },
+              { name: "Qatar", flag: "🇶🇦", pop: "2.7M" },
+              { name: "Bahrain", flag: "🇧🇭", pop: "1.5M" },
             ].map(c => (
-              <div key={c} className="border border-border px-3 py-2 text-xs font-serif uppercase tracking-widest text-foreground/80 text-center hover:border-primary hover:text-primary transition-colors">
-                {c}
+              <div key={c.name} className="border border-border px-3 py-2.5 text-xs font-serif uppercase tracking-widest text-foreground/80 text-center hover:border-primary hover:text-primary transition-colors flex flex-col items-center gap-1">
+                <span className="text-xl not-italic" style={{ fontFamily: "system-ui" }}>{c.flag}</span>
+                <span>{c.name}</span>
+                <span className="text-[9px] tracking-normal normal-case text-muted-foreground font-sans">{c.pop}</span>
               </div>
             ))}
           </div>
