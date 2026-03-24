@@ -19,6 +19,7 @@ function toProfileResponse(profile: any) {
     isVerified: profile.isVerified,
     viewCount: profile.viewCount,
     associatedPollCount: profile.associatedPollCount,
+    quote: profile.quote ?? "",
   };
 }
 

@@ -5,6 +5,68 @@ import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+function VoicesTicker({ profiles }: { profiles: Array<{ name: string; company?: string | null; quote: string }> }) {
+  const quotesWithNames = profiles
+    .filter(p => p.quote && p.quote.length > 10 && p.quote.length < 120)
+    .map(p => ({
+      name: p.name.split(" ")[0].toUpperCase(),
+      company: p.company || "",
+      quote: p.quote.replace(/^["']|["']$/g, ""),
+    }))
+
+  if (quotesWithNames.length === 0) return null
+
+  const tickerText = quotesWithNames
+    .map(q => `"${q.quote}" — ${q.name}${q.company ? `, ${q.company}` : ""}`)
+    .join("    ·    ")
+
+  return (
+    <div style={{
+      background: "rgba(220,20,60,0.06)",
+      borderTop: "1px solid rgba(220,20,60,0.12)",
+      borderBottom: "1px solid rgba(220,20,60,0.12)",
+      height: 38,
+      display: "flex",
+      alignItems: "center",
+      overflow: "hidden",
+      position: "relative",
+    }}>
+      <div style={{
+        flexShrink: 0,
+        background: "#DC143C",
+        padding: "3px 10px",
+        marginLeft: 8,
+        marginRight: 12,
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: 9,
+        fontWeight: 900,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase",
+        color: "#fff",
+        zIndex: 2,
+      }}>
+        WISDOM
+      </div>
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <span
+          className="tmh-ticker-scroll"
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "0.03em",
+            color: "rgba(255,255,255,0.65)",
+            paddingLeft: 8,
+          }}
+        >
+          <span>{tickerText}</span>
+          <span style={{ marginLeft: 40 }}>{tickerText}</span>
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function Profiles() {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<'all' | 'featured' | 'newest' | 'most_viewed'>('all')
@@ -45,6 +107,8 @@ export default function Profiles() {
             Founders. Operators. Changemakers. Finally counted.
           </p>
         </div>
+
+        {data?.profiles && <VoicesTicker profiles={data.profiles} />}
 
         <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 0", display: "flex", alignItems: "center", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>

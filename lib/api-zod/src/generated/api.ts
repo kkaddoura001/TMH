@@ -211,6 +211,7 @@ export const ListProfilesResponse = zod.object({
       isVerified: zod.boolean(),
       viewCount: zod.number(),
       associatedPollCount: zod.number(),
+      quote: zod.string(),
     }),
   ),
   total: zod.number(),
@@ -238,6 +239,7 @@ export const GetProfileResponse = zod
     isVerified: zod.boolean(),
     viewCount: zod.number(),
     associatedPollCount: zod.number(),
+    quote: zod.string(),
   })
   .and(
     zod.object({
@@ -290,6 +292,7 @@ export const GetProfileResponse = zod
           isVerified: zod.boolean(),
           viewCount: zod.number(),
           associatedPollCount: zod.number(),
+          quote: zod.string(),
         }),
       ),
     }),

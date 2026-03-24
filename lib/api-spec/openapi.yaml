@@ -442,6 +442,8 @@ components:
           type: integer
         associatedPollCount:
           type: integer
+        quote:
+          type: string
       required:
         - id
         - name
@@ -454,6 +456,7 @@ components:
         - isVerified
         - viewCount
         - associatedPollCount
+        - quote
 
     ProfileDetail:
       allOf:

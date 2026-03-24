@@ -90,6 +90,7 @@ export interface Profile {
   isVerified: boolean;
   viewCount: number;
   associatedPollCount: number;
+  quote: string;
 }
 
 export type ProfileDetail = Profile & {
