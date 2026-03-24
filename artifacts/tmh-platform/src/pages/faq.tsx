@@ -69,7 +69,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         q: "What is The Pulse?",
-        a: "The Pulse is our data-driven trend tracking page — think 'Exploding Topics' but built specifically for the MENA region. It features 12 trend cards tracking what's actually moving across the region, from the $1.2B creator economy to the 312% surge in mental health searches. Each card includes real data, growth metrics, and context.",
+        a: "The Pulse is our data-driven trend tracking page — think 'Exploding Topics' but built specifically for the MENA region. It features 36 trend cards across 8 categories (Power, Money, Society, Tech, Survival, Migration, Culture, Health) tracking what's actually moving — and what's breaking — across the region. Filter by category. Each card includes real data, growth metrics, source attribution, and context.",
       },
       {
         q: "How are Pulse trends selected?",

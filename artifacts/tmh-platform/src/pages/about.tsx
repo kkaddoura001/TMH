@@ -19,7 +19,7 @@ const PILLARS = [
   {
     num: "03",
     title: "The Pulse",
-    body: "Exploding Topics for MENA. 12 data-driven trend cards tracking what's actually moving — from the $1.2B creator economy to the 312% surge in mental health searches. Real-time population counter. Live tickers. The region's vital signs.",
+    body: "Exploding Topics for MENA. 36 data-driven trend cards across 8 categories — from press freedom collapse to the $4.1T sovereign wealth machine. Filterable by Power, Money, Society, Tech, Survival, Migration, Culture, and Health. Real-time population counter. Live tickers. The region's vital signs.",
     link: "/mena-pulse",
     cta: "Read The Pulse",
   },
