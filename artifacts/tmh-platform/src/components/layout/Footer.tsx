@@ -23,7 +23,7 @@ export function Footer() {
           <div className="flex-1">
             <Link href="/">
               <span className="font-display font-black text-3xl uppercase tracking-tight text-background leading-none block hover:text-primary transition-colors">
-                The Tribunal
+                The Tribunal<span className="text-primary">.</span>
               </span>
               <span className="text-[9px] font-serif tracking-[0.2em] uppercase text-background/40 mt-1 block">
                 by The Middle East Hustle

@@ -438,7 +438,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                     className="bg-primary/10 border border-primary/30 p-4"
                   >
                     <p className="font-serif font-black uppercase text-sm text-primary tracking-tight mb-1">
-                      Welcome to The Tribunal.
+                      Welcome to The Tribunal<span className="text-primary">.</span>
                     </p>
                     <p className="text-[11px] text-foreground/70 font-sans leading-relaxed">
                       You just joined {localTotal.toLocaleString()} people shaping the region's most honest conversation.

@@ -55,7 +55,7 @@ export default function Join() {
           You've just unlocked something real.
         </div>
         <h1 className="font-display font-black text-4xl md:text-6xl uppercase tracking-tight leading-none mb-4">
-          Welcome to<br />The Tribunal.
+          Welcome to<br />The Tribunal<span className="text-primary">.</span>
         </h1>
         <p className="text-background/60 font-sans text-base max-w-md mx-auto">
           The most honest conversation in the Middle East. Join the founders, operators, and change-makers already voting.
@@ -89,7 +89,7 @@ export default function Join() {
           </p>
           {joined ? (
             <div className="text-center py-6">
-              <p className="font-display font-black text-3xl text-primary uppercase">You're In.</p>
+              <p className="font-display font-black text-3xl text-foreground uppercase">You're In<span className="text-primary">.</span></p>
               <p className="text-xs text-muted-foreground mt-1 font-serif uppercase tracking-widest">Watch your inbox Tuesday.</p>
             </div>
           ) : (

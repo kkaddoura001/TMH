@@ -75,7 +75,7 @@ export default function About() {
             Est. 2026 · Founded by Kareem Kaddoura
           </p>
           <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
-            The Region's First<br />Collective Mirror.
+            The Region's First<br />Collective Mirror<span style={{ color: "#DC143C" }}>.</span>
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
             541 million people. Zero platforms asking what they think. Until now.

@@ -222,7 +222,7 @@ export default function Home() {
 
           <div className="py-5 my-3 text-center" style={{ borderTop: "2px solid #DC143C", borderBottom: "2px solid #DC143C" }}>
             <h1 className="font-display font-black text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight text-foreground leading-none" style={{ lineHeight: 0.95 }}>
-              The Tribunal
+              The Tribunal<span className="text-primary">.</span>
             </h1>
             <p className="text-[10px] font-serif tracking-[0.25em] uppercase text-muted-foreground mt-1">by The Middle East Hustle</p>
             <p className="uppercase tracking-[0.22em] text-muted-foreground font-serif mt-3 flex flex-col items-center gap-1">
@@ -549,7 +549,7 @@ export default function Home() {
             <div className="w-full md:basis-1/3">
               {ctaJoined ? (
                 <div className="border-2 border-primary p-8 text-center">
-                  <p className="font-display font-black text-3xl uppercase text-primary tracking-tight">You're In.</p>
+                  <p className="font-display font-black text-3xl uppercase text-background tracking-tight">You're In<span className="text-primary">.</span></p>
                   <p className="text-[10px] uppercase tracking-widest text-background/50 mt-2 font-serif">Welcome to the conversation.</p>
                 </div>
               ) : (
