@@ -172,6 +172,15 @@ export default function Home() {
         .ticker-animate:hover { animation-play-state: paused; }
         @keyframes fadein { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .section-fadein { animation: fadein 0.5s ease forwards; }
+        @keyframes bubble-float-1 { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes bubble-float-2 { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        @keyframes bubble-float-3 { 0%,100% { transform: translateY(-4px); } 50% { transform: translateY(6px); } }
+        .bubble-float-1 { animation: bubble-float-1 5s ease-in-out infinite; }
+        .bubble-float-2 { animation: bubble-float-2 7s ease-in-out infinite; }
+        .bubble-float-3 { animation: bubble-float-3 6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .bubble-float-1, .bubble-float-2, .bubble-float-3 { animation: none; }
+        }
       `}</style>
 
       {/* ── MASTHEAD ── */}
@@ -209,45 +218,55 @@ export default function Home() {
 
       {/* ── FRONT PAGE: Lead Debate + Sidebar ── */}
       <section className="py-8 bg-background border-b border-border section-fadein relative">
-        {/* Opinion Bubbles — desktop only */}
-        <div className="hidden lg:block pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Opinion Bubbles — WSJ chat-style, desktop only */}
+        <div className="hidden xl:block pointer-events-none absolute inset-0 overflow-hidden z-0" aria-hidden="true">
           {[
-            { text: "71% say Saudi cinemas in every city by Dec", stat: "71%", top: "5%", left: "0.3%", w: 110, h: 50, delay: "0s" },
-            { text: "62% say UAE income tax will never happen", stat: "62%", top: "42%", left: "0.3%", w: 108, h: 50, delay: "1.2s" },
-            { text: "9 in 10 Gulf founders would start again in Dubai", stat: "89%", bottom: "28%", left: "0.5%", w: 112, h: 50, delay: "2s" },
-            { text: "3 in 4 say Arabic schools mandate is overdue", stat: "75%", bottom: "5%", left: "1%", w: 110, h: 50, delay: "1.8s" },
-            { text: "Only 44% think a $10B MENA startup is coming", stat: "44%", top: "75%", left: "0.3%", w: 110, h: 50, delay: "0.6s" },
-            { text: "18K predictions locked — jobs won't survive AI", stat: "18K", bottom: "8%", right: "0.3%", w: 110, h: 48, delay: "2.6s" },
-            { text: "Lebanon leads contrarian votes on every topic", stat: "LB", top: "50%", right: "0.3%", w: 108, h: 48, delay: "3.4s" },
-            { text: "Egyptians & Saudis split 50/50 on remote work", stat: "50%", top: "8%", right: "0.3%", w: 110, h: 48, delay: "3s" },
+            { text: "Dubai is the only city in the region where I'd start again. No question.", side: "left", top: "4%", float: "bubble-float-1", delay: "0s", rotate: -2 },
+            { text: "Everyone says AI won't take their job. I don't believe them.", side: "left", top: "28%", float: "bubble-float-3", delay: "0.8s", rotate: 1 },
+            { text: "62% said no to income tax. They'll be wrong by 2029.", side: "left", top: "52%", float: "bubble-float-2", delay: "1.6s", rotate: -1 },
+            { text: "The region isn't ready for this conversation.", side: "left", bottom: "12%", float: "bubble-float-1", delay: "2.4s", rotate: 2 },
+            { text: "71% is too confident. Saudi cinema still has a long way to go.", side: "right", top: "6%", float: "bubble-float-2", delay: "0.4s", rotate: 2 },
+            { text: "Lebanon votes against everything and I respect it.", side: "right", top: "32%", float: "bubble-float-1", delay: "1.2s", rotate: -1 },
+            { text: "This is the most honest poll I've ever seen.", side: "right", top: "56%", float: "bubble-float-3", delay: "2s", rotate: 1 },
+            { text: "The $10B unicorn is already here. People just can't see it yet.", side: "right", bottom: "10%", float: "bubble-float-2", delay: "2.8s", rotate: -2 },
           ].map((bubble, i) => (
             <div
               key={i}
-              className="absolute flex flex-col items-center justify-center text-center"
+              className={`absolute ${bubble.float}`}
               style={{
-                width: bubble.w,
-                height: bubble.h,
+                ...(bubble.side === "left" ? { left: 8 } : { right: 8 }),
                 top: (bubble as any).top,
                 bottom: (bubble as any).bottom,
-                left: (bubble as any).left,
-                right: (bubble as any).right,
-                background: "rgba(220,20,60,0.06)",
-                border: "1px solid rgba(220,20,60,0.15)",
-                borderRadius: 8,
+                maxWidth: 155,
                 animationDelay: bubble.delay,
-                animationDuration: "5s",
               }}
             >
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 14, color: "#DC143C", opacity: 0.4, lineHeight: 1 }}>
-                {bubble.stat}
-              </span>
-              <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 7.5, color: "var(--muted-foreground)", opacity: 0.45, lineHeight: 1.25, marginTop: 3, padding: "0 6px" }}>
-                {bubble.text}
-              </span>
+              <div
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 14,
+                  borderBottomLeftRadius: bubble.side === "left" ? 4 : 14,
+                  borderBottomRightRadius: bubble.side === "right" ? 4 : 14,
+                  padding: "8px 11px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  transform: `rotate(${bubble.rotate}deg)`,
+                }}
+              >
+                <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: 10.5, lineHeight: 1.35, color: "var(--foreground)", opacity: 0.75 }}>
+                  {bubble.text}
+                </p>
+              </div>
+              {i % 3 === 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 3, paddingLeft: bubble.side === "left" ? 4 : 0, paddingRight: bubble.side === "right" ? 4 : 0, justifyContent: bubble.side === "right" ? "flex-end" : "flex-start" }}>
+                  <span style={{ fontSize: 10 }}>❤️</span>
+                  <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 9, color: "var(--muted-foreground)", opacity: 0.5 }}>{[4, 7, 3, 6, 5, 2, 8, 9][i]}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
 
             {/* LEFT: Today's Lead Debate */}
