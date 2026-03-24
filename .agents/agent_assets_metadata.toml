@@ -12,3 +12,9 @@ id = "hR_x6gI5cwQqgse5TEMRy"
 uri = "file://tmh-platform-backup.zip"
 type = "unspecified"
 title = "TMH Platform — Full Code Backup"
+
+[[outputs]]
+id = "bb27yJVbL1KcaDNmfgWmI"
+uri = "file://tmh-homepage-source.txt"
+type = "text"
+title = "TMH Homepage - Full Source Code for Claude Review"
