@@ -3,8 +3,7 @@ import { Link } from "wouter"
 const NAV = [
   { label: "Debates", href: "/polls" },
   { label: "The Voices", href: "/profiles" },
-  { label: "The Brief", href: "/sentiment-map" },
-  { label: "MENA Pulse", href: "/mena-pulse" },
+  { label: "The Pulse", href: "/mena-pulse" },
   { label: "Predictions", href: "/predictions" },
   { label: "About", href: "/about" },
   { label: "Join The Voices", href: "/apply" },

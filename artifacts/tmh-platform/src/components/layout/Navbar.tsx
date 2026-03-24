@@ -20,8 +20,7 @@ export function Navbar() {
     { label: "Debates", href: "/polls" },
     { label: "Predictions", href: "/predictions" },
     { label: "The Voices", href: "/profiles" },
-    { label: "The Brief", href: "/sentiment-map" },
-    { label: "MENA Pulse", href: "/mena-pulse" },
+    { label: "The Pulse", href: "/mena-pulse" },
     { label: "About", href: "/about" },
   ]
 

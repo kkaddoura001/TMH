@@ -73,7 +73,7 @@ artifacts-monorepo/
 - **Profile Detail** (`/profiles/:id`) — Portrait, headline, story, lessons, quote, associated polls, similar voices
 - **Rankings** (`/rankings`) — Top Voices, Top Founders, Women Leaders, Hottest Sectors, Rising Cities, Debated Topics
 - **Weekly Pulse** (`/weekly-pulse`) — Editorial digest of biggest votes, surprises, sector sentiment
-- **MENA Pulse** (`/mena-pulse`) — Bloomberg-terminal-style live economic dashboard: 9 ticking stat cards (population, GDP, oil, internet, smartphones, tourism, startup funding, remittances, FDI) with flip-digit animations + 20-country data table. Stats tick via `useLiveCounter` hook with real growth rates from World Bank/IMF/OPEC/GSMA sources.
+- **The Pulse** (`/mena-pulse`) — Futuristic Bloomberg-terminal-style live data dashboard. Replaces "The Brief". Features: 9 ticking stat cards (population, GDP, oil, internet, smartphones, tourism, startup funding, remittances, FDI) with flip-digit animations + crimson sparkline charts + staggered fade-in animations + scrolling LIVE ticker + 20-country data table with GDP growth rates. Stats tick via `useLiveCounter` hook with real growth rates from World Bank/IMF/OPEC/GSMA/UNWTO/MAGNiTT sources. Uses inline styles matching predictions page aesthetic.
 - **About** (`/about`) — Platform manifesto
 
 ### Database Schema
