@@ -73,7 +73,7 @@ artifacts-monorepo/
 - **Profile Detail** (`/profiles/:id`) — Portrait, headline, story, lessons, quote, associated polls, similar voices
 - **Rankings** (`/rankings`) — Top Voices, Top Founders, Women Leaders, Hottest Sectors, Rising Cities, Debated Topics
 - **Weekly Pulse** (`/weekly-pulse`) — Editorial digest of biggest votes, surprises, sector sentiment
-- **The Pulse** (`/mena-pulse`) — Futuristic Bloomberg-terminal-style live data dashboard. Replaces "The Brief". Features: 9 ticking stat cards (population, GDP, oil, internet, smartphones, tourism, startup funding, remittances, FDI) with flip-digit animations + crimson sparkline charts + staggered fade-in animations + scrolling LIVE ticker + 20-country data table with GDP growth rates. Stats tick via `useLiveCounter` hook with real growth rates from World Bank/IMF/OPEC/GSMA/UNWTO/MAGNiTT sources. Uses inline styles matching predictions page aesthetic.
+- **The Pulse** (`/mena-pulse`) — "Exploding Topics for MENA" style trend dashboard. Matching header branding (dark bg, crimson label, bold title, ticker, stats bar). Features: live population counter, 12 trend cards covering MENA Creator Economy, AI Adoption, Women in Workforce, Crypto Volume, Mental Health, Gaming, Expat/Nationalization, Food Security, Youth Bulge, Saudi Tourism, Brain Drain, Cannabis Reform. Each card has colored category tags, sparkline charts, expandable blurbs with sources. Scrolling LIVE ticker uses `tmh-ticker-scroll` CSS class. `useLiveCounter` hook for real-time ticking numbers.
 - **About** (`/about`) — Platform manifesto
 
 ### Database Schema

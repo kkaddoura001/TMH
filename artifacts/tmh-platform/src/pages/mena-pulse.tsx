@@ -1,131 +1,183 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
 const BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()
 
-interface StatConfig {
+interface TopicCard {
   id: string
-  label: string
-  category: string
-  baseValue: number
-  annualGrowth: number
-  prefix?: string
-  trend: "up" | "down"
-  trendLabel: string
-  description: string
+  tag: string
+  tagColor: string
+  title: string
+  stat: string
+  delta: string
+  deltaUp: boolean
+  blurb: string
   source: string
   sparkData: number[]
+  live?: { baseValue: number; annualGrowth: number; prefix?: string }
 }
 
-const MENA_COUNTRIES = [
-  { code: "AE", name: "UAE", flag: "\u{1F1E6}\u{1F1EA}", pop: 10_280_000, gdpB: 509, growth: 4.3 },
-  { code: "SA", name: "Saudi Arabia", flag: "\u{1F1F8}\u{1F1E6}", pop: 37_400_000, gdpB: 1069, growth: 3.6 },
-  { code: "EG", name: "Egypt", flag: "\u{1F1EA}\u{1F1EC}", pop: 109_300_000, gdpB: 395, growth: 4.4 },
-  { code: "IQ", name: "Iraq", flag: "\u{1F1EE}\u{1F1F6}", pop: 44_500_000, gdpB: 268, growth: 2.1 },
-  { code: "MA", name: "Morocco", flag: "\u{1F1F2}\u{1F1E6}", pop: 37_800_000, gdpB: 152, growth: 3.8 },
-  { code: "DZ", name: "Algeria", flag: "\u{1F1E9}\u{1F1FF}", pop: 46_300_000, gdpB: 240, growth: 2.9 },
-  { code: "SD", name: "Sudan", flag: "\u{1F1F8}\u{1F1E9}", pop: 48_100_000, gdpB: 51, growth: -1.2 },
-  { code: "YE", name: "Yemen", flag: "\u{1F1FE}\u{1F1EA}", pop: 34_400_000, gdpB: 22, growth: 0.5 },
-  { code: "SY", name: "Syria", flag: "\u{1F1F8}\u{1F1FE}", pop: 23_200_000, gdpB: 12, growth: 1.8 },
-  { code: "TN", name: "Tunisia", flag: "\u{1F1F9}\u{1F1F3}", pop: 12_500_000, gdpB: 49, growth: 2.6 },
-  { code: "JO", name: "Jordan", flag: "\u{1F1EF}\u{1F1F4}", pop: 11_500_000, gdpB: 50, growth: 2.8 },
-  { code: "LB", name: "Lebanon", flag: "\u{1F1F1}\u{1F1E7}", pop: 5_600_000, gdpB: 18, growth: 1.2 },
-  { code: "LY", name: "Libya", flag: "\u{1F1F1}\u{1F1FE}", pop: 7_100_000, gdpB: 45, growth: 3.1 },
-  { code: "OM", name: "Oman", flag: "\u{1F1F4}\u{1F1F2}", pop: 4_700_000, gdpB: 105, growth: 3.5 },
-  { code: "KW", name: "Kuwait", flag: "\u{1F1F0}\u{1F1FC}", pop: 4_400_000, gdpB: 165, growth: 2.6 },
-  { code: "QA", name: "Qatar", flag: "\u{1F1F6}\u{1F1E6}", pop: 2_700_000, gdpB: 220, growth: 4.9 },
-  { code: "BH", name: "Bahrain", flag: "\u{1F1E7}\u{1F1ED}", pop: 1_600_000, gdpB: 46, growth: 3.2 },
-  { code: "PS", name: "Palestine", flag: "\u{1F1F5}\u{1F1F8}", pop: 5_500_000, gdpB: 19, growth: 1.5 },
-  { code: "IR", name: "Iran", flag: "\u{1F1EE}\u{1F1F7}", pop: 89_200_000, gdpB: 402, growth: 2.0 },
-  { code: "MR", name: "Mauritania", flag: "\u{1F1F2}\u{1F1F7}", pop: 4_900_000, gdpB: 10, growth: 4.2 },
-]
-
-const STATS: StatConfig[] = [
+const EXPLODING_TOPICS: TopicCard[] = [
   {
-    id: "population", label: "MENA POPULATION", category: "DEMOGRAPHICS",
-    baseValue: 541_000_000, annualGrowth: 0.0156,
-    trend: "up", trendLabel: "+1.56%",
-    description: "Total population across 20 MENA countries. Growing by ~8.2M per year \u2014 roughly 1 new person every 4 seconds.",
-    source: "UN World Population Prospects 2025",
-    sparkData: [510, 515, 518, 520, 523, 525, 528, 530, 533, 536, 539, 541],
+    id: "creator-economy",
+    tag: "CULTURE",
+    tagColor: "#A855F7",
+    title: "MENA Creator Economy",
+    stat: "$1.2B",
+    delta: "+42%",
+    deltaUp: true,
+    blurb: "Arabic is now the 4th most-used language on TikTok. Saudi Arabia alone has 28M+ active TikTok users. The average MENA influencer earns 3x more per post than their European counterpart.",
+    source: "Arab Social Media Report / TikTok 2025",
+    sparkData: [0.3, 0.4, 0.5, 0.55, 0.6, 0.7, 0.78, 0.85, 0.92, 1.0, 1.1, 1.2],
   },
   {
-    id: "gdp", label: "COMBINED GDP", category: "ECONOMY",
-    baseValue: 3_850_000_000_000, annualGrowth: 0.033, prefix: "$",
-    trend: "up", trendLabel: "+3.3%",
-    description: "Total nominal GDP. Outpacing global growth \u2014 fastest expansion since 2016 excluding post-Covid rebound.",
-    source: "World Bank / IMF WEO 2026",
-    sparkData: [3200, 3350, 3420, 3500, 3580, 3620, 3680, 3720, 3780, 3810, 3840, 3850],
+    id: "ai-adoption",
+    tag: "TECHNOLOGY",
+    tagColor: "#3B82F6",
+    title: "AI Adoption Rate",
+    stat: "68%",
+    delta: "+31% YoY",
+    deltaUp: true,
+    blurb: "UAE ranks #1 globally in government AI readiness. Saudi Arabia's $100B AI fund is the largest sovereign AI bet on earth. Over 1,200 Arabic-language AI startups founded since 2023.",
+    source: "Oxford Insights / PIF / SDAIA",
+    sparkData: [22, 28, 31, 35, 39, 42, 48, 52, 55, 59, 63, 68],
   },
   {
-    id: "oil", label: "OIL PRODUCTION", category: "ENERGY",
-    baseValue: 31_000_000, annualGrowth: 0.018,
-    trend: "up", trendLabel: "+1.8%",
-    description: "~31M barrels/day. OPEC+ voluntary cuts phasing out, led by Saudi Arabia at 9.6M bpd.",
-    source: "OPEC Monthly Oil Market Report",
-    sparkData: [28.5, 29.0, 29.2, 29.8, 30.0, 30.1, 30.3, 30.5, 30.7, 30.8, 30.9, 31.0],
+    id: "women-workforce",
+    tag: "SOCIETY",
+    tagColor: "#EC4899",
+    title: "Women in the Workforce",
+    stat: "33.4%",
+    delta: "+9.2pp since 2019",
+    deltaUp: true,
+    blurb: "Saudi female workforce participation jumped from 17% to 33% in 6 years — the fastest rise in recorded history for any G20 nation. UAE boards now require 30% female representation.",
+    source: "GASTAT / ILO 2025",
+    sparkData: [17, 19, 21, 23, 25, 26, 28, 29, 30, 31, 32, 33.4],
   },
   {
-    id: "internet", label: "INTERNET USERS", category: "DIGITAL",
-    baseValue: 357_000_000, annualGrowth: 0.048,
-    trend: "up", trendLabel: "+4.8%",
-    description: "Mobile internet users. GCC penetration leads at 92%. Bahrain near 100% mobile internet penetration.",
-    source: "GSMA Mobile Economy MENA 2025",
-    sparkData: [290, 305, 315, 322, 330, 335, 340, 345, 348, 352, 355, 357],
+    id: "crypto-volume",
+    tag: "FINANCE",
+    tagColor: "#F59E0B",
+    title: "Crypto Trading Volume",
+    stat: "$338B",
+    delta: "+74%",
+    deltaUp: true,
+    blurb: "UAE is now the world's 3rd largest crypto market by volume. Dubai issued more crypto licenses in 2025 than the entire EU combined. Bahrain became the first MENA nation to regulate stablecoins.",
+    source: "Chainalysis MENA Report 2025",
+    sparkData: [89, 110, 125, 145, 160, 180, 210, 240, 268, 295, 318, 338],
   },
   {
-    id: "tourism", label: "TOURIST ARRIVALS", category: "TOURISM",
-    baseValue: 100_000_000, annualGrowth: 0.035,
-    trend: "up", trendLabel: "+3.5%",
-    description: "MENA is the world's strongest-performing tourism region, 39% above pre-pandemic 2019 levels.",
-    source: "UNWTO World Tourism Barometer 2026",
-    sparkData: [72, 78, 82, 85, 88, 90, 92, 94, 96, 97, 99, 100],
+    id: "mental-health",
+    tag: "HEALTH",
+    tagColor: "#10B981",
+    title: "Mental Health Search Volume",
+    stat: "312% increase",
+    delta: "+312%",
+    deltaUp: true,
+    blurb: "\"Anxiety\" in Arabic is now the most-searched health term in 14 MENA countries. Saudi Arabia launched 1,600 mental health clinics. UAE made therapy sessions tax-deductible in 2025. Still: 1 psychiatrist per 250,000 people in Egypt.",
+    source: "Google Trends MENA / WHO EMRO",
+    sparkData: [30, 42, 55, 68, 82, 95, 110, 135, 168, 210, 265, 312],
   },
   {
-    id: "startups", label: "STARTUP FUNDING", category: "INNOVATION",
-    baseValue: 7_500_000_000, annualGrowth: 0.225, prefix: "$",
-    trend: "up", trendLabel: "+22.5%",
-    description: "647 funded startups in 2025. Equity funding up 77% YoY. UAE and Saudi Arabia lead the ecosystem.",
-    source: "Wamda / MAGNiTT 2025",
-    sparkData: [2.5, 3.0, 3.2, 3.5, 4.0, 4.5, 5.0, 5.2, 5.8, 6.3, 6.8, 7.5],
+    id: "gaming",
+    tag: "ENTERTAINMENT",
+    tagColor: "#8B5CF6",
+    title: "MENA Gaming Market",
+    stat: "$6.8B",
+    delta: "+28%",
+    deltaUp: true,
+    blurb: "Saudi Arabia is now the world's largest gaming investor through Savvy Games Group ($38B deployed). 85% of Saudi youth play daily. Riyadh hosts the world's largest esports arena (capacity: 500+ gamers).",
+    source: "Newzoo / Savvy Games Group",
+    sparkData: [2.1, 2.5, 2.9, 3.3, 3.7, 4.0, 4.5, 5.0, 5.5, 6.0, 6.4, 6.8],
   },
   {
-    id: "remittances", label: "REMITTANCES", category: "ECONOMY",
-    baseValue: 67_000_000_000, annualGrowth: 0.04, prefix: "$",
-    trend: "up", trendLabel: "+4.0%",
-    description: "Annual remittance inflows. Egypt is the largest recipient at $32B+. Lebanon's remittances = 27.5% of GDP.",
-    source: "World Bank Migration & Remittances Report",
-    sparkData: [52, 54, 56, 58, 59, 60, 61, 63, 64, 65, 66, 67],
+    id: "expat-exodus",
+    tag: "MIGRATION",
+    tagColor: "#EF4444",
+    title: "Nationalization vs. Expat Workforce",
+    stat: "1.2M jobs nationalized",
+    delta: "Since 2021",
+    deltaUp: false,
+    blurb: "Saudi Nitaqat reforms displaced 800K+ expat workers. UAE's Emiratisation mandate: 2% annual private sector targets. Kuwait proposed a 30% expat cap. Lebanon lost 40% of its doctors since 2020.",
+    source: "HRDF / MOHRE / IOM",
+    sparkData: [120, 250, 380, 470, 560, 650, 740, 830, 920, 1010, 1100, 1200],
   },
   {
-    id: "fdi", label: "FDI INFLOWS", category: "ECONOMY",
-    baseValue: 65_000_000_000, annualGrowth: 0.06, prefix: "$",
-    trend: "up", trendLabel: "+6.0%",
-    description: "Foreign direct investment. UAE and Saudi Arabia attract the majority, driven by Vision 2030.",
-    source: "UNCTAD World Investment Report 2025",
-    sparkData: [48, 50, 52, 53, 55, 56, 58, 59, 61, 62, 64, 65],
+    id: "food-security",
+    tag: "SURVIVAL",
+    tagColor: "#F97316",
+    title: "Food Import Dependency",
+    stat: "85% imported",
+    delta: "Zero change",
+    deltaUp: false,
+    blurb: "GCC imports 85% of its food. Saudi Arabia spent $2.4B on vertical farming — the world's largest investment. Qatar built 70% food self-sufficiency from 0% after the 2017 blockade. Yemen: 17M food-insecure.",
+    source: "FAO / KAUST / Qatar Ministry of Municipality",
+    sparkData: [87, 87, 86, 86, 86, 85, 85, 85, 85, 85, 85, 85],
   },
   {
-    id: "smartphones", label: "SMARTPHONES", category: "DIGITAL",
-    baseValue: 652_000_000, annualGrowth: 0.035,
-    trend: "up", trendLabel: "+3.5%",
-    description: "Active smartphone subscriptions. GCC penetration exceeds 90%, 5G at 17% of total connections.",
-    source: "GSMA Intelligence 2025",
-    sparkData: [530, 550, 565, 580, 590, 600, 610, 620, 630, 638, 645, 652],
+    id: "youth-bulge",
+    tag: "DEMOGRAPHICS",
+    tagColor: "#06B6D4",
+    title: "Population Under 30",
+    stat: "60%",
+    delta: "~325M people",
+    deltaUp: true,
+    blurb: "MENA has the youngest population on earth relative to its economy. Median age: 26 (vs. Europe: 44). Egypt adds 2M people per year. Gaza's median age is 18. Youth unemployment still 26%.",
+    source: "UN Population Division / ILO",
+    sparkData: [63, 63, 62, 62, 62, 61, 61, 61, 61, 60, 60, 60],
+    live: { baseValue: 325_000_000, annualGrowth: 0.016 },
+  },
+  {
+    id: "tourism-boom",
+    tag: "CULTURE",
+    tagColor: "#A855F7",
+    title: "Saudi Tourism Revolution",
+    stat: "109M visits",
+    delta: "+23%",
+    deltaUp: true,
+    blurb: "Saudi Arabia went from 0 tourist visas to 109M visits in 5 years. NEOM's Sindalah island opens 2026. AlUla saw 500,000 visitors. Vision 2030 target: 150M by 2030. Alcohol now served in diplomatic zones.",
+    source: "Saudi Tourism Authority / MoT",
+    sparkData: [18, 27, 39, 51, 62, 70, 78, 85, 92, 98, 104, 109],
+  },
+  {
+    id: "brain-drain",
+    tag: "MIGRATION",
+    tagColor: "#EF4444",
+    title: "MENA Brain Drain",
+    stat: "1 in 3 graduates leave",
+    delta: "Accelerating",
+    deltaUp: false,
+    blurb: "Lebanon lost 50% of its physicians. 77% of Tunisian engineers want to emigrate. Iraq lost 23,000 academics since 2003. Counter-trend: UAE attracting 2.5M+ skilled workers. Saudi Arabia poaching Silicon Valley AI talent.",
+    source: "IOM / World Bank / Arab Barometer",
+    sparkData: [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+  },
+  {
+    id: "cannabis-debate",
+    tag: "POLITICS",
+    tagColor: "#22C55E",
+    title: "Cannabis Reform Momentum",
+    stat: "3 countries decriminalizing",
+    delta: "Morocco, Lebanon, Tunisia",
+    deltaUp: true,
+    blurb: "Morocco legalized medical cannabis and became Africa's largest legal exporter ($420M in 2025). Lebanon passed cultivation laws for export. Tunisia is debating personal use decriminalization. Still: UAE punishes possession with prison.",
+    source: "INCB / Reuters / Morocco Ministry of Interior",
+    sparkData: [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3],
   },
 ]
 
 const TICKER_ITEMS = [
-  { label: "MENA POP", value: "541M", delta: "+1.56%", up: true },
-  { label: "GDP", value: "$3.85T", delta: "+3.3%", up: true },
-  { label: "OIL", value: "31M bbl", delta: "+1.8%", up: true },
-  { label: "INTERNET", value: "357M", delta: "+4.8%", up: true },
-  { label: "TOURISM", value: "100M", delta: "+3.5%", up: true },
-  { label: "VC FUNDING", value: "$7.5B", delta: "+22.5%", up: true },
-  { label: "REMITTANCES", value: "$67B", delta: "+4.0%", up: true },
-  { label: "FDI", value: "$65B", delta: "+6.0%", up: true },
+  { label: "CREATOR ECONOMY", value: "$1.2B", delta: "+42%", up: true },
+  { label: "AI ADOPTION", value: "68%", delta: "+31%", up: true },
+  { label: "WOMEN IN WORK", value: "33.4%", delta: "+9.2pp", up: true },
+  { label: "CRYPTO VOL", value: "$338B", delta: "+74%", up: true },
+  { label: "GAMING", value: "$6.8B", delta: "+28%", up: true },
+  { label: "YOUTH <30", value: "60%", delta: "325M", up: true },
+  { label: "TOURISM KSA", value: "109M", delta: "+23%", up: true },
+  { label: "BRAIN DRAIN", value: "1 in 3", delta: "LEAVING", up: false },
+  { label: "MENTAL HEALTH", value: "+312%", delta: "SEARCHES", up: true },
+  { label: "FOOD IMPORTS", value: "85%", delta: "NO CHANGE", up: false },
 ]
 
 function useLiveCounter(baseValue: number, annualGrowth: number, tickMs = 1000) {
@@ -142,7 +194,7 @@ function useLiveCounter(baseValue: number, annualGrowth: number, tickMs = 1000) 
   return value
 }
 
-function MiniSparkline({ data, color = "#DC143C" }: { data: number[]; color?: string }) {
+function MiniSparkline({ data, color = "#DC143C", id }: { data: number[]; color?: string; id: string }) {
   const min = Math.min(...data)
   const max = Math.max(...data)
   const range = max - min || 1
@@ -157,14 +209,14 @@ function MiniSparkline({ data, color = "#DC143C" }: { data: number[]; color?: st
   return (
     <svg width={w} height={h} style={{ display: "block" }}>
       <defs>
-        <linearGradient id={`spark-grad`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`spark-${id}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.3" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
       <polygon
         points={`0,${h} ${points} ${w},${h}`}
-        fill={`url(#spark-grad)`}
+        fill={`url(#spark-${id})`}
       />
       <polyline
         points={points}
@@ -177,47 +229,25 @@ function MiniSparkline({ data, color = "#DC143C" }: { data: number[]; color?: st
   )
 }
 
-function formatHumanReadable(v: number, isCurrency: boolean) {
-  if (isCurrency) {
-    if (v >= 1_000_000_000_000) return `$${(v / 1_000_000_000_000).toFixed(2)}T`
-    if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(2)}B`
-    if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`
-    return `$${v.toLocaleString()}`
-  }
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(2)}B`
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
-  return v.toLocaleString()
-}
-
-function StatCard({ stat, index }: { stat: StatConfig; index: number }) {
-  const value = useLiveCounter(stat.baseValue, stat.annualGrowth)
+function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const liveValue = useLiveCounter(
+    topic.live?.baseValue ?? 0,
+    topic.live?.annualGrowth ?? 0
+  )
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), index * 80)
     return () => clearTimeout(t)
   }, [index])
 
-  const displayValue = stat.id === "oil" ? stat.baseValue : value
-  const isCurrency = stat.prefix === "$"
-  const humanLabel = formatHumanReadable(displayValue, isCurrency)
-
-  const scaleVal = (v: number) => {
-    if (v >= 1_000_000_000) return { n: Math.floor(v / 1_000_000), s: "M" }
-    if (v >= 1_000_000) return { n: Math.floor(v / 1_000), s: "K" }
-    return { n: v, s: "" }
-  }
-
-  const showFull = displayValue < 1_000_000_000
-  const { n: scaledNum, s: scaleSuffix } = scaleVal(displayValue)
-
   return (
     <div
       onClick={() => setExpanded(!expanded)}
       style={{
         background: "rgba(0,0,0,0.5)",
-        border: "1px solid rgba(220,20,60,0.08)",
+        border: "1px solid rgba(255,255,255,0.06)",
         padding: "20px 24px",
         cursor: "pointer",
         transition: "all 0.4s cubic-bezier(0.23,1,0.32,1)",
@@ -227,66 +257,72 @@ function StatCard({ stat, index }: { stat: StatConfig; index: number }) {
         overflow: "hidden",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(220,20,60,0.35)"
-        ;(e.currentTarget as HTMLElement).style.background = "rgba(220,20,60,0.03)"
+        (e.currentTarget as HTMLElement).style.borderColor = `${topic.tagColor}55`
+        ;(e.currentTarget as HTMLElement).style.background = `${topic.tagColor}08`
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(220,20,60,0.08)"
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)"
         ;(e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.5)"
       }}
     >
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #DC143C, transparent)", opacity: 0.3 }} />
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${topic.tagColor}, transparent)`, opacity: 0.4 }} />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(220,20,60,0.5)" }}>
-          {stat.category}
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 9,
+          fontWeight: 800,
+          textTransform: "uppercase",
+          letterSpacing: "0.18em",
+          color: topic.tagColor,
+          background: `${topic.tagColor}15`,
+          padding: "2px 8px",
+        }}>
+          {topic.tag}
         </span>
         <span style={{
           fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
-          color: stat.trend === "up" ? "#10B981" : "#DC143C",
+          color: topic.deltaUp ? "#10B981" : "#EF4444",
           display: "flex", alignItems: "center", gap: 3,
         }}>
-          {stat.trend === "up" ? "\u25B2" : "\u25BC"} {stat.trendLabel}
+          {topic.deltaUp ? "\u25B2" : "\u25BC"} {topic.delta}
         </span>
       </div>
 
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 8 }}>
-        {stat.label}
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.65)", marginBottom: 8 }}>
+        {topic.title}
       </div>
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}>
-          {stat.prefix || ""}
-          <LiveNumber
-            value={showFull ? displayValue : scaledNum}
-            className="tabular-nums"
-            style={{ fontFamily: "inherit", fontWeight: "inherit", fontSize: "inherit", letterSpacing: "inherit" }}
-          />
-        </span>
-        {!showFull && scaleSuffix && (
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
-            {scaleSuffix}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 8 }}>
+        {topic.live ? (
+          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", fontSize: "clamp(1.3rem, 2.5vw, 1.8rem)" }}>
+            <LiveNumber
+              value={liveValue}
+              className="tabular-nums"
+              style={{ fontFamily: "inherit", fontWeight: "inherit", fontSize: "inherit", letterSpacing: "inherit" }}
+            />
           </span>
-        )}
-        {stat.id === "oil" && (
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "rgba(255,255,255,0.25)" }}>bbl/day</span>
+        ) : (
+          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", fontSize: "clamp(1.3rem, 2.5vw, 1.8rem)" }}>
+            {topic.stat}
+          </span>
         )}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
         <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.2)" }}>
-          {humanLabel}
+          {topic.live ? `${(liveValue / 1_000_000).toFixed(1)}M people` : topic.stat}
         </span>
-        <MiniSparkline data={stat.sparkData} />
+        <MiniSparkline data={topic.sparkData} color={topic.tagColor} id={topic.id} />
       </div>
 
       {expanded && (
-        <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(220,20,60,0.1)" }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, marginBottom: 8 }}>
-            {stat.description}
+        <div style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid ${topic.tagColor}20` }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, marginBottom: 8 }}>
+            {topic.blurb}
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, color: "rgba(255,255,255,0.15)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-            Source: {stat.source}
+            Source: {topic.source}
           </p>
         </div>
       )}
@@ -295,195 +331,134 @@ function StatCard({ stat, index }: { stat: StatConfig; index: number }) {
 }
 
 function PulseTicker() {
-  const tickerRef = useRef<HTMLDivElement>(null)
   const text = TICKER_ITEMS.map(t => `${t.label}  ${t.value}  ${t.up ? "\u25B2" : "\u25BC"} ${t.delta}`).join("    \u00B7    ")
 
   return (
-    <div style={{ background: "rgba(220,20,60,0.06)", borderTop: "1px solid rgba(220,20,60,0.15)", borderBottom: "1px solid rgba(220,20,60,0.15)", height: 36, display: "flex", alignItems: "center", overflow: "hidden", position: "relative" }}>
-      <div style={{ flexShrink: 0, background: "#DC143C", padding: "3px 12px", marginLeft: 8, marginRight: 12, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff", zIndex: 2 }}>
+    <div style={{ background: "rgba(220,20,60,0.06)", borderTop: "1px solid rgba(220,20,60,0.12)", borderBottom: "1px solid rgba(220,20,60,0.12)", height: 38, display: "flex", alignItems: "center", overflow: "hidden", position: "relative" }}>
+      <div style={{ flexShrink: 0, background: "#DC143C", padding: "3px 10px", marginLeft: 8, marginRight: 12, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "#fff", zIndex: 2 }}>
         LIVE
       </div>
-      <div ref={tickerRef} style={{ flex: 1, overflow: "hidden" }}>
-        <span className="ticker-animate" style={{ display: "inline-block", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", paddingLeft: 8 }}>
-          {text + "    \u00B7    " + text}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <span
+          className="tmh-ticker-scroll"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.6)",
+            paddingLeft: 8,
+          }}
+        >
+          <span>{text}</span>
+          <span style={{ marginLeft: 60 }}>{text}</span>
         </span>
       </div>
     </div>
   )
 }
 
-function CountryRow({ country, maxGdp, index }: { country: typeof MENA_COUNTRIES[0]; maxGdp: number; index: number }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 400 + index * 30)
-    return () => clearTimeout(t)
-  }, [index])
-
-  const gdpPerCap = Math.round((country.gdpB * 1_000_000_000) / country.pop)
-  const barWidth = (country.gdpB / maxGdp) * 100
+function BigNumber() {
+  const pop = useLiveCounter(541_000_000, 0.0156, 500)
 
   return (
-    <tr
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,0.03)",
-        opacity: mounted ? 1 : 0,
-        transform: mounted ? "translateX(0)" : "translateX(-8px)",
-        transition: "all 0.3s ease",
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = "rgba(220,20,60,0.03)")}
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-    >
-      <td style={{ padding: "10px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
-        <span style={{ marginRight: 8 }}>{country.flag}</span>
-        {country.name}
-      </td>
-      <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>
-        {(country.pop / 1_000_000).toFixed(1)}M
-      </td>
-      <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>
-        ${country.gdpB}B
-      </td>
-      <td className="hidden sm:table-cell" style={{ padding: "10px 16px", textAlign: "right", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
-        ${gdpPerCap.toLocaleString()}
-      </td>
-      <td className="hidden sm:table-cell" style={{ padding: "10px 16px", textAlign: "right", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: country.growth >= 0 ? "#10B981" : "#DC143C" }}>
-        {country.growth >= 0 ? "\u25B2" : "\u25BC"} {Math.abs(country.growth)}%
-      </td>
-      <td className="hidden md:table-cell" style={{ padding: "10px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 80, height: 6, background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
-            <div style={{ width: mounted ? `${barWidth}%` : "0%", height: "100%", background: "linear-gradient(90deg, #DC143C, rgba(220,20,60,0.4))", transition: "width 1s cubic-bezier(0.23,1,0.32,1)" }} />
-          </div>
-        </div>
-      </td>
-    </tr>
-  )
-}
-
-function CountryTable() {
-  const sorted = [...MENA_COUNTRIES].sort((a, b) => b.gdpB - a.gdpB)
-  const maxGdp = sorted[0].gdpB
-  const totalPop = MENA_COUNTRIES.reduce((s, c) => s + c.pop, 0)
-  const totalGdp = MENA_COUNTRIES.reduce((s, c) => s + c.gdpB, 0)
-
-  return (
-    <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(220,20,60,0.08)", overflow: "hidden" }}>
-      <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(220,20,60,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: 16, textTransform: "uppercase", letterSpacing: "0.05em", color: "#fff" }}>
-            20 Countries
-          </span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 300, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.3)", marginLeft: 8 }}>
-            One Region
-          </span>
-        </div>
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.2)" }}>
-          {(totalPop / 1_000_000).toFixed(0)}M people · ${(totalGdp / 1000).toFixed(1)}T GDP
+    <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(220,20,60,0.08)", padding: "28px 32px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #DC143C, transparent)", opacity: 0.3 }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC143C", animation: "pulse-glow 2s ease-in-out infinite" }} />
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#DC143C" }}>
+          Live Counter
         </span>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid rgba(220,20,60,0.1)" }}>
-              {["Country", "Population", "GDP", "GDP/Cap", "Growth", ""].map((h, i) => (
-                <th
-                  key={h || i}
-                  className={i >= 3 && i <= 4 ? "hidden sm:table-cell" : i === 5 ? "hidden md:table-cell" : ""}
-                  style={{
-                    padding: "8px 16px",
-                    textAlign: i === 0 ? "left" : "right",
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.18em",
-                    color: "rgba(220,20,60,0.4)",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((c, i) => (
-              <CountryRow key={c.code} country={c} maxGdp={maxGdp} index={i} />
-            ))}
-          </tbody>
-        </table>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(255,255,255,0.45)", marginBottom: 6 }}>
+        MENA Population Right Now
       </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, color: "#DC143C", letterSpacing: "-0.02em", fontSize: "clamp(2rem, 4vw, 3rem)" }}>
+          <LiveNumber
+            value={pop}
+            className="tabular-nums"
+            style={{ fontFamily: "inherit", fontWeight: "inherit", fontSize: "inherit", letterSpacing: "inherit" }}
+          />
+        </span>
+      </div>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 8, lineHeight: 1.5 }}>
+        Growing by ~8.2 million per year — roughly 1 new person every 4 seconds. 60% are under 30.
+      </p>
     </div>
   )
 }
 
 export default function MenaPulse() {
-  const now = new Date()
-  const dateStr = now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }).toUpperCase()
-  const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-  const [seconds, setSeconds] = useState(0)
-  useEffect(() => {
-    const id = setInterval(() => setSeconds(s => s + 1), 1000)
-    return () => clearInterval(id)
-  }, [])
-
   return (
     <Layout>
       <style>{`
-        @keyframes scan-line {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
-        }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.4; }
           50% { opacity: 1; }
         }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "var(--background)", color: "var(--foreground)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(220,20,60,0.06) 0%, transparent 60%)", pointerEvents: "none" }} />
+      <div className="bg-foreground text-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
+            The Pulse
+          </p>
+          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            What's Actually<br />Happening in MENA.
+          </h1>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
+            The trends nobody's tracking. Until now.
+          </p>
+        </div>
+
+        <PulseTicker />
+
+        <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 0", display: "flex", alignItems: "center", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{EXPLODING_TOPICS.length}</span> Trends
+          </span>
+          <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>20</span> Countries
+          </span>
+          <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>541M</span> People
+          </span>
+        </div>
+      </div>
+
+      <div style={{ minHeight: "100vh", background: "var(--background)", color: "var(--foreground)", position: "relative" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(220,20,60,0.04) 0%, transparent 60%)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 16px" }}>
-
-            <div style={{ paddingTop: 40, paddingBottom: 24, borderBottom: "1px solid rgba(220,20,60,0.1)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC143C", animation: "pulse-glow 2s ease-in-out infinite" }} />
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#DC143C" }}>
-                  Live Data Terminal
-                </span>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "rgba(255,255,255,0.2)", marginLeft: "auto", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  {dateStr} · {timeStr} · T+{seconds}s
-                </span>
-              </div>
-
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(2.5rem, 5vw, 4rem)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 0.95, marginBottom: 12 }}>
-                <span style={{ color: "var(--foreground)" }}>The </span>
-                <span style={{ color: "#DC143C" }}>Pulse</span>
-              </h1>
-
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 580, lineHeight: 1.6 }}>
-                Real-time economic and demographic indicators across 20 countries in the Middle East & North Africa. Every number ticks live.
-              </p>
-            </div>
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 16px" }}>
+            <BigNumber />
           </div>
 
-          <PulseTicker />
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 16px 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+              <div style={{ width: 3, height: 16, background: "#DC143C" }} />
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(255,255,255,0.5)" }}>
+                Exploding Trends
+              </span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "rgba(255,255,255,0.2)", marginLeft: 8, letterSpacing: "0.05em" }}>
+                Click any card for the full story
+              </span>
+            </div>
 
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 16px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
-              {STATS.map((stat, i) => (
-                <StatCard key={stat.id} stat={stat} index={i} />
+              {EXPLODING_TOPICS.map((topic, i) => (
+                <TopicCardComponent key={topic.id} topic={topic} index={i} />
               ))}
             </div>
           </div>
 
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 16px 48px" }}>
-            <CountryTable />
-          </div>
-
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 16px 48px", textAlign: "center" }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "rgba(255,255,255,0.12)", textTransform: "uppercase", letterSpacing: "0.12em", maxWidth: 540, margin: "0 auto", lineHeight: 1.8 }}>
-              Data compiled from World Bank, IMF, OPEC, GSMA, UNWTO, Wamda, MAGNiTT & UNCTAD. Growth rates applied to Jan 2026 baselines. Click any card for source attribution.
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 16px 48px", textAlign: "center" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "rgba(255,255,255,0.12)", textTransform: "uppercase", letterSpacing: "0.12em", maxWidth: 640, margin: "0 auto", lineHeight: 1.8 }}>
+              Data compiled from World Bank, IMF, Chainalysis, GSMA, Google Trends, ILO, IOM, INCB, FAO, Newzoo, Saudi Tourism Authority & Arab Social Media Report. Click any card for source attribution.
             </p>
           </div>
         </div>
