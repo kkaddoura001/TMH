@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
+import { useI18n } from "@/lib/i18n"
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
 const BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()
@@ -537,14 +538,15 @@ function MiniSparkline({ data, color = "#DC143C", id }: { data: number[]; color?
 function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const { t } = useI18n()
   const liveValue = useLiveCounter(
     topic.live?.baseValue ?? 0,
     topic.live?.annualGrowth ?? 0
   )
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), index * 50)
-    return () => clearTimeout(t)
+    const tm = setTimeout(() => setMounted(true), index * 50)
+    return () => clearTimeout(tm)
   }, [index])
 
   return (
@@ -583,19 +585,19 @@ function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number 
           background: `${topic.tagColor}15`,
           padding: "2px 8px",
         }}>
-          {topic.tag}
+          {t(topic.tag)}
         </span>
         <span style={{
           fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700,
           color: topic.deltaUp ? "#10B981" : "#EF4444",
           display: "flex", alignItems: "center", gap: 3,
         }}>
-          {topic.deltaUp ? "\u25B2" : "\u25BC"} {topic.delta}
+          {topic.deltaUp ? "\u25B2" : "\u25BC"} {t(topic.delta)}
         </span>
       </div>
 
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.65)", marginBottom: 8 }}>
-        {topic.title}
+        {t(topic.title)}
       </div>
 
       <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 8 }}>
@@ -627,7 +629,7 @@ function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number 
             {topic.blurb}
           </p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, color: "rgba(255,255,255,0.15)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-            Source: {topic.source}
+            {t("Source:")} {topic.source}
           </p>
         </div>
       )}
@@ -668,6 +670,7 @@ function PulseTicker() {
 
 function BigNumber() {
   const pop = useLiveCounter(541_000_000, 0.0156, 500)
+  const { t } = useI18n()
 
   return (
     <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(220,20,60,0.08)", padding: "28px 32px", position: "relative", overflow: "hidden" }}>
@@ -675,11 +678,11 @@ function BigNumber() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC143C", animation: "pulse-glow 2s ease-in-out infinite" }} />
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#DC143C" }}>
-          Live Counter
+          {t("Live Counter")}
         </span>
       </div>
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(255,255,255,0.45)", marginBottom: 6 }}>
-        MENA Population Right Now
+        {t("MENA Population Right Now")}
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
         <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, color: "#DC143C", letterSpacing: "-0.02em", fontSize: "clamp(2rem, 4vw, 3rem)" }}>
@@ -691,13 +694,14 @@ function BigNumber() {
         </span>
       </div>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 8, lineHeight: 1.5 }}>
-        Growing by ~8.2 million per year — roughly 1 new person every 4 seconds. 60% are under 30.
+        {t("Growing by ~8.2 million per year — roughly 1 new person every 4 seconds. 60% are under 30.")}
       </p>
     </div>
   )
 }
 
 function CategoryFilter({ active, onSelect }: { active: string; onSelect: (key: string) => void }) {
+  const { t } = useI18n()
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "16px 0" }}>
       {CATEGORIES.map(cat => {
@@ -720,11 +724,11 @@ function CategoryFilter({ active, onSelect }: { active: string; onSelect: (key: 
               transition: "all 0.2s ease",
             }}
           >
-            {cat.label}
+            {t(cat.label)}
             <span style={{ marginLeft: 6, fontSize: 9, opacity: 0.6 }}>
               {cat.key === "ALL"
                 ? EXPLODING_TOPICS.length
-                : EXPLODING_TOPICS.filter(t => t.tag === cat.key).length}
+                : EXPLODING_TOPICS.filter(tp => tp.tag === cat.key).length}
             </span>
           </button>
         )
@@ -735,10 +739,11 @@ function CategoryFilter({ active, onSelect }: { active: string; onSelect: (key: 
 
 export default function MenaPulse() {
   const [activeCategory, setActiveCategory] = useState("ALL")
+  const { t, isAr } = useI18n()
 
   const filtered = activeCategory === "ALL"
     ? EXPLODING_TOPICS
-    : EXPLODING_TOPICS.filter(t => t.tag === activeCategory)
+    : EXPLODING_TOPICS.filter(tp => tp.tag === activeCategory)
 
   return (
     <Layout>
@@ -752,13 +757,17 @@ export default function MenaPulse() {
       <div className="bg-foreground text-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
-            The Pulse
+            {t("The Pulse")}
           </p>
-          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
-            What's Actually<br />Happening in MENA<span style={{ color: "#DC143C" }}>.</span>
+          <h1 style={{ fontFamily: isAr ? "'IBM Plex Sans Arabic', sans-serif" : "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            {isAr ? (
+              <>{t("What's Actually Happening in MENA")}<span style={{ color: "#DC143C" }}>.</span></>
+            ) : (
+              <>What's Actually<br />Happening in MENA<span style={{ color: "#DC143C" }}>.</span></>
+            )}
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
-            {EXPLODING_TOPICS.length} trends the region needs to confront. Updated quarterly.
+            {EXPLODING_TOPICS.length} {t("trends the region needs to confront. Updated quarterly.")}
           </p>
         </div>
 
@@ -766,19 +775,19 @@ export default function MenaPulse() {
 
         <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 0", display: "flex", alignItems: "center", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
-            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{EXPLODING_TOPICS.length}</span> Trends
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{EXPLODING_TOPICS.length}</span> {t("Trends")}
           </span>
           <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
-            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{CATEGORIES.length - 1}</span> Categories
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>{CATEGORIES.length - 1}</span> {t("Categories")}
           </span>
           <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
-            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>19</span> Countries
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>19</span> {t("Countries")}
           </span>
           <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)" }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>
-            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>541M</span> People
+            <span style={{ color: "#DC143C", fontWeight: 900, fontSize: "0.85rem", marginRight: 6 }}>541M</span> {t("People")}
           </span>
         </div>
       </div>
@@ -795,23 +804,23 @@ export default function MenaPulse() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <div style={{ width: 3, height: 16, background: "#DC143C" }} />
               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(255,255,255,0.5)" }}>
-                Exploding Trends
+                {t("Exploding Trends")}
               </span>
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "rgba(255,255,255,0.2)", marginLeft: 8, letterSpacing: "0.05em" }}>
-                Click any card for the full story
+                {t("Click any card for the full story")}
               </span>
             </div>
 
             <CategoryFilter active={activeCategory} onSelect={setActiveCategory} />
 
             <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "rgba(255,255,255,0.2)", marginBottom: 16, letterSpacing: "0.05em" }}>
-              Showing {filtered.length} of {EXPLODING_TOPICS.length} trends
+              {t("Showing")} {filtered.length} {t("of")} {EXPLODING_TOPICS.length} {t("trends")}
               {activeCategory !== "ALL" && (
                 <button
                   onClick={() => setActiveCategory("ALL")}
                   style={{ marginLeft: 12, color: "#DC143C", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", letterSpacing: "inherit", textDecoration: "underline" }}
                 >
-                  Clear filter
+                  {t("Clear filter")}
                 </button>
               )}
             </div>

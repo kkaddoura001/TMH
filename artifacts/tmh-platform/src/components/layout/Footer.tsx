@@ -1,13 +1,5 @@
 import { Link } from "wouter"
-
-const NAV = [
-  { label: "About", href: "/about" },
-  { label: "Pulse", href: "/mena-pulse" },
-  { label: "Debates", href: "/polls" },
-  { label: "Predictions", href: "/predictions" },
-  { label: "Voices", href: "/profiles" },
-  { label: "Join The Voices", href: "/apply" },
-]
+import { useI18n } from "@/lib/i18n"
 
 const SOCIALS = [
   { label: "X", href: "https://x.com/tmhustle" },
@@ -16,6 +8,17 @@ const SOCIALS = [
 ]
 
 export function Footer() {
+  const { t } = useI18n()
+
+  const NAV = [
+    { label: t("About"), href: "/about" },
+    { label: t("Pulse"), href: "/mena-pulse" },
+    { label: t("Debates"), href: "/polls" },
+    { label: t("Predictions"), href: "/predictions" },
+    { label: t("Voices"), href: "/profiles" },
+    { label: t("Join The Voices"), href: "/apply" },
+  ]
+
   return (
     <footer className="bg-foreground text-background pt-16 pb-8 border-t-2 border-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,11 +29,11 @@ export function Footer() {
                 The Tribunal<span className="text-primary">.</span>
               </span>
               <span className="text-[9px] font-serif tracking-[0.2em] uppercase text-background/40 mt-1 block">
-                by The Middle East Hustle
+                {t("by The Middle East Hustle")}
               </span>
             </Link>
             <p className="text-background/50 font-sans text-sm mt-4 max-w-xs leading-relaxed">
-              The voice of 541 million. Real people. Real hustle. Real change.
+              {t("The voice of 541 million. Real people. Real hustle. Real change.")}
             </p>
             <div className="flex items-center gap-4 mt-6">
               {SOCIALS.map(s => (
@@ -62,15 +65,15 @@ export function Footer() {
           </div>
 
           <div className="max-w-xs">
-            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-background/30 mb-4 font-serif">Stay Informed</h4>
+            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-background/30 mb-4 font-serif">{t("Stay Informed")}</h4>
             <p className="text-sm text-background/50 font-sans leading-relaxed mb-4">
-              The questions no one else asks. The data no one else collects. Straight to your inbox.
+              {t("The questions no one else asks. The data no one else collects. Straight to your inbox.")}
             </p>
             <Link
               href="/about"
               className="inline-block bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 hover:bg-primary/90 transition-colors font-serif"
             >
-              Learn More →
+              {t("Learn More →")}
             </Link>
           </div>
         </div>
@@ -80,9 +83,9 @@ export function Footer() {
             © {new Date().getFullYear()} The Tribunal, by The Middle East Hustle. Founded by Kareem Kaddoura.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/faq" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">FAQ</Link>
-            <Link href="/terms" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">Terms</Link>
-            <a href="mailto:hello@themiddleeasthustle.com" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">Contact</a>
+            <Link href="/faq" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">{t("FAQ")}</Link>
+            <Link href="/terms" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">{t("Terms")}</Link>
+            <a href="mailto:hello@themiddleeasthustle.com" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">{t("Contact")}</a>
           </div>
         </div>
       </div>

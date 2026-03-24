@@ -330,3 +330,30 @@
 .tmh-gate-card {
   animation: gateSlideIn 0.3s ease-out both;
 }
+
+[dir="rtl"] {
+  font-family: 'IBM Plex Sans Arabic', 'DM Sans', sans-serif;
+}
+[dir="rtl"] .font-display,
+[dir="rtl"] .font-serif {
+  font-family: 'IBM Plex Sans Arabic', 'Playfair Display', serif;
+}
+[dir="rtl"] .tmh-ticker-scroll {
+  animation-direction: reverse;
+}
+[dir="rtl"] .border-l-4 {
+  border-left-width: 0;
+  border-right-width: 4px;
+}
+[dir="rtl"] .lg\:border-r {
+  border-right-width: 0;
+  border-left-width: 1px;
+}
+[dir="rtl"] .lg\:pr-8 {
+  padding-right: 0;
+  padding-left: 2rem;
+}
+[dir="rtl"] .lg\:pl-8 {
+  padding-left: 0;
+  padding-right: 2rem;
+}

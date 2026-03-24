@@ -1,5 +1,6 @@
 import { Link } from "wouter"
 import { Layout } from "@/components/layout/Layout"
+import { useI18n } from "@/lib/i18n"
 
 const PILLARS = [
   {
@@ -66,19 +67,24 @@ const BELIEFS = [
 ]
 
 export default function About() {
+  const { t, isAr } = useI18n()
   return (
     <Layout>
       {/* Hero */}
       <div className="bg-foreground text-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
-            Est. 2026 · Founded by Kareem Kaddoura
+            {t("Est. 2026 · Founded by Kareem Kaddoura")}
           </p>
-          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
-            The Region's First<br />Collective Mirror<span style={{ color: "#DC143C" }}>.</span>
+          <h1 style={{ fontFamily: isAr ? "'IBM Plex Sans Arabic', sans-serif" : "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            {isAr ? (
+              <>{t("The Region's First Collective Mirror")}<span style={{ color: "#DC143C" }}>.</span></>
+            ) : (
+              <>The Region's First<br />Collective Mirror<span style={{ color: "#DC143C" }}>.</span></>
+            )}
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
-            541 million people. Zero platforms asking what they think. Until now.
+            {t("541 million people. Zero platforms asking what they think. Until now.")}
           </p>
         </div>
       </div>
@@ -86,19 +92,19 @@ export default function About() {
       {/* What TMH Is */}
       <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
         <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
-          What Is The Tribunal?
+          {t("What Is The Tribunal?")}
         </h2>
         <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
-          The Tribunal is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. A product by The Middle East Hustle.
+          {t("The Tribunal is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. A product by The Middle East Hustle.")}
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          We ask the questions nobody else asks. We collect anonymous votes from across 19 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.
+          {t("We ask the questions nobody else asks. We collect anonymous votes from across 19 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.")}
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          Think of it as the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology, and built for the 541 million people who live, work, and build in the Middle East and North Africa.
+          {t("Think of it as the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology, and built for the 541 million people who live, work, and build in the Middle East and North Africa.")}
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed">
-          Everything on The Tribunal — every debate, every prediction, every trend, every Voice — adds to a living dataset of what the region actually thinks. Not what governments report. Not what Western media assumes. What real people vote for when nobody's watching.
+          {t("Everything on The Tribunal — every debate, every prediction, every trend, every Voice — adds to a living dataset of what the region actually thinks. Not what governments report. Not what Western media assumes. What real people vote for when nobody's watching.")}
         </p>
       </div>
 
@@ -106,7 +112,7 @@ export default function About() {
       <div className="py-20 bg-secondary/20 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif font-black uppercase text-3xl border-b-2 border-foreground pb-4 mb-12 text-foreground">
-            The Platform
+            {t("The Platform")}
           </h2>
           <div className="grid md:grid-cols-2 gap-10">
             {PILLARS.map(p => (
@@ -114,14 +120,14 @@ export default function About() {
                 <span className="text-6xl font-display font-black text-foreground/8 leading-none select-none block">{p.num}</span>
                 <div className="-mt-3">
                   <h3 className="font-serif font-black uppercase text-lg border-b border-border pb-2 mb-3 text-foreground tracking-wide">
-                    {p.title}
+                    {t(p.title)}
                   </h3>
-                  <p className="text-sm text-muted-foreground font-sans leading-relaxed mb-4">{p.body}</p>
+                  <p className="text-sm text-muted-foreground font-sans leading-relaxed mb-4">{t(p.body)}</p>
                   <Link
                     href={p.link}
                     className="inline-block text-xs font-serif font-bold uppercase tracking-widest text-primary hover:text-foreground transition-colors border-b border-primary pb-0.5"
                   >
-                    {p.cta} →
+                    {t(p.cta)} {isAr ? "←" : "→"}
                   </Link>
                 </div>
               </div>
@@ -142,7 +148,7 @@ export default function About() {
             ].map(stat => (
               <div key={stat.label}>
                 <div className="font-display font-black text-4xl md:text-5xl text-primary leading-none mb-2">{stat.num}</div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-background/50 font-serif">{stat.label}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-background/50 font-serif">{t(stat.label)}</div>
               </div>
             ))}
           </div>
@@ -152,30 +158,30 @@ export default function About() {
       {/* Founder Statement */}
       <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
         <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
-          From the Founder
+          {t("From the Founder")}
         </h2>
         <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
-          This started as a question I kept asking at dinner tables, in taxis, in boardrooms, and in WhatsApp groups at midnight: what does the Middle East actually think?
+          {t("This started as a question I kept asking at dinner tables, in taxis, in boardrooms, and in WhatsApp groups at midnight: what does the Middle East actually think?")}
         </p>
 
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          Not what we're told it thinks. Not what leaders say it thinks. Not what Western media assumes it thinks. What the 541 million people who live here, work here, raise children here, and build things here — actually think.
+          {t("Not what we're told it thinks. Not what leaders say it thinks. Not what Western media assumes it thinks. What the 541 million people who live here, work here, raise children here, and build things here — actually think.")}
         </p>
 
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          There was no single place to find out. So I built one.
+          {t("There was no single place to find out. So I built one.")}
         </p>
 
         <blockquote className="font-display text-2xl md:text-3xl border-l-4 border-primary pl-6 py-4 my-12 text-foreground leading-snug">
-          "The Tribunal is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
+          {t("\"The Tribunal is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed.\"")}
         </blockquote>
 
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
-          I don't have the answers. Nobody does. But for the first time, we're collecting them — honestly, anonymously, at scale. Every vote, every prediction, every profile adds to a picture of the region that has never existed before.
+          {t("I don't have the answers. Nobody does. But for the first time, we're collecting them — honestly, anonymously, at scale. Every vote, every prediction, every profile adds to a picture of the region that has never existed before.")}
         </p>
 
         <p className="text-base font-sans leading-relaxed text-foreground font-bold">
-          — Kareem Kaddoura, Founder
+          {t("— Kareem Kaddoura, Founder")}
         </p>
       </div>
 
@@ -183,7 +189,7 @@ export default function About() {
       <div className="py-20 bg-secondary/20 border-t border-border border-b">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif font-black uppercase text-3xl border-b-2 border-foreground pb-4 mb-12 text-foreground">
-            What We Stand For
+            {t("What We Stand For")}
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             {BELIEFS.map(b => (
@@ -191,9 +197,9 @@ export default function About() {
                 <span className="text-6xl font-display font-black text-foreground/8 leading-none select-none block">{b.num}</span>
                 <div className="-mt-3">
                   <h3 className="font-serif font-black uppercase text-lg border-b border-border pb-2 mb-3 text-foreground tracking-wide">
-                    {b.title}
+                    {t(b.title)}
                   </h3>
-                  <p className="text-sm text-muted-foreground font-sans leading-relaxed">{b.body}</p>
+                  <p className="text-sm text-muted-foreground font-sans leading-relaxed">{t(b.body)}</p>
                 </div>
               </div>
             ))}
@@ -205,10 +211,10 @@ export default function About() {
       <div className="py-16 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-2 border-l-4 border-primary pl-4">
-            The Region We Cover
+            {t("The Region We Cover")}
           </h2>
           <p className="text-sm text-foreground/60 font-sans mb-8 pl-5">
-            19 countries. 541 million people. One platform.
+            {t("19 countries. 541 million people. One platform.")}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {[
@@ -234,7 +240,7 @@ export default function About() {
             ].map(c => (
               <div key={c.name} className="border border-border px-3 py-2.5 text-xs font-serif uppercase tracking-widest text-foreground/80 text-center hover:border-primary hover:text-primary transition-colors flex flex-col items-center gap-1">
                 <span className="text-xl not-italic" style={{ fontFamily: "system-ui" }}>{c.flag}</span>
-                <span>{c.name}</span>
+                <span>{t(c.name)}</span>
                 <span className="text-[9px] tracking-normal normal-case text-muted-foreground font-sans">{c.pop}</span>
               </div>
             ))}
@@ -246,23 +252,23 @@ export default function About() {
       <div className="py-16 border-b border-border bg-secondary/10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
-            Our Ethos
+            {t("Our Ethos")}
           </h2>
           <div className="space-y-6 text-base text-foreground/70 font-sans leading-relaxed">
             <p>
-              The Tribunal exists because the Middle East and North Africa is the most opinionated, least surveyed region on earth. There are 541 million people here — builders, dreamers, troublemakers — and no one has ever given them a single platform to say what they really think.
+              {t("The Tribunal exists because the Middle East and North Africa is the most opinionated, least surveyed region on earth. There are 541 million people here — builders, dreamers, troublemakers — and no one has ever given them a single platform to say what they really think.")}
             </p>
             <p>
-              We are not a news outlet. We are not a think tank. We do not do sponsored polls or PR research. Every question on this platform is designed to surface the truth — not a narrative.
+              {t("We are not a news outlet. We are not a think tank. We do not do sponsored polls or PR research. Every question on this platform is designed to surface the truth — not a narrative.")}
             </p>
             <p>
-              We believe that anonymous, honest data from real people is more valuable than any op-ed, any government report, any think-tank white paper. We believe the region knows itself better than anyone watching from the outside.
+              {t("We believe that anonymous, honest data from real people is more valuable than any op-ed, any government report, any think-tank white paper. We believe the region knows itself better than anyone watching from the outside.")}
             </p>
             <p>
-              The questions are provocative because the region deserves provocative questions. The data is honest because anything less is a waste of everyone's time.
+              {t("The questions are provocative because the region deserves provocative questions. The data is honest because anything less is a waste of everyone's time.")}
             </p>
             <p className="text-foreground font-bold">
-              This is MENA's living dataset — and it grows with every vote.
+              {t("This is MENA's living dataset — and it grows with every vote.")}
             </p>
           </div>
         </div>
@@ -272,29 +278,29 @@ export default function About() {
       <div className="py-20 border-t border-border">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <p className="font-display text-3xl text-foreground mb-2 leading-snug italic">
-            "Bringing the voices of the Middle East<br />into one room. Finally."
+            {t("\"Bringing the voices of the Middle East into one room. Finally.\"")}
           </p>
           <p className="text-sm text-muted-foreground font-sans mb-12">
-            — Kareem Kaddoura, Founder · The Tribunal, by The Middle East Hustle · 2026
+            {t("— Kareem Kaddoura, Founder · The Tribunal, by The Middle East Hustle · 2026")}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/polls"
               className="bg-foreground text-background px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-primary transition-colors font-serif"
             >
-              Cast Your Vote
+              {t("Cast Your Vote")}
             </Link>
             <Link
               href="/mena-pulse"
               className="border border-foreground text-foreground px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-foreground hover:text-background transition-colors font-serif"
             >
-              Read The Pulse
+              {t("Read The Pulse")}
             </Link>
             <Link
               href="/profiles"
               className="border border-primary text-primary px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-colors font-serif"
             >
-              Meet The Voices
+              {t("Meet The Voices")}
             </Link>
           </div>
         </div>

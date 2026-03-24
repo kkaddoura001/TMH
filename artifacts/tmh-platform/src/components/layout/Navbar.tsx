@@ -3,10 +3,12 @@ import { Menu, X, Moon, Sun } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useTheme } from "@/hooks/use-theme"
 import { cn } from "@/lib/utils"
+import { useI18n, LangToggle } from "@/lib/i18n"
 
 export function Navbar() {
   const [location] = useLocation()
   const { isDark, toggleTheme } = useTheme()
+  const { t } = useI18n()
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -17,11 +19,11 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { label: "About", href: "/about" },
-    { label: "Pulse", href: "/mena-pulse" },
-    { label: "Debates", href: "/polls" },
-    { label: "Predictions", href: "/predictions" },
-    { label: "Voices", href: "/profiles" },
+    { label: t("About"), href: "/about" },
+    { label: t("Pulse"), href: "/mena-pulse" },
+    { label: t("Debates"), href: "/polls" },
+    { label: t("Predictions"), href: "/predictions" },
+    { label: t("Voices"), href: "/profiles" },
   ]
 
   return (
@@ -41,7 +43,7 @@ export function Navbar() {
                 The Tribunal<span className="text-primary">.</span>
               </span>
               <span className="text-[8px] font-serif tracking-[0.2em] uppercase text-muted-foreground leading-none mt-0.5">
-                by The Middle East Hustle
+                {t("by The Middle East Hustle")}
               </span>
             </Link>
 
@@ -69,8 +71,10 @@ export function Navbar() {
               href="/apply"
               className="hidden sm:flex items-center gap-2 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.15em] px-4 py-2 hover:bg-primary/90 transition-colors font-serif"
             >
-              Join The Voices
+              {t("Join The Voices")}
             </Link>
+
+            <LangToggle className="text-muted-foreground hover:text-foreground transition-colors" />
 
             <button
               onClick={toggleTheme}
@@ -113,7 +117,7 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full text-center bg-primary text-white font-bold uppercase tracking-[0.2em] text-sm py-3 font-serif hover:bg-primary/90 transition-colors"
               >
-                Join The Voices
+                {t("Join The Voices")}
               </Link>
             </div>
           </div>

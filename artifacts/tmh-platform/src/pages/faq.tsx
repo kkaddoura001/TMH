@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "wouter"
+import { useI18n } from "@/lib/i18n"
 
 const FAQ_SECTIONS = [
   {
@@ -115,6 +116,7 @@ const FAQ_SECTIONS = [
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
+  const { t } = useI18n()
   return (
     <div className={cn("border-b border-border transition-colors", open ? "pb-5" : "")}>
       <button
@@ -122,7 +124,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         className="w-full flex items-start justify-between gap-4 py-5 text-left group"
       >
         <span className={cn("font-serif font-bold text-sm uppercase tracking-wide leading-snug transition-colors", open ? "text-primary" : "text-foreground group-hover:text-primary")}>
-          {q}
+          {t(q)}
         </span>
         <ChevronDown className={cn("w-4 h-4 flex-shrink-0 mt-0.5 text-muted-foreground transition-transform duration-200", open && "rotate-180 text-primary")} />
       </button>
@@ -136,18 +138,19 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQ() {
+  const { t, isAr } = useI18n()
   return (
     <Layout>
       <div className="bg-foreground text-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
-            Help
+            {t("Help")}
           </p>
-          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
-            Frequently Asked<br />Questions
+          <h1 style={{ fontFamily: isAr ? "'IBM Plex Sans Arabic', sans-serif" : "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            {t("Frequently Asked Questions")}
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
-            Everything you need to know about The Tribunal.
+            {t("Everything you need to know about The Tribunal.")}
           </p>
         </div>
       </div>
@@ -156,7 +159,7 @@ export default function FAQ() {
         {FAQ_SECTIONS.map(section => (
           <div key={section.category}>
             <h2 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">
-              {section.category}
+              {t(section.category)}
             </h2>
             <div className="border-t-2 border-foreground">
               {section.questions.map(item => (
@@ -167,16 +170,16 @@ export default function FAQ() {
         ))}
 
         <div className="border-t border-border pt-10">
-          <p className="font-sans text-sm text-muted-foreground mb-4">Still have questions?</p>
+          <p className="font-sans text-sm text-muted-foreground mb-4">{t("Still have questions?")}</p>
           <div className="flex flex-wrap gap-4">
             <Link href="/about" className="text-[10px] uppercase tracking-widest font-bold font-serif text-primary hover:text-foreground transition-colors">
-              About The Tribunal →
+              {t("About The Tribunal →")}
             </Link>
             <Link href="/apply" className="text-[10px] uppercase tracking-widest font-bold font-serif text-muted-foreground hover:text-foreground transition-colors">
-              Apply to be a Voice →
+              {t("Apply to be a Voice →")}
             </Link>
             <Link href="/terms" className="text-[10px] uppercase tracking-widest font-bold font-serif text-muted-foreground hover:text-foreground transition-colors">
-              Terms & Conditions →
+              {t("Terms & Conditions →")}
             </Link>
           </div>
         </div>

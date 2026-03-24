@@ -6,6 +6,7 @@ import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Link } from "wouter"
 import { cn } from "@/lib/utils"
 import { ArrowRight } from "lucide-react"
+import { useI18n } from "@/lib/i18n"
 
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
 
@@ -53,6 +54,7 @@ function LiveActivity() {
   const [items, setItems] = useState<ActivityItem[]>([])
   const [activeIdx, setActiveIdx] = useState(0)
   const [tick, setTick] = useState(0)
+  const { t } = useI18n()
 
   useEffect(() => {
     const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
@@ -86,7 +88,7 @@ function LiveActivity() {
         <div className="flex items-center gap-3 mb-4">
           <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse flex-shrink-0" />
           <p className="text-[9px] uppercase tracking-[0.3em] font-bold text-muted-foreground font-serif">
-            Live Activity
+            {t("Live Activity")}
           </p>
         </div>
         <div key={`${activeIdx}-${tick}`} className="animate-in fade-in duration-500">
@@ -170,6 +172,7 @@ export default function Home() {
   const [ctaEmail, setCtaEmail] = useState("")
   const [ctaJoined, setCtaJoined] = useState(() => !!localStorage.getItem("tmh_cta_joined"))
   const menaPop = usePopulationCounter()
+  const { t, isAr } = useI18n()
 
   const handleCtaSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -215,25 +218,25 @@ export default function Home() {
       <div className="bg-background" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(220,20,60,0.07) 0%, transparent 65%)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-2 text-[9px] uppercase tracking-[0.18em] text-muted-foreground border-b border-border font-serif">
-            <span>EST. 2026 · ISSUE NO. 001</span>
+            <span>{t("EST. 2026 · ISSUE NO. 001")}</span>
             <span className="hidden sm:block">{issueDate}</span>
-            <span className="text-primary font-bold">Opinion of Record</span>
+            <span className="text-primary font-bold">{t("Opinion of Record")}</span>
           </div>
 
           <div className="py-5 my-3 text-center" style={{ borderTop: "2px solid #DC143C", borderBottom: "2px solid #DC143C" }}>
             <h1 className="font-display font-black text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight text-foreground leading-none" style={{ lineHeight: 0.95 }}>
               The Tribunal<span className="text-primary">.</span>
             </h1>
-            <p className="text-[10px] font-serif tracking-[0.25em] uppercase text-muted-foreground mt-1">by The Middle East Hustle</p>
+            <p className="text-[10px] font-serif tracking-[0.25em] uppercase text-muted-foreground mt-1">{t("by The Middle East Hustle")}</p>
             <p className="uppercase tracking-[0.22em] text-muted-foreground font-serif mt-3 flex flex-col items-center gap-1">
-              <span className="text-[10px]">The voice of</span>
+              <span className="text-[10px]">{t("The voice of")}</span>
               <LiveNumber
                 value={menaPop}
                 className="font-display font-black tracking-tight"
                 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", color: "#DC143C", letterSpacing: "-0.02em" }}
               />
               <span className="text-[8px] normal-case tracking-[0.08em] text-foreground/60 font-sans mt-0.5">
-                (MENA population growing at ~8.2 million per year — roughly 1 new person every 4 seconds)
+                {t("(MENA population growing at ~8.2 million per year — roughly 1 new person every 4 seconds)")}
               </span>
             </p>
           </div>
@@ -317,7 +320,7 @@ export default function Home() {
             <div className="lg:pr-8 lg:border-r lg:border-border pb-8 lg:pb-0">
               <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-5 flex items-center gap-2 font-serif">
                 <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                Today's Lead Debate
+                {t("TODAY'S LEAD DEBATE")}
               </div>
               {featuredLoading ? (
                 <div className="h-96 bg-secondary animate-pulse border border-border" />
@@ -329,7 +332,7 @@ export default function Home() {
             {/* RIGHT: Sidebar */}
             <div className="lg:pl-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-border">
               <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-4 font-serif">
-                Latest Debates
+                {t("Latest Debates")}
               </p>
 
               {trendingLoading ? (
@@ -362,10 +365,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12 border-l-4 border-primary pl-4">
             <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-              This Week's Debates
+              {t("This Week's Debates")}
             </h2>
             <Link href="/polls" className="hidden sm:inline-block text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif">
-              View All
+              {t("View All")}
             </Link>
           </div>
 
@@ -385,7 +388,7 @@ export default function Home() {
 
           <div className="mt-8 sm:hidden">
             <Link href="/polls" className="block text-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground border border-border py-4 font-serif">
-              View All Debates
+              {t("View All Debates")}
             </Link>
           </div>
         </div>
@@ -395,12 +398,12 @@ export default function Home() {
       <section id="predictions" className="py-20 bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 border-l-4 border-primary pl-4">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">Predictions</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">{t("Predictions")}</p>
             <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-              What Do You Think Actually Happens?
+              {t("What Do You Think Actually Happens?")}
             </h2>
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1 font-serif">
-              Not what should happen. What will.
+              {t("Not what should happen. What will.")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[900px]">
@@ -429,7 +432,7 @@ export default function Home() {
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                        Yes {pred.yesPercent}%
+                        {t("Yes")} {pred.yesPercent}%
                       </p>
                       <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                         <div className="h-full rounded-full transition-all" style={{ width: `${pred.yesPercent}%`, background: "#DC143C" }} />
@@ -437,7 +440,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                        No {pred.noPercent}%
+                        {t("No")} {pred.noPercent}%
                       </p>
                       <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                         <div className="h-full rounded-full transition-all" style={{ width: `${pred.noPercent}%`, background: "rgba(255,255,255,0.2)" }} />
@@ -447,14 +450,14 @@ export default function Home() {
                 </div>
                 <div className="flex gap-2 mt-1">
                   <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-primary hover:text-white hover:border-primary" style={{ borderColor: "#DC143C", color: "#DC143C" }}>
-                    Yes
+                    {t("Yes")}
                   </button>
                   <button className="flex-1 py-2.5 border border-border text-foreground/60 font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-secondary hover:text-foreground">
-                    No
+                    {t("No")}
                   </button>
                 </div>
                 <p className="text-[10px] text-primary font-bold uppercase tracking-widest font-serif group-hover:underline">
-                  Lock In Your Prediction →
+                  {t("Lock In Your Prediction →")}
                 </p>
               </div>
             ))}
@@ -468,16 +471,16 @@ export default function Home() {
           <div className="flex items-end justify-between mb-4">
             <div>
               <h2 className="font-display font-black text-4xl md:text-5xl uppercase tracking-tight text-background leading-none">
-                The Voices
+                {t("The Voices")}
               </h2>
               <div className="h-1 w-full bg-primary mt-3" />
             </div>
             <Link href="/profiles" className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest text-background/50 hover:text-background font-serif">
-              View All →
+              {t("View All →")}
             </Link>
           </div>
           <p className="text-background/60 font-sans text-base mt-4 mb-10 max-w-xl">
-            The founders, operators, and change-makers shaping the Middle East. Real people. Real stories.
+            {t("The founders, operators, and change-makers shaping the Middle East. Real people. Real stories.")}
           </p>
 
           {profilesLoading ? (
@@ -496,7 +499,7 @@ export default function Home() {
 
           <div className="mt-8">
             <Link href="/profiles" className="inline-flex items-center gap-2 bg-primary text-white font-bold uppercase tracking-widest text-xs px-8 py-3 hover:bg-primary/90 transition-colors font-serif">
-              View All Voices <ArrowRight className="w-3 h-3" />
+              {t("View All Voices")} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -509,7 +512,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-12 border-l-4 border-primary pl-4">
               <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-                Explore Topics
+                {t("Explore Topics")}
               </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -538,9 +541,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-center">
             <div className="flex-1 md:basis-2/3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-3 font-serif">Join 10,000+ Voices</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-3 font-serif">{t("Join 10,000+ Voices")}</p>
               <h2 className="font-display font-black text-4xl md:text-5xl uppercase leading-none tracking-tight text-background mb-4">
-                The Region's Opinion.<br />Unfiltered.
+                {t("The Region's Opinion.")}<br />{t("Unfiltered.")}
               </h2>
               <p className="text-background/60 font-sans text-base leading-relaxed max-w-xl">
                 The questions no one else asks. The data no one else collects. The pulse of <LiveNumber value={menaPop} className="tabular-nums" /> people — straight to your inbox.
@@ -549,8 +552,8 @@ export default function Home() {
             <div className="w-full md:basis-1/3">
               {ctaJoined ? (
                 <div className="border-2 border-primary p-8 text-center">
-                  <p className="font-display font-black text-3xl uppercase text-background tracking-tight">You're In<span className="text-primary">.</span></p>
-                  <p className="text-[10px] uppercase tracking-widest text-background/50 mt-2 font-serif">Welcome to the conversation.</p>
+                  <p className="font-display font-black text-3xl uppercase text-background tracking-tight">{t("You're In")}<span className="text-primary">.</span></p>
+                  <p className="text-[10px] uppercase tracking-widest text-background/50 mt-2 font-serif">{t("Welcome to the conversation.")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleCtaSubmit} className="flex flex-col gap-3">
@@ -566,9 +569,9 @@ export default function Home() {
                     type="submit"
                     className="bg-primary text-white font-bold uppercase tracking-widest px-6 py-3 text-xs hover:bg-primary/90 transition-colors font-serif"
                   >
-                    Join The Hustle
+                    {t("Join The Hustle")}
                   </button>
-                  <p className="text-[9px] text-background/40 font-sans">No spam. Unsubscribe anytime.</p>
+                  <p className="text-[9px] text-background/40 font-sans">{t("No spam. Unsubscribe anytime.")}</p>
                 </form>
               )}
             </div>
