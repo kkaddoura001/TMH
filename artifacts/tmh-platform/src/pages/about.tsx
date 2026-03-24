@@ -86,10 +86,10 @@ export default function About() {
       {/* What TMH Is */}
       <div className="max-w-3xl mx-auto px-4 py-20 border-b border-border">
         <h2 className="font-serif font-black uppercase text-2xl text-foreground mb-8 border-l-4 border-primary pl-4">
-          What Is TMH?
+          What Is The Tribunal?
         </h2>
         <p className="text-xl font-sans leading-relaxed text-foreground mb-8">
-          The Middle East Hustle is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment.
+          The Tribunal is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. A product by The Middle East Hustle.
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
           We ask the questions nobody else asks. We collect anonymous votes from across 19 countries. We track predictions over time. We surface the trends reshaping the region. And we profile the people building it.
@@ -98,7 +98,7 @@ export default function About() {
           Think of it as the WSJ of MENA opinion — editorial in presentation, ruthlessly neutral in methodology, and built for the 541 million people who live, work, and build in the Middle East and North Africa.
         </p>
         <p className="text-base text-muted-foreground font-sans leading-relaxed">
-          Everything on TMH — every debate, every prediction, every trend, every Voice — adds to a living dataset of what the region actually thinks. Not what governments report. Not what Western media assumes. What real people vote for when nobody's watching.
+          Everything on The Tribunal — every debate, every prediction, every trend, every Voice — adds to a living dataset of what the region actually thinks. Not what governments report. Not what Western media assumes. What real people vote for when nobody's watching.
         </p>
       </div>
 
@@ -167,7 +167,7 @@ export default function About() {
         </p>
 
         <blockquote className="font-display text-2xl md:text-3xl border-l-4 border-primary pl-6 py-4 my-12 text-foreground leading-snug">
-          "TMH is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
+          "The Tribunal is a social experiment disguised as a platform. Every debate is a room I'm placing the region inside. Every vote is a voice that would otherwise never be counted. Every prediction is a bet on where we're headed."
         </blockquote>
 
         <p className="text-base text-muted-foreground font-sans leading-relaxed mb-6">
@@ -250,7 +250,7 @@ export default function About() {
           </h2>
           <div className="space-y-6 text-base text-foreground/70 font-sans leading-relaxed">
             <p>
-              TMH exists because the Middle East and North Africa is the most opinionated, least surveyed region on earth. There are 541 million people here — builders, dreamers, troublemakers — and no one has ever given them a single platform to say what they really think.
+              The Tribunal exists because the Middle East and North Africa is the most opinionated, least surveyed region on earth. There are 541 million people here — builders, dreamers, troublemakers — and no one has ever given them a single platform to say what they really think.
             </p>
             <p>
               We are not a news outlet. We are not a think tank. We do not do sponsored polls or PR research. Every question on this platform is designed to surface the truth — not a narrative.
@@ -275,7 +275,7 @@ export default function About() {
             "Bringing the voices of the Middle East<br />into one room. Finally."
           </p>
           <p className="text-sm text-muted-foreground font-sans mb-12">
-            — Kareem Kaddoura, Founder · The Middle East Hustle · 2026
+            — Kareem Kaddoura, Founder · The Tribunal, by The Middle East Hustle · 2026
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

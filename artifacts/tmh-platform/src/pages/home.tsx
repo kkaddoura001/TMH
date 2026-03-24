@@ -222,8 +222,9 @@ export default function Home() {
 
           <div className="py-5 my-3 text-center" style={{ borderTop: "2px solid #DC143C", borderBottom: "2px solid #DC143C" }}>
             <h1 className="font-display font-black text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight text-foreground leading-none" style={{ lineHeight: 0.95 }}>
-              The Middle East Hustle
+              The Tribunal
             </h1>
+            <p className="text-[10px] font-serif tracking-[0.25em] uppercase text-muted-foreground mt-1">by The Middle East Hustle</p>
             <p className="uppercase tracking-[0.22em] text-muted-foreground font-serif mt-3 flex flex-col items-center gap-1">
               <span className="text-[10px]">The voice of</span>
               <LiveNumber

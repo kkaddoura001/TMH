@@ -31,7 +31,7 @@ export default function Join() {
           </span>
         </Link>
         <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground font-serif">
-          The Middle East Hustle
+          The Tribunal
         </span>
       </div>
 
@@ -44,7 +44,7 @@ export default function Join() {
         </Link>
         <div className="flex items-center gap-6">
           <Link href="/polls" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">Polls</Link>
-          <Link href="/profiles" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">The Voices</Link>
+          <Link href="/profiles" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">Voices</Link>
           <Link href="/about" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">About</Link>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function Join() {
           You've just unlocked something real.
         </div>
         <h1 className="font-display font-black text-4xl md:text-6xl uppercase tracking-tight leading-none mb-4">
-          Welcome to<br />The Hustle.
+          Welcome to<br />The Tribunal.
         </h1>
         <p className="text-background/60 font-sans text-base max-w-md mx-auto">
           The most honest conversation in the Middle East. Join the founders, operators, and change-makers already voting.
@@ -107,7 +107,7 @@ export default function Join() {
                 type="submit"
                 className="px-6 py-3 bg-primary text-white font-black uppercase tracking-[0.15em] text-[11px] hover:bg-primary/90 transition-colors whitespace-nowrap"
               >
-                Join the Hustle
+                Join The Tribunal
               </button>
             </form>
           )}

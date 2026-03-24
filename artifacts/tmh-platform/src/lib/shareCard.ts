@@ -70,11 +70,11 @@ export async function generateShareCard(opts: ShareCardOptions): Promise<Blob | 
   ctx.fillStyle = WHITE
   ctx.font = `900 28px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`
   ctx.letterSpacing = "4px"
-  ctx.fillText("TMH", PAD, PAD + 44)
+  ctx.fillText("THE TRIBUNAL", PAD, PAD + 44)
   ctx.font = `600 11px "DM Sans", Arial, sans-serif`
   ctx.letterSpacing = "3px"
   ctx.fillStyle = MUTED
-  ctx.fillText("THE MIDDLE EAST HUSTLE", PAD, PAD + 62)
+  ctx.fillText("BY THE MIDDLE EAST HUSTLE", PAD, PAD + 62)
 
   ctx.letterSpacing = "0px"
   ctx.fillStyle = WHITE
@@ -166,12 +166,12 @@ export async function generateStoryCard(opts: ShareCardOptions): Promise<Blob | 
   ctx.fillStyle = WHITE
   ctx.font = `900 52px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`
   ctx.letterSpacing = "6px"
-  ctx.fillText("TMH", PAD, 260)
+  ctx.fillText("THE TRIBUNAL", PAD, 260)
 
   ctx.font = `600 18px "DM Sans", Arial, sans-serif`
   ctx.letterSpacing = "4px"
   ctx.fillStyle = MUTED
-  ctx.fillText("THE MIDDLE EAST HUSTLE", PAD, 296)
+  ctx.fillText("BY THE MIDDLE EAST HUSTLE", PAD, 296)
 
   // Divider
   ctx.fillStyle = "#2a2a2a"

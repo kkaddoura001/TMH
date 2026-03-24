@@ -105,7 +105,7 @@ export default function Apply() {
               href="/join"
               className="inline-flex items-center gap-2 mt-8 bg-primary text-white font-bold uppercase tracking-widest text-xs px-8 py-3 hover:bg-primary/90 transition-colors"
             >
-              Join The Hustle <ArrowRight className="w-3 h-3" />
+              Join The Tribunal <ArrowRight className="w-3 h-3" />
             </a>
           </div>
         ) : (
@@ -185,7 +185,7 @@ export default function Apply() {
 
             <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6">
               <p className="text-xs text-muted-foreground font-sans leading-relaxed max-w-sm">
-                By submitting you agree to TMH's editorial standards. Applications are reviewed by our AI scoring system within minutes, then by our editorial team within 48 hours.
+                By submitting you agree to The Tribunal's editorial standards. Applications are reviewed by our AI scoring system within minutes, then by our editorial team within 48 hours.
               </p>
               <button
                 type="submit"

@@ -21,7 +21,7 @@ const IMPACT_STATEMENTS: Record<string, string> = {
   "MSA Capital / MSA Novo": "One of MENA's most active emerging market VC funds — transforming obstacles into opportunity",
   "Arzan Venture Capital": "Dentist turned VC — 9 exits and counting, now building again in stealth",
   "Saudi Exchange": "Helping build one of the world's fastest-growing capital markets",
-  "The Middle East Hustle": "Building the region's opinion layer — where MENA's voice gets counted",
+  "The Tribunal": "Building the region's opinion layer — where MENA's voice gets counted",
   "Tuhoon / Wamda Capital": "Tackling the mental health crisis no one talks about in MENA",
   "Revolut UAE": "Founded Souqalmal, now leading Revolut UAE — making finance transparent for Arabs",
 }

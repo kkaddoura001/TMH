@@ -37,11 +37,11 @@ export function Navbar() {
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex flex-col leading-none group">
-              <span className="font-display font-black text-3xl uppercase tracking-tight text-foreground leading-none group-hover:text-primary transition-colors">
-                TMH
+              <span className="font-display font-black text-2xl uppercase tracking-tight text-foreground leading-none group-hover:text-primary transition-colors">
+                The Tribunal
               </span>
-              <span className="text-[9px] font-serif tracking-[0.3em] uppercase text-muted-foreground leading-none mt-0.5">
-                The Middle East Hustle
+              <span className="text-[8px] font-serif tracking-[0.2em] uppercase text-muted-foreground leading-none mt-0.5">
+                by The Middle East Hustle
               </span>
             </Link>
 

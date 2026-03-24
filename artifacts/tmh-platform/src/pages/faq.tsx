@@ -9,20 +9,20 @@ const FAQ_SECTIONS = [
     category: "The Platform",
     questions: [
       {
-        q: "What is The Middle East Hustle?",
-        a: "The Middle East Hustle (TMH) is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. We cover 19 countries and 541 million people across the Middle East and North Africa. The platform has five core sections: Debates (anonymous polling), Predictions (a Bloomberg-style prediction market), The Pulse (data-driven trend tracking, like Exploding Topics for MENA), The Voices (a curated directory of 94 regional leaders), and About (our manifesto and mission).",
+        q: "What is The Tribunal?",
+        a: "The Tribunal, by The Middle East Hustle, is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. We cover 19 countries and 541 million people across the Middle East and North Africa. The platform has five core sections: Debates (anonymous polling), Predictions (a Bloomberg-style prediction market), Pulse (data-driven trend tracking, like Exploding Topics for MENA), Voices (a curated directory of 100+ regional leaders), and About (our manifesto and mission).",
       },
       {
-        q: "Is TMH free to use?",
+        q: "Is The Tribunal free to use?",
         a: "Yes. Voting on debates, making predictions, browsing The Pulse trends, and exploring Voice profiles are all completely free. We may introduce a premium tier in the future for deeper data access, but core participation will always remain free.",
       },
       {
-        q: "Who is behind TMH?",
-        a: "TMH was founded by Kareem Kaddoura. The platform is editorially independent — no government, political party, or corporate entity funds or influences the questions we ask or the results we publish.",
+        q: "Who is behind The Tribunal?",
+        a: "The Tribunal was founded by Kareem Kaddoura under The Middle East Hustle. The platform is editorially independent — no government, political party, or corporate entity funds or influences the questions we ask or the results we publish.",
       },
       {
         q: "Are the polls scientific?",
-        a: "No. TMH polls are not statistically representative surveys. They represent the self-selected opinions of people who visit the platform. They should be understood as sentiment indicators, not scientific research. We never present results as nationally representative data.",
+        a: "No. Our polls are not statistically representative surveys. They represent the self-selected opinions of people who visit the platform. They should be understood as sentiment indicators, not scientific research. We never present results as nationally representative data.",
       },
     ],
   },
@@ -31,7 +31,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         q: "How do the debates work?",
-        a: "Every debate is a single question with multiple options. You click your answer. Your vote is anonymous — we don't store your IP address or personally identify you. After voting, you unlock full results either by sharing the debate on social media (WhatsApp, X, LinkedIn, Telegram) or entering your email. This Share Gate is what makes TMH viral — the results spread with every share.",
+        a: "Every debate is a single question with multiple options. You click your answer. Your vote is anonymous — we don't store your IP address or personally identify you. After voting, you unlock full results either by sharing the debate on social media (WhatsApp, X, LinkedIn, Telegram) or entering your email. This Share Gate is what makes The Tribunal viral — the results spread with every share.",
       },
       {
         q: "Can I vote more than once?",
@@ -39,7 +39,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: "How are debate questions chosen?",
-        a: "Questions are selected by the TMH editorial team based on what's trending in the region, what our Voices are talking about, and what sparks genuine debate. We cover identity, money, religion, gender, power, AI, geopolitics, culture, and the future of the region. All questions are reviewed and approved by a human before going live.",
+        a: "Questions are selected by our editorial team based on what's trending in the region, what our Voices are talking about, and what sparks genuine debate. We cover identity, money, religion, gender, power, AI, geopolitics, culture, and the future of the region. All questions are reviewed and approved by a human before going live.",
       },
       {
         q: "What is the Share Gate?",
@@ -56,7 +56,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         q: "What is the Predictions page?",
-        a: "Predictions is TMH's Bloomberg-style prediction market for MENA's biggest questions. Instead of asking 'what should happen,' we ask 'what will happen.' You track confidence levels over time, watch consensus shift, and see where the region thinks it's headed — on topics like oil prices, tech IPOs, geopolitical shifts, and more.",
+        a: "Predictions is our Bloomberg-style prediction market for MENA's biggest questions. Instead of asking 'what should happen,' we ask 'what will happen.' You track confidence levels over time, watch consensus shift, and see where the region thinks it's headed — on topics like oil prices, tech IPOs, geopolitical shifts, and more.",
       },
       {
         q: "How do predictions work?",
@@ -69,7 +69,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         q: "What is The Pulse?",
-        a: "The Pulse is TMH's data-driven trend tracking page — think 'Exploding Topics' but built specifically for the MENA region. It features 12 trend cards tracking what's actually moving across the region, from the $1.2B creator economy to the 312% surge in mental health searches. Each card includes real data, growth metrics, and context.",
+        a: "The Pulse is our data-driven trend tracking page — think 'Exploding Topics' but built specifically for the MENA region. It features 12 trend cards tracking what's actually moving across the region, from the $1.2B creator economy to the 312% surge in mental health searches. Each card includes real data, growth metrics, and context.",
       },
       {
         q: "How are Pulse trends selected?",
@@ -82,7 +82,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         q: "What is a Voice?",
-        a: "A Voice is a verified profile on TMH — a curated founder, operator, investor, or change-maker with a real story and verifiable impact in the Middle East. There are currently 94 Voice profiles across 10+ countries. Being a Voice means your story is featured on the platform with a full profile including your background, a personal quote, a lesson learned, and your key tags.",
+        a: "A Voice is a verified profile on The Tribunal — a curated founder, operator, investor, or change-maker with a real story and verifiable impact in the Middle East. There are currently 100+ Voice profiles across 10+ countries. Being a Voice means your story is featured on the platform with a full profile including your background, a personal quote, a lesson learned, and your key tags.",
       },
       {
         q: "How do I become a Voice?",
@@ -102,7 +102,7 @@ const FAQ_SECTIONS = [
         a: "When you vote: your vote selection, the debate ID, timestamp, and your approximate country (derived from IP at voting time — the IP itself is never stored). When you give us your email: your email address and how you signed up. We don't use tracking pixels, retargeting, or cross-site analytics. See our Terms & Conditions for the full breakdown.",
       },
       {
-        q: "Does TMH track my IP address?",
+        q: "Do you track my IP address?",
         a: "We use your IP address briefly at the moment of voting to determine your country (e.g., 'UAE,' 'Egypt'). The IP itself is discarded immediately. Only the country name is stored with your vote. We never log, store, or share full IP addresses.",
       },
       {
@@ -147,7 +147,7 @@ export default function FAQ() {
             Frequently Asked<br />Questions
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.45)" }}>
-            Everything you need to know about The Middle East Hustle.
+            Everything you need to know about The Tribunal.
           </p>
         </div>
       </div>
@@ -170,7 +170,7 @@ export default function FAQ() {
           <p className="font-sans text-sm text-muted-foreground mb-4">Still have questions?</p>
           <div className="flex flex-wrap gap-4">
             <Link href="/about" className="text-[10px] uppercase tracking-widest font-bold font-serif text-primary hover:text-foreground transition-colors">
-              About TMH →
+              About The Tribunal →
             </Link>
             <Link href="/apply" className="text-[10px] uppercase tracking-widest font-bold font-serif text-muted-foreground hover:text-foreground transition-colors">
               Apply to be a Voice →

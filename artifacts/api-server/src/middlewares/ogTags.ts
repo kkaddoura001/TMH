@@ -26,7 +26,7 @@ function isBot(ua: string): boolean {
 
 const SITE = "https://themiddleeasthustle.com"
 const DEFAULT_IMAGE = `${SITE}/og-cover.jpg`
-const SITE_NAME = "The Middle East Hustle"
+const SITE_NAME = "The Tribunal, by The Middle East Hustle"
 
 function buildHtml(meta: {
   title: string
@@ -36,7 +36,7 @@ function buildHtml(meta: {
   type?: string
 }): string {
   const { title, description, url, image, type = "website" } = meta
-  const fullTitle = title.includes("TMH") || title.includes("Middle East") ? title : `${title} | ${SITE_NAME}`
+  const fullTitle = title.includes("Tribunal") || title.includes("Middle East") ? title : `${title} | ${SITE_NAME}`
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,7 +68,7 @@ function buildHtml(meta: {
 <body>
   <h1>${fullTitle}</h1>
   <p>${description}</p>
-  <a href="${url}">View on The Middle East Hustle</a>
+  <a href="${url}">View on The Tribunal</a>
 </body>
 </html>`
 }
@@ -90,7 +90,7 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
       .then(poll => {
         const title = poll.question ?? "The Middle East's boldest question"
         const totalVotes = poll.totalVotes ?? 0
-        const description = `${totalVotes.toLocaleString()} votes and counting. What do YOU think? Vote on The Middle East Hustle — the region's most honest opinion platform.`
+        const description = `${totalVotes.toLocaleString()} votes and counting. What do YOU think? Vote on The Tribunal — the region's most honest opinion platform.`
         const image = poll.ogImage ?? DEFAULT_IMAGE
         const html = buildHtml({ title, description, url: fullUrl, image, type: "article" })
         res.setHeader("Content-Type", "text/html")
@@ -98,7 +98,7 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
       })
       .catch(() => {
         const html = buildHtml({
-          title: "Today's Debate | The Middle East Hustle",
+          title: "Today's Debate | The Tribunal",
           description: "The Middle East's most honest opinion platform. Vote on what actually matters.",
           url: fullUrl,
           image: DEFAULT_IMAGE,
@@ -121,7 +121,7 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
         const company = profile.company ? ` at ${profile.company}` : ""
         const title = `${name}${role}${company}`
         const quote = profile.quote ? `"${profile.quote.slice(0, 100)}"` : ""
-        const description = quote || `Meet ${name}, one of the founding Hustlers shaping the Middle East's future. ${profile.city ?? ""} ${profile.country ?? ""}`.trim()
+        const description = quote || `Meet ${name}, one of the founding Voices shaping the Middle East's future. ${profile.city ?? ""} ${profile.country ?? ""}`.trim()
         const image = profile.photoUrl ?? DEFAULT_IMAGE
         const html = buildHtml({ title, description, url: fullUrl, image })
         res.setHeader("Content-Type", "text/html")
@@ -129,7 +129,7 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
       })
       .catch(() => {
         const html = buildHtml({
-          title: "A Hustler Profile | The Middle East Hustle",
+          title: "A Voice Profile | The Tribunal",
           description: "Meet the founders, operators, and change-makers shaping the Middle East's future.",
           url: fullUrl,
           image: DEFAULT_IMAGE,
@@ -143,34 +143,34 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
   // Default OG for all other pages
   const pageMeta: Record<string, { title: string; description: string }> = {
     "/": {
-      title: "The Middle East Hustle — The Voice of 400 Million",
-      description: "The Middle East's premium polling and opinion platform. Real debates. Real people. Real hustle.",
+      title: "The Tribunal — The Voice of 541 Million",
+      description: "MENA's premium polling and opinion platform. Real debates. Real people. Real opinions.",
     },
     "/polls": {
-      title: "All Debates | The Middle East Hustle",
+      title: "All Debates | The Tribunal",
       description: "Browse every debate. 135+ questions about the future of the Arab world.",
     },
     "/profiles": {
-      title: "The Hustlers | The Middle East Hustle",
-      description: "67 curated founders, operators, and change-makers shaping MENA.",
+      title: "The Voices | The Tribunal",
+      description: "100+ curated founders, operators, and change-makers shaping MENA.",
     },
     "/rankings": {
-      title: "Power Rankings | The Middle East Hustle",
+      title: "Power Rankings | The Tribunal",
       description: "Who's driving the Middle East's most important conversations?",
     },
     "/join": {
-      title: "Join The Middle East Hustle",
+      title: "Join The Tribunal",
       description: "The most honest conversation in the Middle East. Founders and operators voting every day.",
     },
     "/apply": {
-      title: "Become a Hustler | The Middle East Hustle",
-      description: "Think you belong in the Hustler Hall of Fame? Apply now. Bar is high.",
+      title: "Become a Voice | The Tribunal",
+      description: "Think you belong? Apply now. Bar is high.",
     },
   }
 
   const page = pageMeta[req.path] ?? {
     title: SITE_NAME,
-    description: "The voice of 400 million. Real debates. Real opinions.",
+    description: "The voice of 541 million. Real debates. Real opinions.",
   }
 
   const html = buildHtml({ ...page, url: fullUrl, image: DEFAULT_IMAGE })

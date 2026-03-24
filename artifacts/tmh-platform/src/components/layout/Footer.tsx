@@ -2,10 +2,10 @@ import { Link } from "wouter"
 
 const NAV = [
   { label: "About", href: "/about" },
-  { label: "The Pulse", href: "/mena-pulse" },
+  { label: "Pulse", href: "/mena-pulse" },
   { label: "Debates", href: "/polls" },
   { label: "Predictions", href: "/predictions" },
-  { label: "The Voices", href: "/profiles" },
+  { label: "Voices", href: "/profiles" },
   { label: "Join The Voices", href: "/apply" },
 ]
 
@@ -22,11 +22,11 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-12 mb-12 pb-12 border-b border-background/10">
           <div className="flex-1">
             <Link href="/">
-              <span className="font-display font-black text-4xl uppercase tracking-tight text-background leading-none block hover:text-primary transition-colors">
-                TMH
+              <span className="font-display font-black text-3xl uppercase tracking-tight text-background leading-none block hover:text-primary transition-colors">
+                The Tribunal
               </span>
-              <span className="text-[10px] font-serif tracking-[0.3em] uppercase text-background/40 mt-1 block">
-                The Middle East Hustle
+              <span className="text-[9px] font-serif tracking-[0.2em] uppercase text-background/40 mt-1 block">
+                by The Middle East Hustle
               </span>
             </Link>
             <p className="text-background/50 font-sans text-sm mt-4 max-w-xs leading-relaxed">
@@ -77,7 +77,7 @@ export function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[10px] uppercase tracking-widest text-background/30 font-serif">
-            © {new Date().getFullYear()} The Middle East Hustle. Founded by Kareem Kaddoura.
+            © {new Date().getFullYear()} The Tribunal, by The Middle East Hustle. Founded by Kareem Kaddoura.
           </p>
           <div className="flex items-center gap-6">
             <Link href="/faq" className="text-[11px] uppercase tracking-[0.15em] font-bold text-background/50 hover:text-background transition-colors font-serif">FAQ</Link>

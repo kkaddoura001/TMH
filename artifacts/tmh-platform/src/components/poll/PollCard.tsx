@@ -54,7 +54,7 @@ function generateInsight(
   const isInMajority = votedPct >= 50
   const isStrong = votedPct >= 65
 
-  if (isMostDivided) return "This is the most divided debate on TMH right now. No clear majority."
+  if (isMostDivided) return "This is the most divided debate on The Tribunal right now. No clear majority."
   if (isStrong) return `${Math.round(votedPct)}% of the region voted the same way. You're with the majority.`
   if (isInMajority) return `You voted with ${Math.round(votedPct)}% of voters — a slim majority.`
   if (votedPct < 20) return `Only ${Math.round(votedPct)}% chose this. You might be onto something.`
@@ -131,7 +131,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
   }
 
   const handleShareX = () => {
-    const text = encodeURIComponent(`"${poll.question}" — where do you stand? Vote on The Middle East Hustle:`)
+    const text = encodeURIComponent(`"${poll.question}" — where do you stand? Vote on The Tribunal:`)
     const url = encodeURIComponent(getPollUrl(poll.id))
     window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer")
     setTimeout(unlock, 800)
@@ -234,7 +234,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
     if (!votedOption) return
     setIsSharing(true)
     const votedPct = Math.round(votedOption.percentage ?? 0)
-    const shareText = `I voted "${votedOption.text}" on The Middle East Hustle 🔴\n\n"${poll.question}"\n\n${votedPct}% of the region agrees. Where do you stand? 👇\n${pollUrl}`
+    const shareText = `I voted "${votedOption.text}" on The Tribunal 🔴\n\n"${poll.question}"\n\n${votedPct}% of the region agrees. Where do you stand? 👇\n${pollUrl}`
     try {
       const blob = await generateShareCard({
         question: poll.question,
@@ -438,7 +438,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                     className="bg-primary/10 border border-primary/30 p-4"
                   >
                     <p className="font-serif font-black uppercase text-sm text-primary tracking-tight mb-1">
-                      Welcome to The Middle East Hustle.
+                      Welcome to The Tribunal.
                     </p>
                     <p className="text-[11px] text-foreground/70 font-sans leading-relaxed">
                       You just joined {localTotal.toLocaleString()} people shaping the region's most honest conversation.

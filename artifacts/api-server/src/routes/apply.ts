@@ -99,7 +99,7 @@ function scoreApplication(data: any): { score: number; status: string; reasoning
     reasoning = `Promising application. Score ${score}/100. Shows potential but needs stronger impact evidence or more specific MENA connection. Resubmit in 30 days with specific outcomes.`
   } else {
     status = "not_yet"
-    reasoning = `Score ${score}/100. TMH bar is high — applications need verifiable impact signals, specific MENA connection, and a genuinely unique story. Keep building and reapply in 90 days.`
+    reasoning = `Score ${score}/100. The Tribunal's bar is high — applications need verifiable impact signals, specific MENA connection, and a genuinely unique story. Keep building and reapply in 90 days.`
   }
 
   return { score, status, reasoning, checklist }
@@ -110,15 +110,15 @@ async function sendApplicationEmail(email: string, name: string, status: string,
   if (!RESEND_API_KEY) return
 
   const subjects: Record<string, string> = {
-    passed: "Your TMH application is through.",
-    conditional: "Your TMH application — one more step.",
-    not_yet: "Your TMH application — keep building.",
+    passed: "Your Tribunal application is through.",
+    conditional: "Your Tribunal application — one more step.",
+    not_yet: "Your Tribunal application — keep building.",
   }
 
   const bodies: Record<string, string> = {
-    passed: `Hi ${name},\n\nYou've passed our AI review (score: ${score}/100).\n\nOur editorial team will review your application within 48 hours. You'll receive the final decision and your onboarding kit if approved.\n\nThe Middle East Hustle`,
-    conditional: `Hi ${name},\n\nYour profile shows real promise (score: ${score}/100).\n\n${reasoning}\n\nResubmit in 30 days with more specific outcomes.\n\nThe Middle East Hustle`,
-    not_yet: `Hi ${name},\n\nThe TMH bar is high because our audience is discerning (score: ${score}/100).\n\n${reasoning}\n\nYou're on our Rising Hustlers watchlist. Reapply in 90 days. In the meantime — go vote on something.\n\nthemiddleeasthustle.com\n\nThe Middle East Hustle`,
+    passed: `Hi ${name},\n\nYou've passed our AI review (score: ${score}/100).\n\nOur editorial team will review your application within 48 hours. You'll receive the final decision and your onboarding kit if approved.\n\nThe Tribunal, by The Middle East Hustle`,
+    conditional: `Hi ${name},\n\nYour profile shows real promise (score: ${score}/100).\n\n${reasoning}\n\nResubmit in 30 days with more specific outcomes.\n\nThe Tribunal, by The Middle East Hustle`,
+    not_yet: `Hi ${name},\n\nThe Tribunal's bar is high because our audience is discerning (score: ${score}/100).\n\n${reasoning}\n\nYou're on our Rising Voices watchlist. Reapply in 90 days. In the meantime — go vote on something.\n\nthemiddleeasthustle.com\n\nThe Tribunal, by The Middle East Hustle`,
   }
 
   try {
@@ -129,9 +129,9 @@ async function sendApplicationEmail(email: string, name: string, status: string,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "TMH <noreply@themiddleeasthustle.com>",
+        from: "The Tribunal <noreply@themiddleeasthustle.com>",
         to: email,
-        subject: subjects[status] ?? "Your TMH Application",
+        subject: subjects[status] ?? "Your Tribunal Application",
         text: bodies[status] ?? `Thank you for applying, ${name}. We'll be in touch.`,
       }),
     })
