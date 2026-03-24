@@ -218,26 +218,20 @@ export default function Home() {
 
       {/* ── FRONT PAGE: Lead Debate + Sidebar ── */}
       <section className="py-8 bg-background border-b border-border section-fadein relative">
-        {/* Opinion Bubbles — WSJ chat-style, desktop only */}
+        {/* Opinion Bubbles — minimal WSJ chat-style, desktop only */}
         <div className="hidden xl:block pointer-events-none absolute inset-0 overflow-hidden z-0" aria-hidden="true">
           {[
-            { text: "Dubai is the only city in the region where I'd start again. No question.", side: "left", top: "4%", float: "bubble-float-1", delay: "0s", rotate: -2, reactions: [{ emoji: "🇦🇪", count: 12 }, { emoji: "🔥", count: 5 }] },
-            { text: "Everyone says AI won't take their job. I don't believe them.", side: "left", top: "28%", float: "bubble-float-3", delay: "0.8s", rotate: 1, reactions: [{ emoji: "🤖", count: 8 }] },
-            { text: "62% said no to income tax. They'll be wrong by 2029.", side: "left", top: "52%", float: "bubble-float-2", delay: "1.6s", rotate: -1, reactions: [{ emoji: "🇸🇦", count: 3 }, { emoji: "👀", count: 7 }] },
-            { text: "The region isn't ready for this conversation.", side: "left", bottom: "12%", float: "bubble-float-1", delay: "2.4s", rotate: 2, reactions: [{ emoji: "🫣", count: 4 }] },
-            { text: "71% is too confident. Saudi cinema still has a long way to go.", side: "right", top: "6%", float: "bubble-float-2", delay: "0.4s", rotate: 2, reactions: [{ emoji: "🇸🇦", count: 6 }, { emoji: "🎬", count: 2 }] },
-            { text: "Lebanon votes against everything and I respect it.", side: "right", top: "32%", float: "bubble-float-1", delay: "1.2s", rotate: -1, reactions: [{ emoji: "🇱🇧", count: 14 }, { emoji: "💪", count: 3 }] },
-            { text: "This is the most honest poll I've ever seen.", side: "right", top: "56%", float: "bubble-float-3", delay: "2s", rotate: 1, reactions: [{ emoji: "🎯", count: 9 }] },
-            { text: "The $10B unicorn is already here. People just can't see it yet.", side: "right", bottom: "10%", float: "bubble-float-2", delay: "2.8s", rotate: -2, reactions: [{ emoji: "🦄", count: 11 }, { emoji: "🇯🇴", count: 4 }] },
+            { text: "Bold take.", emoji: "🇦🇪", side: "left", top: "8%", float: "bubble-float-1", delay: "0s", rotate: -2 },
+            { text: "Not yet.", emoji: "🫣", side: "left", top: "55%", float: "bubble-float-3", delay: "1.5s", rotate: 1 },
+            { text: "Finally.", emoji: "🇱🇧", side: "right", top: "12%", float: "bubble-float-2", delay: "0.6s", rotate: 2 },
+            { text: "100%", emoji: "🎯", side: "right", top: "60%", float: "bubble-float-1", delay: "2.2s", rotate: -1 },
           ].map((bubble, i) => (
             <div
               key={i}
               className={`absolute ${bubble.float}`}
               style={{
-                ...(bubble.side === "left" ? { left: 8 } : { right: 8 }),
+                ...(bubble.side === "left" ? { left: 12 } : { right: 12 }),
                 top: (bubble as any).top,
-                bottom: (bubble as any).bottom,
-                maxWidth: 155,
                 animationDelay: bubble.delay,
               }}
             >
@@ -245,25 +239,22 @@ export default function Home() {
                 style={{
                   background: "var(--card)",
                   border: "1px solid var(--border)",
-                  borderRadius: 14,
-                  borderBottomLeftRadius: bubble.side === "left" ? 4 : 14,
-                  borderBottomRightRadius: bubble.side === "right" ? 4 : 14,
-                  padding: "8px 11px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  borderRadius: 12,
+                  borderBottomLeftRadius: bubble.side === "left" ? 3 : 12,
+                  borderBottomRightRadius: bubble.side === "right" ? 3 : 12,
+                  padding: "5px 10px",
+                  boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
                   transform: `rotate(${bubble.rotate}deg)`,
+                  opacity: 0.6,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
                 }}
               >
-                <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: 10.5, lineHeight: 1.35, color: "var(--foreground)", opacity: 0.75 }}>
+                <span style={{ fontSize: 11 }}>{bubble.emoji}</span>
+                <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 10, color: "var(--foreground)", fontWeight: 500 }}>
                   {bubble.text}
-                </p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, paddingLeft: bubble.side === "left" ? 4 : 0, paddingRight: bubble.side === "right" ? 4 : 0, justifyContent: bubble.side === "right" ? "flex-end" : "flex-start", flexWrap: "wrap" }}>
-                {bubble.reactions.map((r, ri) => (
-                  <span key={ri} style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
-                    <span style={{ fontSize: 10 }}>{r.emoji}</span>
-                    <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 9, color: "var(--muted-foreground)", opacity: 0.5 }}>{r.count}</span>
-                  </span>
-                ))}
+                </span>
               </div>
             </div>
           ))}
