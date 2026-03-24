@@ -6,7 +6,6 @@ const NAV = [
   { label: "Debates", href: "/polls" },
   { label: "Predictions", href: "/predictions" },
   { label: "Voices", href: "/profiles" },
-  { label: "Lens", href: "/lens" },
   { label: "Join The Voices", href: "/apply" },
 ]
 

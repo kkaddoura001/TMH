@@ -93,17 +93,6 @@ artifacts-monorepo/
 - `GET /api/categories` — List all categories with poll counts
 - `GET /api/weekly-pulse` — Weekly editorial digest
 
-### CMS (Content Management System)
-- **Artifact**: `artifacts/cms` — React + Vite frontend served at `/cms/`
-- **API routes**: Added to `artifacts/api-server/src/routes/cms.ts`
-- **Auth**: PIN-based login (env vars `CMS_USERNAME`/`CMS_PIN`, defaults: admin/1234)
-- **Sections**: Dashboard, Debates, Predictions, Voices
-- **Features**: Bulk JSON upload, list views with status tabs, edit forms, preview panel, editorial workflow
-- **Editorial statuses**: draft, in_review, approved, rejected, revision, flagged, archived
-- **New DB table**: `predictions` (question, category, resolvesAt, yes/noPercentage, momentum, trendData, editorialStatus, tags)
-- **Schema changes**: `profiles` table now has `editorialStatus` and `updatedAt` columns; `polls` table now has `updatedAt` column
-- **Image upload**: Local file storage in `/uploads/` directory, served at `/api/cms/uploads/:filename`
-
 ## Database State (as of March 2026)
 - **219 polls** total (135 original + 84 roast_series batch)
 - **785 poll options** total

@@ -3,7 +3,6 @@ import { useGetFeaturedPoll, useListPolls, useListProfiles, useListCategories } 
 import { Layout } from "@/components/layout/Layout"
 import { PollCard } from "@/components/poll/PollCard"
 import { ProfileCard } from "@/components/profile/ProfileCard"
-import { LENS_PHOTOS } from "@/pages/lens"
 import { Link } from "wouter"
 import { cn } from "@/lib/utils"
 import { ArrowRight } from "lucide-react"
@@ -530,55 +529,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* ── THE LENS ── */}
-      <section className="py-20 bg-foreground text-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">The Lens</p>
-              <h2 className="font-display font-black text-4xl md:text-5xl uppercase tracking-tight text-background leading-none">
-                The Region<span className="text-primary">.</span> Unfiltered<span className="text-primary">.</span>
-              </h2>
-              <div className="h-1 w-full bg-primary mt-3" />
-            </div>
-            <Link href="/lens" className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest text-background/50 hover:text-background font-serif">
-              View All →
-            </Link>
-          </div>
-          <p className="text-background/60 font-sans text-base mt-4 mb-10 max-w-xl">
-            Visual stories from across the Middle East and North Africa. Every image starts in black and white — hover to bring the color back.
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {LENS_PHOTOS.slice(0, 8).map(photo => (
-              <Link key={photo.id} href="/lens" className="group block relative overflow-hidden bg-black aspect-[4/3]">
-                <img
-                  src={photo.src}
-                  alt={photo.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
-                  <p className="text-white font-serif font-black uppercase text-xs tracking-wide leading-tight">
-                    {photo.title}
-                  </p>
-                  <p className="text-white/70 text-[9px] uppercase tracking-[0.2em] font-serif mt-0.5">
-                    {photo.location}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-8">
-            <Link href="/lens" className="inline-flex items-center gap-2 bg-primary text-white font-bold uppercase tracking-widest text-xs px-8 py-3 hover:bg-primary/90 transition-colors font-serif">
-              Explore The Lens <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* ── LIVE ACTIVITY ── */}
       <LiveActivity />

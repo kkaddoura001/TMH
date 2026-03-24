@@ -21,8 +21,6 @@ export const profilesTable = pgTable("profiles", {
   isVerified: boolean("is_verified").notNull().default(false),
   viewCount: integer("view_count").notNull().default(0),
   associatedPollCount: integer("associated_poll_count").notNull().default(0),
-  editorialStatus: text("editorial_status").notNull().default("approved"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

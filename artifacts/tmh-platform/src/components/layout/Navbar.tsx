@@ -22,7 +22,6 @@ export function Navbar() {
     { label: "Debates", href: "/polls" },
     { label: "Predictions", href: "/predictions" },
     { label: "Voices", href: "/profiles" },
-    { label: "Lens", href: "/lens" },
   ]
 
   return (
