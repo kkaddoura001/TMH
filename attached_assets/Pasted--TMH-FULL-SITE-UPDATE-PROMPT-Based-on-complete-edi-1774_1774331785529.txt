@@ -1,0 +1,567 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TMH — FULL SITE UPDATE PROMPT
+Based on complete editorial and design review
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is a prioritised list of changes.
+Do NOT rebuild anything from scratch.
+Apply each fix in order.
+Do not change anything not listed here.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 1 — URGENT: CONTENT & SAFETY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+1A. DELETE ALL AI-GENERATED POLLS IMMEDIATELY
+──────────────────────────────────────────────────
+
+Replit's AI seeded the database with polls that
+were never written or approved by the editorial
+team. These must be deleted NOW before any
+public launch.
+
+Polls confirmed live that must be removed:
+- "Drag culture has existed in Arab communities
+   for centuries. Now we act like it was invented
+   in Brooklyn. Know your own history."
+- "If an Arab artist makes something beautiful
+   about queer love, mental health, or religious
+   doubt — should the region celebrate it or
+   is it betrayal?"
+- "Art Basel, Alserkal, Sharjah Biennial. The
+   infrastructure is world-class. The creative
+   freedom is not. Can you have a real art scene
+   without real freedom?"
+- Any other poll in the database NOT from the
+   approved question bank in the PRD.
+
+These are potentially illegal in the UAE.
+Delete them via the admin panel immediately.
+Do not wait.
+
+──────────────────────────────────────────────────
+1B. ADD EDITORIAL GATE TO ALL POLLS
+──────────────────────────────────────────────────
+
+No poll should ever be publicly visible unless
+an admin has explicitly set editorialStatus to
+'approved' in the database.
+
+In the polls API and any poll query:
+  - Add WHERE editorialStatus = 'approved'
+    (or equivalent filter) to every public-
+    facing query
+  - Polls with status 'draft', 'pending',
+    or null must NEVER appear on the site
+  - This applies to: homepage, debates page,
+    poll detail, search, archive, everywhere
+
+In the Admin panel:
+  - Add a visible "PUBLISH" button per poll
+    that sets editorialStatus = 'approved'
+  - Polls must default to 'draft' on creation
+  - The admin list should clearly show:
+    DRAFT / APPROVED / ARCHIVED status
+    on every row
+  - No poll created by Replit AI or any
+    automated system should auto-publish
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 2 — BRANDING: COMPLETE THE RENAME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+2A. FINISH HUSTLER → VOICES RENAME
+──────────────────────────────────────────────────
+
+The rename was partially applied. These
+instances were MISSED and still say Hustler:
+
+  /apply page:
+    - Eyebrow label: "THE HUSTLER DIRECTORY"
+      → change to "THE VOICES DIRECTORY"
+    - Hero headline: "Think You're a Hustler?"
+      → change to "Think You Belong in
+         The Voices?"
+    - Body: "Not everyone makes the cut."
+      → keep this line exactly as is
+
+  The apply page hero section is also
+  rendering as a large blank black block
+  with no visible headline. The h1 is
+  missing or not rendering. Fix this:
+  The headline should be large Barlow
+  Condensed 900, white, clamp(2.5rem,
+  6vw, 5rem), fully visible against
+  the dark hero background.
+
+  Check the entire codebase for any
+  remaining 'hustler' / 'Hustler' text
+  (case-insensitive) in user-facing copy
+  and replace with 'voice' / 'Voice'.
+  The word 'hustle' in the brand name
+  TMH is fine — do not touch that.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 3 — HOMEPAGE DESIGN FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+3A. ADD OPINION BUBBLES TO HERO SECTION
+──────────────────────────────────────────────────
+
+This is the most important visual feature
+that is currently missing from the build.
+
+The hero debate section (the area with the
+featured poll question and vote options)
+needs floating opinion bubble fragments
+scattered around it — like the WSJ
+"We Put 12 Strangers in a Group Chat"
+format.
+
+IMPLEMENTATION:
+
+The hero section container needs:
+  position: relative
+  min-height: 520px (desktop)
+  overflow: visible
+
+Each bubble is absolutely positioned:
+  background: var(--color-card)
+  border: 1px solid rgba(255,255,255,0.07)
+  border-radius: 14px
+  padding: 0.65rem 0.9rem
+  font-size: 0.82rem
+  max-width: 210px
+  line-height: 1.42
+  animation: bblfloat [duration]s ease-in-out
+    infinite [delay]s
+  (bblfloat keyframes already exist in
+   index.css as .tmh-bubble — use that class)
+
+Each bubble has a reaction line below the text:
+  ♥ [count] — heart in crimson,
+  count in muted colour
+
+BUBBLE CONTENT (match to current hero poll,
+which is "Will Your Job Still Exist in 5 Years?"):
+
+  Bubble 1: left:2%, top:8%, dur:7s, delay:-1s,
+    rotate:-2deg
+    "I've been using AI to do my junior
+     analyst's work for 6 months.
+     They have no idea."
+    ♥ 1.4k
+
+  Bubble 2: left:4%, top:52%, dur:8.5s,
+    delay:-3s, rotate:1.5deg
+    "My entire department could be replaced
+     tomorrow. Nobody is talking about it."
+    ♥ 2.3k
+
+  Bubble 3: left:1%, top:77%, dur:6s,
+    delay:-2s, rotate:-1deg
+    "I retrained twice in 10 years.
+     I'll do it again."
+    ♥ 876
+
+  Bubble 4: right:2%, top:6%, dur:9s,
+    delay:0s, rotate:2deg
+    "We're not losing jobs.
+     We're losing excuses."
+    ♥ 654
+
+  Bubble 5: right:2%, top:47%, dur:7.5s,
+    delay:-4s, rotate:-2.5deg
+    "The jobs that survive will require
+     things AI can't fake: relationships,
+     trust, presence."
+    ♥ 1.1k
+
+  Bubble 6: right:3%, top:74%, dur:8s,
+    delay:-1.5s, rotate:1deg
+    "My company hired 0 people this year.
+     AI did the work. Nobody said it
+     out loud."
+    ♥ 3.2k
+
+  Bubble 7: left:22%, top:2%, dur:10s,
+    delay:-2s, rotate:0deg, max-width:175px
+    "The ones who aren't scared should be."
+    ♥ 498
+
+  Bubble 8: right:21%, top:2%, dur:7s,
+    delay:-5s, rotate:0deg, max-width:175px
+    "In 5 years the question won't be
+     your job. It'll be your industry."
+    ♥ 742
+
+MOBILE (< 768px):
+  Hide ALL absolutely-positioned bubbles.
+  The question stands alone on mobile.
+  Do not show even partial bubbles.
+
+IMPORTANT: Bubbles are anchored ONLY to the
+hero section. They must NOT appear anywhere
+else on the page — not near debates, not near
+predictions, nowhere else.
+
+──────────────────────────────────────────────────
+3B. REMOVE THE VOTE COUNT BANNER LINE
+──────────────────────────────────────────────────
+
+The line that reads:
+"You've cast 2 votes. 1,036,933 total have
+been cast across the region."
+
+Change this to show ONLY the user's personal
+vote count:
+"You've cast [X] votes across the region."
+
+Remove the total platform number entirely.
+The user's count is personal and meaningful.
+The platform total is noise.
+
+If this line appears elsewhere in the app,
+apply the same rule everywhere.
+
+──────────────────────────────────────────────────
+3C. REMOVE STATS BAR IF STILL PRESENT
+──────────────────────────────────────────────────
+
+If there is still a stats strip anywhere
+on the homepage showing metrics like:
+"1,036,933 TOTAL VOTES · 332 LIVE DEBATES
+· 2+ COUNTRIES · 6 ACTIVE THIS WEEK"
+
+Delete it entirely. Replace with nothing.
+
+Rule going forward: no public-facing
+metrics strips anywhere on the site.
+Numbers only appear inside individual
+poll results and debate cards.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 4 — PREDICTIONS PAGE CHART FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+4A. Y-AXIS SCALING — CRITICAL
+──────────────────────────────────────────────────
+
+All chart lines currently look completely flat
+because the Y-axis runs 0 to 100 on data
+that only varies between 35% and 75%.
+
+Fix: auto-scale the Y-axis to the data range
+with ±8 points of padding on each chart.
+
+In Recharts, change every YAxis domain to:
+  domain={[
+    (dataMin) => Math.max(0, Math.floor(dataMin - 8)),
+    (dataMax) => Math.min(100, Math.ceil(dataMax + 8))
+  ]}
+
+Apply to: featured ComposedChart, all 4
+grid card LineCharts, closed prediction chart.
+Do NOT apply to sparklines (no visible axes).
+
+──────────────────────────────────────────────────
+4B. LINE & AREA THICKNESS
+──────────────────────────────────────────────────
+
+All lines are currently hairline-thin. Fix:
+
+  Featured ComposedChart:
+    Area: strokeWidth={2}, fillOpacity={0.15}
+    Trend line: strokeWidth={2}
+
+  Grid card sparklines (LineChart):
+    Line: strokeWidth={2.5}
+    (critical — sparklines look like rules)
+
+  Closed prediction chart:
+    Stroke: #10B981 (green — it resolved YES)
+    strokeWidth={2}
+
+──────────────────────────────────────────────────
+4C. FEATURED CHART HEIGHT + TIPPING POINT
+──────────────────────────────────────────────────
+
+  Increase featured chart ResponsiveContainer
+  height to 240px.
+
+  The 50% "Tipping Point" ReferenceLine should
+  only render if 50 falls within the auto-scaled
+  Y-axis domain. If data is entirely above 60%,
+  hide the reference line — it's off-screen
+  and meaningless.
+
+  Logic:
+    const yMin = Math.max(0, Math.floor(minVal - 8))
+    const yMax = Math.min(100, Math.ceil(maxVal + 8))
+    const showTippingPoint = yMin <= 50 && yMax >= 50
+
+──────────────────────────────────────────────────
+4D. SPARKLINE HEIGHT & SPACING
+──────────────────────────────────────────────────
+
+  Grid card sparklines: set height={72} exactly.
+  Sit flush against the top of the card.
+  Remove excess whitespace above sparklines.
+  Gap below sparkline to badges: 0.5rem only.
+
+──────────────────────────────────────────────────
+4E. NO BUTTON — ADD PROPER STYLING
+──────────────────────────────────────────────────
+
+  The NO button renders as unstyled text.
+  Fix it to match YES button height and weight:
+    Height: same as YES (52px featured,
+            44px grid cards)
+    Border: 1.5px solid var(--border)
+    Background: transparent
+    Color: var(--muted-foreground)
+    Font: Barlow Condensed 900, same size
+    Hover: background rgba(0,0,0,0.05)
+
+──────────────────────────────────────────────────
+4F. X-AXIS MONTH LABELS
+──────────────────────────────────────────────────
+
+  Featured chart X-axis should show month
+  abbreviations: Jan Feb Mar Apr May Jun
+  Jul Aug Sep Oct Nov Dec
+  Use tickCount={6} to avoid overlap.
+  Font: Barlow Condensed, 11px, muted colour.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 5 — POLLS PAGE FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+5A. SEED THE APPROVED QUESTION BANK
+──────────────────────────────────────────────────
+
+Once the AI-generated polls are deleted, the
+database needs repopulating with approved polls.
+Use the admin panel to create and publish
+polls from this list (subset to start):
+
+HERO POLL (set as featured):
+  Category: Technology & AI
+  Question: "Your Job Will Still Exist in
+  5 Years. Be Honest."
+  Options:
+    - Absolutely — I'm irreplaceable
+    - Probably, but I'm adapting fast
+    - Honestly? I'm not sure anymore
+    - Probably not — and I'm doing
+      nothing about it
+
+DEBATE CARDS (publish these next):
+  1. Category: Future & Identity
+     "Would You Raise Your Kids in the
+      Middle East?"
+     Options: Absolutely — nowhere else /
+     Yes but only certain countries /
+     I'm genuinely torn / Probably not /
+     Already left or planning to
+
+  2. Category: Cities & Lifestyle
+     "Dubai, Riyadh, or Cairo — Where's
+      the Real Future?"
+     Options: Dubai / Riyadh / Cairo /
+     Amman / A city that doesn't exist yet
+
+  3. Category: Society & Equality
+     "Should Women Have Equal Inheritance
+      Rights Across the Region?"
+     Options: Yes — unequivocally /
+     Yes but respecting local customs /
+     It's a religious matter, not policy /
+     No / I don't have a strong view
+
+QUESTION STRIP (add these as live polls):
+  - "Should Transgender People Have Legal
+     Recognition Across MENA?"
+  - "Is Islam Holding the Arab World Back —
+     or Is That Question Itself the Problem?"
+  - "Is Dubai's Success Real — or Just Very
+     Good Marketing?"
+  - "Should the Arab League Be Disbanded?"
+  - "Is Arranged Marriage Still Relevant
+     in 2026?"
+  - "Is the Gulf's Wealth Distributed Fairly?"
+  - "Are Expats in the Gulf Treated as
+     Second-Class?"
+  - "Is There Such a Thing as 'Arab Identity'
+     Anymore?"
+  - "Will Any MENA Country Legalise Cannabis
+     Within 10 Years?"
+
+──────────────────────────────────────────────────
+5B. FIX CATEGORY DISTRIBUTION
+──────────────────────────────────────────────────
+
+Currently almost all visible polls are in
+"Arts & Expression". The approved polls span
+categories: Technology & AI / Culture & Society
+/ Business & Startups / Cities & Lifestyle /
+Identity & Belonging / Economy & Finance /
+Women & Equality / Future of the Region.
+
+Ensure polls are correctly categorised when
+created through admin.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 6 — MINOR POLISH ACROSS ALL PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+──────────────────────────────────────────────────
+6A. HOMEPAGE — PREDICTIONS SECTION CARDS
+──────────────────────────────────────────────────
+
+The prediction cards on the homepage (not the
+dedicated predictions page) currently have
+rounded corners that feel too app-like.
+
+Change border-radius from rounded-[10px]
+to 4px (or 0.125rem — matching the site's
+sharp editorial aesthetic).
+
+The site uses sharp corners everywhere else.
+Prediction cards should match.
+
+──────────────────────────────────────────────────
+6B. THE VOICES PAGE — STATS STRIP
+──────────────────────────────────────────────────
+
+The dark stats strip below the hero header
+on /profiles shows:
+"94 VOICES · 10 COUNTRIES · 1 REGION"
+
+This is fine — keep it. It is not a public
+metrics dashboard, it contextualises the
+directory. Leave it as is.
+
+──────────────────────────────────────────────────
+6C. THE BRIEF (SENTIMENT MAP) — KEEP AS IS
+──────────────────────────────────────────────────
+
+The Brief page is clean and well-executed.
+The dark hero, the scrolling ticker with
+regional stats, the Trending Signals cards,
+Data Drops, and Country Pulse grid all
+look correct. Do not change anything here.
+
+──────────────────────────────────────────────────
+6D. ABOUT PAGE — KEEP AS IS
+──────────────────────────────────────────────────
+
+The About page copy is correct and matches
+the editorial voice. The founder statement,
+Why This Exists, belief cards, and closing
+line are all implemented correctly.
+Do not change anything here.
+
+──────────────────────────────────────────────────
+6E. APPLY PAGE — FIX BLANK HERO
+──────────────────────────────────────────────────
+
+The /apply page hero section renders as a
+large blank black block. The main headline
+is not visible. Ensure the h1 renders
+correctly:
+
+  Font: font-display (Playfair Display)
+  Weight: black / 900
+  Size: clamp(2.5rem, 7vw, 5rem)
+  Case: uppercase
+  Color: white (var(--background)
+  when inside dark hero bg)
+  Line height: 1.05
+
+  Text should read:
+  "Think You Belong
+   In The Voices?"
+
+──────────────────────────────────────────────────
+6F. NAVBAR — ACTIVE STATE LINK
+──────────────────────────────────────────────────
+
+The current active page link in the navbar
+highlights in crimson. This is correct.
+Leave as is.
+
+However: on mobile, when the hamburger menu
+opens, clicking any nav link should close
+the menu. Verify this works on all links.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITY 7 — PRD UPDATE NOTE FOR MILOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The build has diverged from the PRD in
+some good ways. An updated PRD will be
+shared separately. In the meantime:
+
+  - The Brief (/sentiment-map) is a new
+    page not in the original PRD. Keep it.
+    It adds editorial depth.
+
+  - Rankings (/rankings) exists but is
+    not in the main nav. Keep it off-nav
+    for now — it is not a priority page.
+
+  - The admin panel (/admin) is well-built
+    and should be the only way to publish
+    polls. Protect it properly with 2FA
+    before any public launch.
+
+  - The QR landing page (/join) exists
+    and works. Add it to the /apply flow
+    as a post-submission destination
+    ("In the meantime — go vote on
+    something" button links to /join).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT IS ALREADY WORKING — DO NOT TOUCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+These are done correctly. Do not change them:
+
+  ✓ Masthead (Playfair, crimson rules,
+    issue date, Opinion of Record)
+  ✓ Live ticker (crimson bg, scrolling)
+  ✓ Homepage two-column layout
+    (lead debate + sidebar)
+  ✓ Vote mechanic and share gate overlay
+  ✓ Results animation with staggered bars
+  ✓ Country breakdown in results
+  ✓ Voices page halftone photo treatment
+  ✓ Voices search and filter
+  ✓ Profile detail page layout
+  ✓ The Brief page (all sections)
+  ✓ About page copy and layout
+  ✓ Dark/light mode toggle
+  ✓ Navbar active states and mobile menu
+  ✓ Footer structure
+  ✓ Predictions momentum ticker
+  ✓ Predictions featured card layout
+  ✓ Predictions closed prediction section
+  ✓ Admin application review queue
+  ✓ Admin poll creator
+  ✓ Cookie consent
+  ✓ Weekly Pulse page
+  ✓ FAQ and Terms pages

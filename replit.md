@@ -54,13 +54,19 @@ artifacts-monorepo/
 - **Admin page** (`/admin`) — password-gated (key: `tmh-admin-2026` / `ADMIN_KEY` env var); application queue with AI scores, editorial approval/decline, notes; create polls with featured toggle; live stats dashboard
 - **Admin API** (`/api/admin/*`) — requires `x-admin-key` header; endpoints: `GET /applications`, `PATCH /applications/:id`, `GET /stats`, `POST /polls`
 
+### Editorial Gate
+- **`editorialStatus`** column on `polls` table: `"approved"` (default), `"draft"`, `"rejected"`
+- All public API endpoints filter by `editorialStatus = 'approved'`
+- Admin can toggle status via `PATCH /api/admin/polls/:id/editorial`
+- New polls created via admin are auto-approved
+
 ### Integrations (env-variable gated)
-- **Resend** (`RESEND_API_KEY`) — sends confirmation email on Hustler application
+- **Resend** (`RESEND_API_KEY`) — sends confirmation email on Voice application
 - **Beehiiv** (`BEEHIIV_API_KEY` + `BEEHIIV_PUBLICATION_ID`) — syncs newsletter subscribers on subscribe
 - **Admin key** (`ADMIN_KEY`) — defaults to `"tmh-admin-2026"` if not set
 
 ### Pages
-- **Home** (`/`) — WSJ-style editorial front page: masthead → crimson live ticker → lead debate column + latest debates sidebar with "The Brief" data box → compact stat strip → debates grid → predictions → voices → topics → newsletter CTA
+- **Home** (`/`) — WSJ-style editorial front page: masthead → crimson live ticker → lead debate column (with floating opinion bubbles, desktop only) + latest debates sidebar → debates grid → predictions → voices → topics → newsletter CTA
 - **Polls** (`/polls`) — Full poll browser with filter tabs (Latest/Trending/Most Voted/Ending Soon/Editor's Picks) and category sidebar
 - **Poll Detail** (`/polls/:id`) — Full poll with context, voting UI, animated result reveal, share CTA, related polls
 - **Profiles** (`/profiles`) — Searchable directory with country/sector/role filters
@@ -70,7 +76,7 @@ artifacts-monorepo/
 - **About** (`/about`) — Platform manifesto
 
 ### Database Schema
-- `polls` — Poll questions with category, type, and metadata
+- `polls` — Poll questions with category, type, editorialStatus, and metadata
 - `poll_options` — Answer options with vote counts
 - `votes` — Vote records keyed by voterToken (localStorage UUID)
 - `profiles` — Curated regional voices with full editorial profiles
@@ -89,7 +95,8 @@ artifacts-monorepo/
 ## Database State (as of March 2026)
 - **219 polls** total (135 original + 84 roast_series batch)
 - **785 poll options** total
-- **95 profiles** total (67 original + 28 new Hustlers)
+- **94 profiles** total (67 original + 27 new Voices)
+- 5 unsafe AI-generated polls deleted (IDs 520, 530, 531, 535, 536)
 - Profile photos use CamelCase filenames in `/profiles/` public dir (e.g., `Abe_Seksek.jpg`)
 - Roast polls tagged `["roast_series"]` with `poll_type: 'card'`, `is_featured: false`
 - New profiles (28) inserted with `is_featured: false` — appear under "Newly Added" tab

@@ -39,11 +39,11 @@ const FAQ_SECTIONS = [
       },
       {
         q: "How are poll questions chosen?",
-        a: "Questions are selected by the TMH editorial team based on what's trending in the region, what Hustlers are talking about, and what sparks genuine debate. We use a mix of editorial judgment, Hustler submissions, and AI-assisted monitoring of regional news trends. All questions are reviewed and approved by a human before going live.",
+        a: "Questions are selected by the TMH editorial team based on what's trending in the region, what our Voices are talking about, and what sparks genuine debate. We use a mix of editorial judgment, Voice submissions, and AI-assisted monitoring of regional news trends. All questions are reviewed and approved by a human before going live.",
       },
       {
         q: "Can I suggest a poll question?",
-        a: "Yes — if you're a Hustler (a verified profile on the platform), you can submit your own poll question from your dashboard. Your question goes into an editorial review queue. If approved, it goes live with a 'Question by [Your Name]' badge that links back to your profile.",
+        a: "Yes — if you're a Voice (a verified profile on the platform), you can submit your own poll question from your dashboard. Your question goes into an editorial review queue. If approved, it goes live with a 'Question by [Your Name]' badge that links back to your profile.",
       },
       {
         q: "What is the Share Gate?",
@@ -56,23 +56,23 @@ const FAQ_SECTIONS = [
     ],
   },
   {
-    category: "Hustlers",
+    category: "The Voices",
     questions: [
       {
-        q: "What is a Hustler?",
-        a: "A Hustler is a verified profile on TMH — a curated founder, operator, investor, or change-maker with a real story and verifiable impact in the Middle East. There are currently 67 Hustler profiles, growing to 102 at launch. Being a Hustler means your story is featured on the platform, you appear in the power rankings, and your questions can go live with your name on them.",
+        q: "What is a Voice?",
+        a: "A Voice is a verified profile on TMH — a curated founder, operator, investor, or change-maker with a real story and verifiable impact in the Middle East. There are currently 94 Voice profiles and growing. Being a Voice means your story is featured on the platform, you appear in the power rankings, and your questions can go live with your name on them.",
       },
       {
-        q: "How do I become a Hustler?",
+        q: "How do I become a Voice?",
         a: "Apply at /apply. The bar is intentionally high. You need: real, verifiable impact (not just a job title), an active MENA connection, a unique story (pivots, failures, non-linear paths), something you've built or founded, and a LinkedIn profile we can verify. Applications are reviewed by our AI qualification system and then by the TMH editorial team. If you pass, you'll be contacted within 7 days.",
       },
       {
-        q: "How are Hustlers ranked?",
+        q: "How are Voices ranked?",
         a: "The TMH Power Rankings are updated weekly based on: number of associated poll votes (questions you've voted on or submitted), profile view count, share count, and editorial selection. Rankings are meant to spark debate — they're not a permanent leaderboard.",
       },
       {
-        q: "Can a Hustler submit their own poll question?",
-        a: "Yes. Hustlers can submit questions from their profile dashboard. The question is tagged with their name, goes through editorial review, and if approved, goes live on the platform with a 'Question by [Hustler Name]' badge linking back to their profile. This is one of the most powerful features — Hustlers share their own questions with their networks and drive significant traffic.",
+        q: "Can a Voice submit their own poll question?",
+        a: "Yes. Voices can submit questions from their profile dashboard. The question is tagged with their name, goes through editorial review, and if approved, goes live on the platform with a 'Question by [Voice Name]' badge linking back to their profile. This is one of the most powerful features — Voices share their own questions with their networks and drive significant traffic.",
       },
     ],
   },
@@ -89,7 +89,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: "How does the Newsletter work?",
-        a: "The Weekly Pulse is a free Tuesday newsletter. One debate breakdown. One country split. One Hustler you need to know. It goes to everyone who's signed up via the share gate, the /join page, or the footer. You can unsubscribe at any time via the link in every email. We never share your email with third parties.",
+        a: "The Weekly Pulse is a free Tuesday newsletter. One debate breakdown. One country split. One Voice you need to know. It goes to everyone who's signed up via the share gate, the /join page, or the footer. You can unsubscribe at any time via the link in every email. We never share your email with third parties.",
       },
       {
         q: "Where does the country data in results come from?",
@@ -166,7 +166,7 @@ export default function FAQ() {
               About TMH →
             </Link>
             <Link href="/apply" className="text-[10px] uppercase tracking-widest font-bold font-serif text-muted-foreground hover:text-foreground transition-colors">
-              Apply to be a Hustler →
+              Apply to be a Voice →
             </Link>
             <Link href="/terms" className="text-[10px] uppercase tracking-widest font-bold font-serif text-muted-foreground hover:text-foreground transition-colors">
               Terms & Conditions →

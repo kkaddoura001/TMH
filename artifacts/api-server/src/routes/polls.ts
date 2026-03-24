@@ -95,23 +95,25 @@ router.get("/polls", async (req, res) => {
       categoryName = catRow[0]?.category ?? null;
     }
 
-    let query = db.select().from(pollsTable);
+    const approvedFilter = eq(pollsTable.editorialStatus, "approved");
+
+    let baseWhere: any = approvedFilter;
     if (categoryName) {
-      query = query.where(eq(pollsTable.category, categoryName)) as any;
+      baseWhere = and(approvedFilter, eq(pollsTable.category, categoryName));
     }
 
     let polls;
     if (filter === "trending" || filter === "most_voted") {
-      polls = await (query as any).orderBy(desc(sql`(SELECT SUM(vote_count) FROM poll_options WHERE poll_id = polls.id)`)).limit(lim).offset(off);
+      polls = await db.select().from(pollsTable).where(baseWhere).orderBy(desc(sql`(SELECT SUM(vote_count) FROM poll_options WHERE poll_id = polls.id)`)).limit(lim).offset(off);
     } else if (filter === "editors_picks") {
       const whereClause = categoryName
-        ? and(eq(pollsTable.isEditorsPick, true), eq(pollsTable.category, categoryName))
-        : eq(pollsTable.isEditorsPick, true);
+        ? and(eq(pollsTable.isEditorsPick, true), eq(pollsTable.category, categoryName), approvedFilter)
+        : and(eq(pollsTable.isEditorsPick, true), approvedFilter);
       polls = await db.select().from(pollsTable).where(whereClause).orderBy(desc(pollsTable.createdAt)).limit(lim).offset(off);
     } else if (filter === "ending_soon") {
-      polls = await (query as any).orderBy(pollsTable.endsAt).limit(lim).offset(off);
+      polls = await db.select().from(pollsTable).where(baseWhere).orderBy(pollsTable.endsAt).limit(lim).offset(off);
     } else {
-      polls = await (query as any).orderBy(desc(pollsTable.createdAt)).limit(lim).offset(off);
+      polls = await db.select().from(pollsTable).where(baseWhere).orderBy(desc(pollsTable.createdAt)).limit(lim).offset(off);
     }
 
     const result = await Promise.all(
@@ -121,7 +123,7 @@ router.get("/polls", async (req, res) => {
       })
     );
 
-    const [countRow] = await db.select({ count: sql<number>`count(*)` }).from(pollsTable);
+    const [countRow] = await db.select({ count: sql<number>`count(*)` }).from(pollsTable).where(eq(pollsTable.editorialStatus, "approved"));
     res.json({ polls: result, total: Number(countRow.count) });
   } catch (err) {
     console.error(err);
@@ -131,9 +133,9 @@ router.get("/polls", async (req, res) => {
 
 router.get("/polls/featured", async (_req, res) => {
   try {
-    const [poll] = await db.select().from(pollsTable).where(eq(pollsTable.isFeatured, true)).orderBy(desc(pollsTable.createdAt)).limit(1);
+    const [poll] = await db.select().from(pollsTable).where(and(eq(pollsTable.isFeatured, true), eq(pollsTable.editorialStatus, "approved"))).orderBy(desc(pollsTable.createdAt)).limit(1);
     if (!poll) {
-      const [fallback] = await db.select().from(pollsTable).orderBy(desc(pollsTable.createdAt)).limit(1);
+      const [fallback] = await db.select().from(pollsTable).where(eq(pollsTable.editorialStatus, "approved")).orderBy(desc(pollsTable.createdAt)).limit(1);
       if (!fallback) return res.status(404).json({ error: "No polls found" });
       const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, fallback.id));
       return res.json(await toPollResponse(fallback, options));
@@ -233,7 +235,7 @@ router.get("/polls/:id/trends", async (req, res) => {
 router.get("/polls/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const [poll] = await db.select().from(pollsTable).where(eq(pollsTable.id, id));
+    const [poll] = await db.select().from(pollsTable).where(and(eq(pollsTable.id, id), eq(pollsTable.editorialStatus, "approved")));
     if (!poll) return res.status(404).json({ error: "Poll not found" });
     const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, id));
     res.json(await toPollResponse(poll, options));
@@ -383,7 +385,7 @@ router.get("/activity", async (_req, res) => {
       })
       .from(votesTable)
       .innerJoin(pollsTable, eq(votesTable.pollId, pollsTable.id))
-      .where(sql`${votesTable.countryCode} IS NOT NULL`)
+      .where(and(sql`${votesTable.countryCode} IS NOT NULL`, eq(pollsTable.editorialStatus, "approved")))
       .orderBy(desc(votesTable.createdAt))
       .limit(10);
     res.json({

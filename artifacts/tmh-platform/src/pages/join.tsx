@@ -44,7 +44,7 @@ export default function Join() {
         </Link>
         <div className="flex items-center gap-6">
           <Link href="/polls" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">Polls</Link>
-          <Link href="/profiles" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">The Hustlers</Link>
+          <Link href="/profiles" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">The Voices</Link>
           <Link href="/about" className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground font-serif">About</Link>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function Join() {
             Join the Weekly Pulse.
           </h2>
           <p className="text-sm text-muted-foreground font-sans mb-5 leading-relaxed">
-            Every Tuesday: one debate breakdown, one country split, one Hustler you need to know. Free.
+            Every Tuesday: one debate breakdown, one country split, one Voice you need to know. Free.
           </p>
           {joined ? (
             <div className="text-center py-6">

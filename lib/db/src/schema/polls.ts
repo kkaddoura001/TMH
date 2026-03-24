@@ -12,6 +12,7 @@ export const pollsTable = pgTable("polls", {
   pollType: text("poll_type").notNull().default("binary"),
   isFeatured: boolean("is_featured").notNull().default(false),
   isEditorsPick: boolean("is_editors_pick").notNull().default(false),
+  editorialStatus: text("editorial_status").notNull().default("approved"),
   endsAt: timestamp("ends_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   relatedProfileIds: jsonb("related_profile_ids").$type<number[]>().notNull().default([]),

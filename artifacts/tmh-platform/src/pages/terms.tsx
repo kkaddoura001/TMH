@@ -9,7 +9,7 @@ const SECTIONS = [
   {
     id: "platform",
     title: "2. What TMH Is",
-    content: `The Middle East Hustle is an independent opinion and polling platform focused on the Middle East and North Africa region. We publish poll questions, aggregate anonymous votes, and feature curated profiles of founders, operators, and change-makers ("Hustlers"). TMH is not a news outlet, financial advisor, or research institution. Content on this platform represents the opinions of voters and contributors, not the views of TMH or its founders.`,
+    content: `The Middle East Hustle is an independent opinion and polling platform focused on the Middle East and North Africa region. We publish poll questions, aggregate anonymous votes, and feature curated profiles of founders, operators, and change-makers ("Voices"). TMH is not a news outlet, financial advisor, or research institution. Content on this platform represents the opinions of voters and contributors, not the views of TMH or its founders.`,
   },
   {
     id: "eligibility",
@@ -29,12 +29,12 @@ const SECTIONS = [
   {
     id: "ugc",
     title: "6. User-Generated Content",
-    content: `Hustler profiles, submitted poll questions, and application materials constitute user-generated content ("UGC"). By submitting content to TMH, you grant us a non-exclusive, worldwide, royalty-free licence to display, reproduce, and distribute that content on the platform. You retain ownership of your content. You represent that your content is accurate, does not infringe any third-party rights, and does not violate any applicable law. TMH reserves the right to remove, edit, or decline any content at our sole discretion.`,
+    content: `Voice profiles, submitted poll questions, and application materials constitute user-generated content ("UGC"). By submitting content to TMH, you grant us a non-exclusive, worldwide, royalty-free licence to display, reproduce, and distribute that content on the platform. You retain ownership of your content. You represent that your content is accurate, does not infringe any third-party rights, and does not violate any applicable law. TMH reserves the right to remove, edit, or decline any content at our sole discretion.`,
   },
   {
     id: "ip",
     title: "7. Intellectual Property",
-    content: `All TMH branding, editorial content, design assets, and platform code are the intellectual property of The Middle East Hustle and its owners. The TMH name, logo, and "The Voice of 400 Million" tagline are proprietary marks. You may not reproduce, distribute, or create derivative works from our content without prior written permission. Poll results and Hustler profiles displayed on the platform remain the property of TMH and their respective contributors.`,
+    content: `All TMH branding, editorial content, design assets, and platform code are the intellectual property of The Middle East Hustle and its owners. The TMH name, logo, and "The Voice of 400 Million" tagline are proprietary marks. You may not reproduce, distribute, or create derivative works from our content without prior written permission. Poll results and Voice profiles displayed on the platform remain the property of TMH and their respective contributors.`,
   },
   {
     id: "sharing",
@@ -49,7 +49,7 @@ const SECTIONS = [
   {
     id: "prohibited",
     title: "10. Prohibited Conduct",
-    content: `You agree not to: vote multiple times on a single poll using VPNs, proxies, or multiple accounts; submit false or misleading information in a Hustler application; impersonate any individual or organisation; use the platform to distribute spam or malware; attempt to reverse-engineer, scrape, or data-mine TMH content at scale without prior written consent; or engage in any conduct that disrupts or damages the platform.`,
+    content: `You agree not to: vote multiple times on a single poll using VPNs, proxies, or multiple accounts; submit false or misleading information in a Voice application; impersonate any individual or organisation; use the platform to distribute spam or malware; attempt to reverse-engineer, scrape, or data-mine TMH content at scale without prior written consent; or engage in any conduct that disrupts or damages the platform.`,
   },
   {
     id: "governing",

@@ -56,15 +56,13 @@ export default function Apply() {
   return (
     <Layout>
       {/* Hero */}
-      <div className="bg-foreground text-background py-20 lg:py-28 border-b border-border">
+      <div className="bg-foreground text-background py-16 border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-6 font-serif">
-            The Hustler Directory
-          </div>
-          <h1 className="font-display font-black text-5xl md:text-7xl leading-none tracking-tight mb-6">
-            Think You're<br />a Hustler?
+          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-4 font-serif">The Voices</p>
+          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
+            Think You Belong<br />In The Voices?
           </h1>
-          <p className="text-xl text-background/70 font-sans max-w-2xl leading-relaxed">
+          <p className="text-background/60 font-sans text-base mt-4 max-w-xl">
             We're building the most credible founder directory in the Middle East. Not everyone makes the cut. The bar is high — because our audience is discerning.
           </p>
         </div>
@@ -104,10 +102,10 @@ export default function Apply() {
               In the meantime — go vote on something that matters.
             </p>
             <a
-              href="/polls"
+              href="/join"
               className="inline-flex items-center gap-2 mt-8 bg-primary text-white font-bold uppercase tracking-widest text-xs px-8 py-3 hover:bg-primary/90 transition-colors"
             >
-              Browse Debates <ArrowRight className="w-3 h-3" />
+              Join The Hustle <ArrowRight className="w-3 h-3" />
             </a>
           </div>
         ) : (

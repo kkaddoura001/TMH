@@ -107,13 +107,13 @@ function Sparkline({ data, up }: { data: number[]; up: boolean }) {
   const chartData = data.map((yes, i) => ({ i, yes }))
   const color = up ? "#DC143C" : "rgba(255,255,255,0.3)"
   return (
-    <ResponsiveContainer width="100%" height={80}>
+    <ResponsiveContainer width="100%" height={56}>
       <LineChart data={chartData} margin={{ top: 6, right: 4, bottom: 6, left: 4 }}>
         <Line
           type="monotone"
           dataKey="yes"
           stroke={color}
-          strokeWidth={1.5}
+          strokeWidth={1}
           dot={false}
           isAnimationActive={true}
           animationDuration={1200}
@@ -199,7 +199,7 @@ function VoteButtons({ height = 52, locked = false }: { height?: number; locked?
           background: voted === "no" ? "rgba(255,255,255,0.08)" : "transparent",
           color: voted === "no" ? "var(--foreground)" : "var(--muted-foreground)",
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
-          fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.08em",
+          fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em",
           cursor: "pointer", transition: "all 0.15s", borderRadius: 4,
         }}
       >
@@ -261,7 +261,7 @@ function FeaturedPrediction() {
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)", marginBottom: "1rem" }}>
             Confidence Over Time — YES %
           </p>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={200}>
             <ComposedChart data={FEATURED_DATA} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
               <CartesianGrid
                 vertical={false}
@@ -269,12 +269,13 @@ function FeaturedPrediction() {
               />
               <XAxis
                 dataKey="month"
+                tickCount={6}
                 tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: "rgba(250,250,250,0.4)" }}
                 axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
                 tickLine={false}
               />
               <YAxis
-                domain={[30, 100]}
+                domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
                 tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: "rgba(250,250,250,0.4)" }}
                 axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
@@ -293,7 +294,7 @@ function FeaturedPrediction() {
                 dataKey="yes"
                 fill="rgba(220,20,60,0.1)"
                 stroke="rgba(220,20,60,0.6)"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={true}
                 animationDuration={1200}
@@ -303,7 +304,7 @@ function FeaturedPrediction() {
                 type="monotone"
                 dataKey="ma"
                 stroke="#DC143C"
-                strokeWidth={1.5}
+                strokeWidth={1}
                 dot={false}
                 isAnimationActive={true}
                 animationDuration={1400}

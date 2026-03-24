@@ -87,6 +87,7 @@ router.post("/admin/polls", requireAdmin, async (req, res) => {
         tags: [],
         isFeatured: isFeatured ?? false,
         isEditorsPick: isEditorsPick ?? false,
+        editorialStatus: "approved",
       })
       .returning({ id: pollsTable.id })
 
@@ -109,6 +110,20 @@ router.patch("/admin/polls/:id/feature", requireAdmin, async (req, res) => {
       await db.update(pollsTable).set({ isFeatured: false })
     }
     await db.update(pollsTable).set({ isFeatured: !!isFeatured }).where(eq(pollsTable.id, Number(id)))
+    return res.json({ success: true })
+  } catch (err) {
+    return res.status(500).json({ error: "Update failed" })
+  }
+})
+
+router.patch("/admin/polls/:id/editorial", requireAdmin, async (req, res) => {
+  const { id } = req.params
+  const { editorialStatus } = req.body
+  if (!editorialStatus || !["approved", "draft", "rejected"].includes(editorialStatus)) {
+    return res.status(400).json({ error: "editorialStatus must be 'approved', 'draft', or 'rejected'" })
+  }
+  try {
+    await db.update(pollsTable).set({ editorialStatus }).where(eq(pollsTable.id, Number(id)))
     return res.json({ success: true })
   } catch (err) {
     return res.status(500).json({ error: "Update failed" })

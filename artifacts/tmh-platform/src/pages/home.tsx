@@ -208,7 +208,40 @@ export default function Home() {
       </div>
 
       {/* ── FRONT PAGE: Lead Debate + Sidebar ── */}
-      <section className="py-8 bg-background border-b border-border section-fadein">
+      <section className="py-8 bg-background border-b border-border section-fadein relative">
+        {/* Opinion Bubbles — desktop only */}
+        <div className="hidden lg:block pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          {[
+            { text: "The Gulf is ready.", top: "8%", left: "2%", size: 72, opacity: 0.07, delay: "0s" },
+            { text: "Not yet.", top: "25%", right: "1%", size: 56, opacity: 0.05, delay: "1s" },
+            { text: "We need more data.", bottom: "30%", left: "1%", size: 64, opacity: 0.06, delay: "2s" },
+            { text: "Disagree.", top: "60%", right: "3%", size: 48, opacity: 0.05, delay: "3s" },
+            { text: "100%", top: "15%", right: "5%", size: 44, opacity: 0.04, delay: "0.5s" },
+            { text: "Finally.", bottom: "15%", left: "3%", size: 52, opacity: 0.05, delay: "1.5s" },
+            { text: "About time.", bottom: "8%", right: "2%", size: 60, opacity: 0.06, delay: "2.5s" },
+            { text: "Bold take.", top: "45%", left: "0.5%", size: 50, opacity: 0.04, delay: "3.5s" },
+          ].map((bubble, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full border border-primary/20 flex items-center justify-center animate-pulse"
+              style={{
+                width: bubble.size,
+                height: bubble.size,
+                top: bubble.top,
+                bottom: (bubble as any).bottom,
+                left: bubble.left,
+                right: (bubble as any).right,
+                opacity: bubble.opacity,
+                animationDelay: bubble.delay,
+                animationDuration: "4s",
+              }}
+            >
+              <span className="text-[8px] font-serif font-bold uppercase text-primary text-center leading-tight px-1">
+                {bubble.text}
+              </span>
+            </div>
+          ))}
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
 
@@ -306,7 +339,7 @@ export default function Home() {
             {PREDICTIONS_DATA.map(pred => (
               <div
                 key={pred.id}
-                className="bg-card border border-border p-6 rounded-[10px] flex flex-col gap-4 transition-all duration-200 hover:-translate-y-1 cursor-pointer group"
+                className="bg-card border border-border p-6 rounded-[4px] flex flex-col gap-4 transition-all duration-200 hover:-translate-y-1 cursor-pointer group"
                 style={{ borderWidth: "1.5px" }}
               >
                 <div className="flex items-center gap-2 flex-wrap">
