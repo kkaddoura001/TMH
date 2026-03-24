@@ -275,6 +275,9 @@ export default function Home() {
                 className="font-display font-black tracking-tight"
                 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", color: "#DC143C", letterSpacing: "-0.02em" }}
               />
+              <span className="text-[8px] normal-case tracking-[0.08em] text-muted-foreground/50 font-sans mt-0.5">
+                (MENA population growing at ~8.2 million per year — roughly 1 new person every 4 seconds)
+              </span>
             </p>
           </div>
 
