@@ -260,9 +260,6 @@ export default function Home() {
                 className="font-display font-black tracking-tight"
                 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", color: "#DC143C", letterSpacing: "-0.02em" }}
               />
-              <span className="text-[9px] normal-case tracking-[0.08em] text-foreground/75 font-sans mt-0.5">
-                people
-              </span>
             </p>
           </div>
 
