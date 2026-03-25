@@ -124,7 +124,7 @@ function SharedCard({ shared }: { shared: SharedContent }) {
   return (
     <Link href={linkMap[shared.type]}>
       <div
-        className="mt-2 border rounded p-3 cursor-pointer hover:bg-white/[0.03] transition-colors max-w-md"
+        className="mt-2 border rounded p-3 cursor-pointer hover:bg-muted/50 transition-colors max-w-md"
         style={{ borderColor: `${color}40` }}
       >
         <div className="flex items-center gap-2 mb-1.5">
@@ -156,7 +156,7 @@ function MessageBubble({ message, isOwn, onReply }: { message: Message; isOwn: b
   const { text, shared } = parseSharedContent(message.content)
 
   return (
-    <div className={cn("flex gap-3 group px-4 py-2 hover:bg-white/[0.02] transition-colors", isOwn && "flex-row-reverse")}>
+    <div className={cn("flex gap-3 group px-4 py-2 hover:bg-muted/30 transition-colors", isOwn && "flex-row-reverse")}>
       <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-border">
         {message.profileImage ? (
           <img src={message.profileImage} alt="" className="w-full h-full object-cover" />
@@ -241,7 +241,7 @@ function MemberItem({ member }: { member: Member }) {
   const initials = member.profileName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
 
   return (
-    <div className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/[0.03] transition-colors">
+    <div className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-muted/30 transition-colors">
       <div className="relative flex-shrink-0">
         <div className="w-7 h-7 rounded-full overflow-hidden border border-border">
           {member.profileImage ? (
