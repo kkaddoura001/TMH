@@ -56,7 +56,7 @@ function FeaturedTooltip({ active, payload, label }: any) {
 
 function Sparkline({ data, up }: { data: number[]; up: boolean }) {
   const chartData = data.map((yes, i) => ({ i, yes }))
-  const color = up ? "#DC143C" : "rgba(255,255,255,0.3)"
+  const color = up ? "#10B981" : "#DC143C"
   return (
     <ResponsiveContainer width="100%" height={56}>
       <LineChart data={chartData} margin={{ top: 6, right: 4, bottom: 6, left: 4 }}>
@@ -87,13 +87,13 @@ function ConfidenceBars({ yes, no, up, momentum, compact = false }: {
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "var(--foreground)" }}>YES</span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "var(--foreground)" }}>{yes}%</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "#10B981" }}>YES</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "#10B981" }}>{yes}%</span>
         </div>
         <div className={`w-full ${h} rounded-sm overflow-hidden`} style={{ background: "rgba(255,255,255,0.08)" }}>
           <div
             className={`${h} rounded-sm transition-all duration-1000`}
-            style={{ width: animated ? `${yes}%` : "0%", background: "#DC143C" }}
+            style={{ width: animated ? `${yes}%` : "0%", background: "#10B981" }}
           />
         </div>
         {!compact && (
@@ -104,13 +104,13 @@ function ConfidenceBars({ yes, no, up, momentum, compact = false }: {
       </div>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "var(--foreground)" }}>NO</span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "var(--foreground)" }}>{no}%</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "#DC143C" }}>NO</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: compact ? 12 : 13, textTransform: "uppercase", color: "#DC143C" }}>{no}%</span>
         </div>
         <div className={`w-full ${h} rounded-sm overflow-hidden`} style={{ background: "rgba(255,255,255,0.08)" }}>
           <div
             className={`${h} rounded-sm transition-all duration-1000`}
-            style={{ width: animated ? `${no}%` : "0%", background: "rgba(255,255,255,0.15)" }}
+            style={{ width: animated ? `${no}%` : "0%", background: "rgba(220,20,60,0.5)" }}
           />
         </div>
         {compact && (
@@ -133,9 +133,9 @@ function VoteButtons({ height = 52, locked = false }: { height?: number; locked?
       <button
         onClick={() => setVoted(v => v === "yes" ? null : "yes")}
         style={{
-          flex: 1, height, border: `1.5px solid #DC143C`,
-          background: voted === "yes" ? "#DC143C" : "transparent",
-          color: voted === "yes" ? "#fff" : "#DC143C",
+          flex: 1, height, border: `1.5px solid #10B981`,
+          background: voted === "yes" ? "#10B981" : "transparent",
+          color: voted === "yes" ? "#fff" : "#10B981",
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.08em",
           cursor: "pointer", transition: "all 0.15s", borderRadius: 4,
@@ -146,9 +146,9 @@ function VoteButtons({ height = 52, locked = false }: { height?: number; locked?
       <button
         onClick={() => setVoted(v => v === "no" ? null : "no")}
         style={{
-          flex: 1, height, border: `1.5px solid var(--border)`,
-          background: voted === "no" ? "rgba(255,255,255,0.08)" : "transparent",
-          color: voted === "no" ? "var(--foreground)" : "var(--muted-foreground)",
+          flex: 1, height, border: `1.5px solid #DC143C`,
+          background: voted === "no" ? "#DC143C" : "transparent",
+          color: voted === "no" ? "#fff" : "#DC143C",
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em",
           cursor: "pointer", transition: "all 0.15s", borderRadius: 4,
@@ -202,7 +202,7 @@ function FeaturedPrediction() {
   return (
     <div
       style={{
-        background: "var(--card)", border: "1.5px solid rgba(220,20,60,0.2)",
+        background: "var(--card)", border: "1.5px solid rgba(16,185,129,0.2)",
         borderRadius: 12, padding: "2rem", marginBottom: "2rem",
       }}
     >
@@ -233,7 +233,7 @@ function FeaturedPrediction() {
                 tickLine={false}
                 width={30}
               />
-              <Tooltip content={<FeaturedTooltip />} cursor={{ stroke: "rgba(220,20,60,0.4)", strokeWidth: 1 }} />
+              <Tooltip content={<FeaturedTooltip />} cursor={{ stroke: "rgba(16,185,129,0.4)", strokeWidth: 1 }} />
               <ReferenceLine
                 y={50}
                 stroke="rgba(255,255,255,0.2)"
@@ -243,8 +243,8 @@ function FeaturedPrediction() {
               <Area
                 type="monotone"
                 dataKey="yes"
-                fill="rgba(220,20,60,0.1)"
-                stroke="rgba(220,20,60,0.6)"
+                fill="rgba(16,185,129,0.1)"
+                stroke="rgba(16,185,129,0.6)"
                 strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={true}
@@ -254,7 +254,7 @@ function FeaturedPrediction() {
               <Line
                 type="monotone"
                 dataKey="ma"
-                stroke="#DC143C"
+                stroke="#10B981"
                 strokeWidth={1}
                 dot={false}
                 isAnimationActive={true}
