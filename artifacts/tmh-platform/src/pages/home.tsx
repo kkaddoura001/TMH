@@ -693,7 +693,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div>
-                  {trendingPolls?.polls.slice(0, 3).map((poll) => (
+                  {trendingPolls?.polls.slice(0, 4).map((poll) => (
                     <Link key={poll.id} href={`/polls/${poll.id}`}>
                       <div className="py-3 border-b border-border group cursor-pointer">
                         <p className="text-[9px] uppercase tracking-widest text-primary font-serif font-bold">{poll.category}</p>
