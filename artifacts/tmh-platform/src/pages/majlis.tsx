@@ -78,7 +78,10 @@ function buildMockMessages(): Message[] {
     { id: 8, content: "Would love that. Can you share more details here or should we set up a call?", replyToId: 7, isEdited: false, createdAt: new Date(now - 3600000 * 1.5).toISOString(), userId: 1, userName: "Mohammed Al Zaben", profileId: 219, profileName: "Mohammed Al Zaben", profileRole: "Founder & CEO", profileCompany: "The Tribunal", profileImage: null, profileVerified: true },
     { id: 9, content: "Let's do it here. Transparency is what makes The Majlis special. Quick summary: we partnered with 3 universities in Amman, run a 12-week accelerator for junior devs, and our retention rate is 92%.", replyToId: 8, isEdited: false, createdAt: new Date(now - 3600000 * 1).toISOString(), userId: 8, userName: "Rania Jaber", profileId: 226, profileName: "Rania Jaber", profileRole: "Head of Policy", profileCompany: "MENA Council", profileImage: null, profileVerified: true },
     { id: 10, content: "That's brilliant. We need more of this cross-market collaboration. This is exactly why this room exists.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 0.5).toISOString(), userId: 7, userName: "Tariq Al-Farsi", profileId: 225, profileName: "Tariq Al-Farsi", profileRole: "Investor", profileCompany: "Gulf Capital", profileImage: null, profileVerified: true },
-    { id: 11, content: "By the way — there's a private dinner happening at LEAP next week. I can get invites for anyone here. DM me your details.", replyToId: null, isEdited: false, createdAt: new Date(now - 600000).toISOString(), userId: 4, userName: "Fatima Al-Rashid", profileId: 222, profileName: "Fatima Al-Rashid", profileRole: "Founder", profileCompany: "Souq Labs", profileImage: null, profileVerified: true },
+    { id: 11, content: "Has everyone seen this debate? The results are wild 🔥 [share:debate:549|Will your job still exist in 5 years? Be honest.|9,003 votes|Technology & AI]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 3).toISOString(), userId: 3, userName: "Omar Khalil", profileId: 221, profileName: "Omar Khalil", profileRole: "Chief Strategy Officer", profileCompany: "NEOM Tech", profileImage: null, profileVerified: true },
+    { id: 12, content: "This prediction is going to age terribly 😂 [share:prediction:1|Saudi Arabia's non-oil GDP will exceed 50% of total GDP by end of 2026|Yes 62% · No 38%|Economy & Finance]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 2).toISOString(), userId: 6, userName: "Nadia Belhaj", profileId: 224, profileName: "Nadia Belhaj", profileRole: "CEO", profileCompany: "Atlas Digital", profileImage: null, profileVerified: true },
+    { id: 13, content: "The sovereign wealth data is insane [share:pulse:0|Sovereign Wealth Power|$4.1 Trillion|Money]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 1.5).toISOString(), userId: 2, userName: "Layla Hassan", profileId: 220, profileName: "Layla Hassan", profileRole: "Managing Partner", profileCompany: "Crescent Ventures", profileImage: null, profileVerified: true },
+    { id: 14, content: "By the way — there's a private dinner happening at LEAP next week. I can get invites for anyone here. DM me your details.", replyToId: null, isEdited: false, createdAt: new Date(now - 600000).toISOString(), userId: 4, userName: "Fatima Al-Rashid", profileId: 222, profileName: "Fatima Al-Rashid", profileRole: "Founder", profileCompany: "Souq Labs", profileImage: null, profileVerified: true },
   ]
   return msgs
 }
@@ -281,7 +284,7 @@ export default function Majlis() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottomRef = useRef(true)
-  const nextIdRef = useRef(100)
+  const nextIdRef = useRef(200)
 
   useEffect(() => {
     const token = localStorage.getItem("majlis_token")
