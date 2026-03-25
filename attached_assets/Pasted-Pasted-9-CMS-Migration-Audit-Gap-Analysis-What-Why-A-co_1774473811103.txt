@@ -1,0 +1,54 @@
+Pasted--9-CMS-Migration-Audit-Gap-Analysis-What-Why-A-comprehe_1774473622712.txt
+#9 - CMS Migration Audit & Gap Analysis
+What & Why
+A comprehensive mapping of all hardcoded frontend content against CMS capabilities, identifying what the CMS already supports, what gaps exist, and what improvements are needed before we can fully replace the hardcoded frontend with CMS-driven content.
+
+Done looks like
+A complete audit document that maps every page, section, and content element in the frontend to its CMS counterpart (or identifies it as a gap), enabling confident migration planning.
+
+Out of scope
+Actually performing the migration (this is the pre-migration audit only)
+Code changes to the frontend or CMS
+Full Audit Results
+SECTION A: Content Already Supported by CMS (Ready to Migrate)
+Frontend Element	CMS Support	Notes
+Debates (Polls) — all CRUD, categories, editorial workflow	✅ Full	DB-backed, editorial statuses, bulk actions, taxonomy
+Voices (Profiles) — names, roles, companies, stories, quotes	✅ Full	DB-backed, verified profiles, image upload
+Homepage Sections — lead debate, debate grid, predictions, voices, explore topics, live activity, newsletter CTA	✅ Full	Drag-reorder, enable/disable, layout options
+Homepage Masthead — title, subtitle, population counter toggle, issue label	✅ Full	CMS fields: title, subtitle, showPopulationCounter, issueLabel
+Homepage Banners — promotional banners with CTA	✅ Full	Title, subtitle, CTA text/link, colors, position (top/mid/bottom)
+Homepage Ticker — enabled, speed, items	✅ Full	Configurable topic/vote items
+Homepage Newsletter CTA — heading, subheading, button text	✅ Full	All fields editable
+About Page — hero tagline/title/subtitle, four pillars, core beliefs	✅ Full	Dynamic page config with structured sections
+FAQ Page — categorized Q&A sections	✅ Full	Dynamic page config with section/question structure
+Terms Page — hero, legal sections	✅ Full	Dynamic page config with title, lastUpdated, content sections
+Contact Page — emails, social links, office location	✅ Full	Dynamic page config
+Majlis — user management, invitations, message moderation	✅ Full	CMS admin panel for users/invites/messages
+Applications — review, AI scoring, status management	✅ Full	CMS manages applicant pipeline
+Pulse Page — hero title/subtitle, categories (key/label/color), topic cards (tag, title, stat, delta, deltaUp, blurb, source)	✅ Partial	CMS has page config but see gaps below
+SECTION B: Gaps — Content NOT Managed by CMS
+Gap 1: Predictions — No Database Table
+Problem: Predictions exist only as hardcoded data in predictions-data.ts (frontend) and mock in-memory array in the API server. There is NO database table for predictions.
+Impact: 12+ prediction cards with fields: question, category, resolves date, yes/no percentages, momentum, trend direction, sparkline data, vote count.
+CMS has: A predictions management UI that reads/writes to the mock API, but data is lost on server restart.
+Fix needed: Create a predictions database table (Drizzle schema), migrate mock data, and connect API endpoints to DB.
+Gap 2: Pulse Page — Sparkline Data & Live Counters Not in CMS
+Problem: The CMS Pulse page config supports basic card fields (tag, title, stat, delta, deltaUp, blurb, source) but does NOT support:
+sparkData (array of numbers for the mini sparkline charts)
+live counter config (baseValue, annualGrowth for real-time ticking counters)
+id field for programmatic referencing
+tagColor (currently derived from category, but should be configurable)
+Impact: 35 trend cards use sparklines; some use live counters (e.g., population stats).
+Fix needed: Extend Pulse page config schema to include sparkData array, live counter config, and tagColor.
+Gap 3: Pulse Page — Ticker Items Not in CMS
+Problem: 18 ticker items on the Pulse page (rapid-fire stats like "ALGERIA GAS: 11% EU SUPPLY") are hardcoded and not part of CMS page config.
+Fix needed: Add a ticker items section to the Pulse page config.
+Gap 4: Homepage — Population Counter Config Not Fully Dynamic
+Problem: The MENA population counter uses hardcoded values: base population (525M→541M), growth rate (1.56%), and 19 country-specific populations with flags. The CMS masthead has a showPopulationCounter toggle but no fields for the base value, growth rate, or country breakdown.
+Fix needed: Add population counter config fields to the masthead config (basePopulation, growthRate, countryBreakdown).
+Gap 5: Homepage — Section Hook Stats Are Hardcoded
+Problem: The "Section Hooks" navigation grid shows hardcoded counts: "422 Debates", "230 Predictions", "36 Trends", "94 Voices". These should be auto-calculated from actual data or editable in CMS.
+Fix needed: Either auto-calculate from DB counts or add editable stat fields to homepage config.
+Gap 6: Homepage — Predictions & Pulse Sections Use Hardcoded Data
+Problem: Even though the CMS homepage manager has predictions and explore_topics section types, the frontend currently imports prediction data from predictions-data.ts and Pulse data directly hardcoded in home.tsx rather than fetching from the API.
+Fix needed: ...

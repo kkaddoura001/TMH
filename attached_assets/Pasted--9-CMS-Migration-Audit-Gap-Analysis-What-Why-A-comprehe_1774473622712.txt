@@ -1,0 +1,112 @@
+#9 - CMS Migration Audit & Gap Analysis
+What & Why
+A comprehensive mapping of all hardcoded frontend content against CMS capabilities, identifying what the CMS already supports, what gaps exist, and what improvements are needed before we can fully replace the hardcoded frontend with CMS-driven content.
+
+Done looks like
+A complete audit document that maps every page, section, and content element in the frontend to its CMS counterpart (or identifies it as a gap), enabling confident migration planning.
+
+Out of scope
+Actually performing the migration (this is the pre-migration audit only)
+Code changes to the frontend or CMS
+Full Audit Results
+SECTION A: Content Already Supported by CMS (Ready to Migrate)
+Frontend Element	CMS Support	Notes
+Debates (Polls) — all CRUD, categories, editorial workflow	✅ Full	DB-backed, editorial statuses, bulk actions, taxonomy
+Voices (Profiles) — names, roles, companies, stories, quotes	✅ Full	DB-backed, verified profiles, image upload
+Homepage Sections — lead debate, debate grid, predictions, voices, explore topics, live activity, newsletter CTA	✅ Full	Drag-reorder, enable/disable, layout options
+Homepage Masthead — title, subtitle, population counter toggle, issue label	✅ Full	CMS fields: title, subtitle, showPopulationCounter, issueLabel
+Homepage Banners — promotional banners with CTA	✅ Full	Title, subtitle, CTA text/link, colors, position (top/mid/bottom)
+Homepage Ticker — enabled, speed, items	✅ Full	Configurable topic/vote items
+Homepage Newsletter CTA — heading, subheading, button text	✅ Full	All fields editable
+About Page — hero tagline/title/subtitle, four pillars, core beliefs	✅ Full	Dynamic page config with structured sections
+FAQ Page — categorized Q&A sections	✅ Full	Dynamic page config with section/question structure
+Terms Page — hero, legal sections	✅ Full	Dynamic page config with title, lastUpdated, content sections
+Contact Page — emails, social links, office location	✅ Full	Dynamic page config
+Majlis — user management, invitations, message moderation	✅ Full	CMS admin panel for users/invites/messages
+Applications — review, AI scoring, status management	✅ Full	CMS manages applicant pipeline
+Pulse Page — hero title/subtitle, categories (key/label/color), topic cards (tag, title, stat, delta, deltaUp, blurb, source)	✅ Partial	CMS has page config but see gaps below
+SECTION B: Gaps — Content NOT Managed by CMS
+Gap 1: Predictions — No Database Table
+Problem: Predictions exist only as hardcoded data in predictions-data.ts (frontend) and mock in-memory array in the API server. There is NO database table for predictions.
+Impact: 12+ prediction cards with fields: question, category, resolves date, yes/no percentages, momentum, trend direction, sparkline data, vote count.
+CMS has: A predictions management UI that reads/writes to the mock API, but data is lost on server restart.
+Fix needed: Create a predictions database table (Drizzle schema), migrate mock data, and connect API endpoints to DB.
+Gap 2: Pulse Page — Sparkline Data & Live Counters Not in CMS
+Problem: The CMS Pulse page config supports basic card fields (tag, title, stat, delta, deltaUp, blurb, source) but does NOT support:
+sparkData (array of numbers for the mini sparkline charts)
+live counter config (baseValue, annualGrowth for real-time ticking counters)
+id field for programmatic referencing
+tagColor (currently derived from category, but should be configurable)
+Impact: 35 trend cards use sparklines; some use live counters (e.g., population stats).
+Fix needed: Extend Pulse page config schema to include sparkData array, live counter config, and tagColor.
+Gap 3: Pulse Page — Ticker Items Not in CMS
+Problem: 18 ticker items on the Pulse page (rapid-fire stats like "ALGERIA GAS: 11% EU SUPPLY") are hardcoded and not part of CMS page config.
+Fix needed: Add a ticker items section to the Pulse page config.
+Gap 4: Homepage — Population Counter Config Not Fully Dynamic
+Problem: The MENA population counter uses hardcoded values: base population (525M→541M), growth rate (1.56%), and 19 country-specific populations with flags. The CMS masthead has a showPopulationCounter toggle but no fields for the base value, growth rate, or country breakdown.
+Fix needed: Add population counter config fields to the masthead config (basePopulation, growthRate, countryBreakdown).
+Gap 5: Homepage — Section Hook Stats Are Hardcoded
+Problem: The "Section Hooks" navigation grid shows hardcoded counts: "422 Debates", "230 Predictions", "36 Trends", "94 Voices". These should be auto-calculated from actual data or editable in CMS.
+Fix needed: Either auto-calculate from DB counts or add editable stat fields to homepage config.
+Gap 6: Homepage — Predictions & Pulse Sections Use Hardcoded Data
+Problem: Even though the CMS homepage manager has predictions and explore_topics section types, the frontend currently imports prediction data from predictions-data.ts and Pulse data directly hardcoded in home.tsx rather than fetching from the API.
+Fix needed: Frontend must fetch this data from API endpoints once predictions have a DB table and Pulse data is CMS-managed.
+Gap 7: Polls Page — Debate Ticker Is Hardcoded
+Problem: The DEBATE_TICKER on the polls page (12 items like "Brain Drain: 3.2K", "AI & Jobs: 2.8K") is a static array, not connected to real poll data or CMS.
+Fix needed: Either auto-generate from actual poll vote data or add to CMS polls page config.
+Gap 8: Profiles Page — Impact Statements Are Hardcoded
+Problem: The IMPACT_STATEMENTS object maps specific company names to custom descriptions (e.g., "Kitopi: Scaled cloud kitchens across 5 countries"). This is hardcoded for ~15 companies.
+Fix needed: Add an impactStatement field to the profiles schema/CMS so editors can write these per profile.
+Gap 9: Navbar & Footer — Not CMS-Managed
+Problem: Navigation links, logo text ("The Tribunal."), social media links, copyright text, and the "by The Middle East Hustle" tagline are all hardcoded in layout components.
+Fix needed: Create a "Site Settings" or "Global Config" CMS section for: nav links, footer links, social URLs, branding text, copyright.
+Gap 10: Cookie Consent — Not CMS-Managed
+Problem: Cookie consent text, button labels ("Got It", "Dismiss"), and the privacy link are hardcoded and not using i18n either.
+Fix needed: Either add to a global site config in CMS or at minimum run through the i18n system.
+Gap 11: i18n / Arabic Translations — Not CMS-Managed
+Problem: All Arabic translations are in a hardcoded AR object in i18n.tsx (~300+ key-value pairs). Any new CMS content that needs Arabic translation would require code changes.
+Impact: Covers navigation, CTAs, page headings, trend names, FAQ content, about page, country names — essentially every user-facing string.
+Fix needed: Either integrate a translation management system into the CMS or add Arabic text fields alongside English fields in every CMS content type.
+Gap 12: Apply Page — Form Config & Criteria Not CMS-Managed
+Problem: The application form's criteria ("The Bar" — 6 requirements), country dropdown (15 options), sector dropdown (12 options), and all instructional/hint text are hardcoded.
+Fix needed: Add an Apply/Join page config to CMS for criteria, dropdowns, and instructional text. Application processing is already CMS-managed.
+Gap 13: About Page — Founder Statement & Region Data Not in CMS
+Problem: The CMS About page config has hero, pillars, and beliefs — but the founder's personal statement (long narrative from Kareem Kaddoura) and the "Region We Cover" section (19 countries with flags and populations) are likely not in the CMS config.
+Fix needed: Add founder statement section and region/countries section to the About page config.
+Gap 14: Polls/Predictions — "Gate" Logic Content
+Problem: The "Share Gate" mechanic (requiring users to share before seeing results) has hardcoded copy like "Share to unlock full breakdown". This UX copy should be editable.
+Fix needed: Add gate/unlock copy fields to a global CMS config or per-content-type settings.
+SECTION C: Priority Ranking for Migration
+P0 — Must Fix Before Migration (Blocks core content):
+
+Gap 1: Predictions database table (no persistence at all)
+Gap 6: Frontend must fetch predictions/pulse from API instead of hardcoded imports
+Gap 8: Impact statements field on profiles (content editors need this)
+P1 — Important (Significant hardcoded content): 4. Gap 2: Pulse sparkline data & live counters in CMS
+
+Gap 3: Pulse ticker items
+Gap 7: Polls page debate ticker
+Gap 5: Homepage section hook stats
+Gap 12: Apply page form config
+P2 — Valuable (Global config & polish): 9. Gap 9: Navbar & footer CMS management
+
+Gap 4: Population counter full config
+Gap 13: About page founder statement & region data
+Gap 14: Gate logic copy
+P3 — Nice to Have (Advanced features): 13. Gap 10: Cookie consent CMS management
+
+Gap 11: i18n/translation management system
+SECTION D: Reusable CMS Components Already Available
+The CMS has these reusable patterns that will make migration easier:
+
+ContentList — Generic table with status tabs, bulk actions, JSON upload (used for debates, voices, applications)
+PreviewPanel — Live edit experience for content previews
+DynamicList — Ordered array management (lessons learned, pillars, beliefs, etc.)
+TagInput — Multi-tag entry with taxonomy integration
+ComboSelect — Searchable select with preset options
+Dynamic Page Config — Generic page config pattern (getPage/updatePage) already used for About, FAQ, Terms, Contact, Pulse
+Editorial Workflow — Full status machine (draft → in_review → approved → archived) with bulk transitions
+Homepage Section Manager — Drag-reorder sections with per-section config
+Banner System — Promotional banners with full styling control
+Image Upload — Media upload for profile and content assets
+SECTION E: Files Reference
