@@ -9,6 +9,7 @@ import { ArrowRight } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
+import { PREDICTIONS } from "@/data/predictions-data"
 
 const MENA_POP_BASE = 525_000_000
 const MENA_POP_BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()
@@ -124,44 +125,6 @@ function LiveActivity() {
 }
 
 
-const PREDICTIONS_DATA = [
-  {
-    id: 1,
-    question: "Saudi Arabia Will Have a Fully Operating Cinema in Every Major City by End of 2026",
-    category: "Culture & Policy",
-    resolves: "December 2026",
-    yesPercent: 71,
-    noPercent: 29,
-    count: "14,220",
-  },
-  {
-    id: 2,
-    question: "A MENA-Founded Startup Will Reach $10B Valuation in 2026",
-    category: "Business",
-    resolves: "December 2026",
-    yesPercent: 44,
-    noPercent: 56,
-    count: "9,880",
-  },
-  {
-    id: 3,
-    question: "UAE Will Introduce Some Form of Personal Income Tax Within 3 Years",
-    category: "Economy",
-    resolves: "March 2029",
-    yesPercent: 38,
-    noPercent: 62,
-    count: "18,440",
-  },
-  {
-    id: 4,
-    question: "Arabic Will Become a Mandatory Subject in All Dubai Private Schools Within 2 Years",
-    category: "Education",
-    resolves: "September 2027",
-    yesPercent: 58,
-    noPercent: 42,
-    count: "7,610",
-  },
-]
 
 
 export default function Home() {
@@ -384,72 +347,132 @@ export default function Home() {
 
 
       {/* ── PREDICTIONS ── */}
-      <section id="predictions" className="py-20 bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 border-l-4 border-primary pl-4">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-1 font-serif">{t("Predictions")}</p>
-            <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-              {t("What Do You Think Actually Happens?")}
-            </h2>
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1 font-serif">
-              {t("Not what should happen. What will.")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[900px]">
-            {PREDICTIONS_DATA.map(pred => (
-              <div
-                key={pred.id}
-                className="bg-card border border-border p-6 rounded-[4px] flex flex-col gap-4 transition-all duration-200 hover:-translate-y-1 cursor-pointer group"
-                style={{ borderWidth: "1.5px" }}
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 bg-foreground text-background text-[9px] font-bold uppercase tracking-[0.2em] font-serif">
-                    {pred.category}
-                  </span>
-                  <span
-                    className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm"
-                    style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", color: "#F59E0B" }}
-                  >
-                    Resolves: {pred.resolves}
-                  </span>
-                </div>
-                <p className="font-serif font-black uppercase text-sm leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.2 }}>
-                  {pred.question}
-                </p>
-                <p className="text-[10px] text-muted-foreground font-serif">{pred.count} predictions locked in</p>
-                <div className="space-y-2">
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                        {t("Yes")} {pred.yesPercent}%
-                      </p>
-                      <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${pred.yesPercent}%`, background: "#DC143C" }} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                        {t("No")} {pred.noPercent}%
-                      </p>
-                      <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${pred.noPercent}%`, background: "rgba(255,255,255,0.2)" }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-1">
-                  <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-primary hover:text-white hover:border-primary" style={{ borderColor: "#DC143C", color: "#DC143C" }}>
-                    {t("Yes")}
-                  </button>
-                  <button className="flex-1 py-2.5 border border-border text-foreground/60 font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-secondary hover:text-foreground">
-                    {t("No")}
-                  </button>
-                </div>
-                <p className="text-[10px] text-primary font-bold uppercase tracking-widest font-serif group-hover:underline">
-                  {t("Lock In Your Prediction →")}
-                </p>
+      <section id="predictions" className="py-8 bg-background border-b border-border section-fadein relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
+
+            {/* LEFT: Today's Featured Prediction */}
+            <div className="lg:pr-8 lg:border-r lg:border-border pb-8 lg:pb-0">
+              <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#3B82F6] mb-5 flex items-center gap-2 font-serif">
+                <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
+                {t("TODAY'S FEATURED PREDICTION")}
               </div>
-            ))}
+              {(() => {
+                const featured = PREDICTIONS[0]
+                return (
+                  <Link href="/predictions" className="block">
+                    <div className="bg-card border border-border p-6 rounded-[4px] flex flex-col gap-4 group hover:-translate-y-0.5 transition-all" style={{ borderWidth: "1.5px" }}>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 bg-foreground text-background text-[9px] font-bold uppercase tracking-[0.2em] font-serif">
+                          {featured.category}
+                        </span>
+                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}>
+                          Resolves: {featured.resolves}
+                        </span>
+                      </div>
+                      <p className="font-serif font-black uppercase text-lg leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>
+                        {featured.question}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-serif">{featured.count} predictions locked in</p>
+
+                      {/* Sparkline Chart */}
+                      <div className="relative h-20 w-full mt-1">
+                        <svg viewBox="0 0 200 60" className="w-full h-full" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="predGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
+                              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                            </linearGradient>
+                          </defs>
+                          <path d={`M${featured.data.map((v, i) => `${(i / (featured.data.length - 1)) * 200},${60 - (v / 100) * 55}`).join(" L")} L200,60 L0,60 Z`} fill="url(#predGrad)" />
+                          <polyline points={featured.data.map((v, i) => `${(i / (featured.data.length - 1)) * 200},${60 - (v / 100) * 55}`).join(" ")} fill="none" stroke="#3B82F6" strokeWidth="2" />
+                          <circle cx="200" cy={60 - (featured.data[featured.data.length - 1] / 100) * 55} r="3" fill="#3B82F6" />
+                        </svg>
+                        <div className="absolute top-0 right-0 flex items-center gap-1">
+                          <span className={cn("text-[9px] font-bold font-serif", featured.up ? "text-[#10B981]" : "text-[#DC143C]")}>
+                            {featured.up ? "▲" : "▼"} {featured.momentum}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
+                            Yes {featured.yes}%
+                          </p>
+                          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                            <div className="h-full rounded-full" style={{ width: `${featured.yes}%`, background: "#10B981" }} />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
+                            No {featured.no}%
+                          </p>
+                          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                            <div className="h-full rounded-full" style={{ width: `${featured.no}%`, background: "#DC143C" }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-1">
+                        <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#10B981] hover:text-white hover:border-[#10B981]" style={{ borderColor: "#10B981", color: "#10B981" }}>
+                          Yes
+                        </button>
+                        <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C]" style={{ borderColor: "#DC143C", color: "#DC143C" }}>
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })()}
+            </div>
+
+            {/* RIGHT: Latest Predictions Sidebar */}
+            <div className="lg:pl-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-border">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground font-serif">
+                  {t("Latest Predictions")}
+                </p>
+                <Link href="/predictions" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif transition-colors">
+                  {t("View All")}
+                </Link>
+              </div>
+
+              <div>
+                {PREDICTIONS.slice(1, 7).map((pred) => (
+                  <Link key={pred.id} href="/predictions">
+                    <div className="py-3 border-b border-border group cursor-pointer">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] uppercase tracking-widest text-[#3B82F6] font-serif font-bold">{pred.category}</p>
+                          <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1 group-hover:text-[#3B82F6] transition-colors">
+                            {pred.question.length > 70 ? pred.question.slice(0, 70) + "…" : pred.question}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0 w-16 h-8">
+                          <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
+                            <polyline
+                              points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - (v / 100) * 20}`).join(" ")}
+                              fill="none"
+                              stroke={pred.up ? "#10B981" : "#DC143C"}
+                              strokeWidth="1.5"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="text-[9px] font-bold font-serif" style={{ color: "#10B981" }}>Yes {pred.yes}%</span>
+                        <span className="text-[9px] font-bold font-serif" style={{ color: "#DC143C" }}>No {pred.no}%</span>
+                        <span className={cn("text-[8px] font-bold font-serif ml-auto", pred.up ? "text-[#10B981]" : "text-[#DC143C]")}>
+                          {pred.up ? "▲" : "▼"}{pred.momentum}%
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
