@@ -1,7 +1,7 @@
 import type React from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation, Link } from "wouter";
-import { LayoutDashboard, MessageSquare, TrendingUp, Users, LogOut, Home, Mail, FileText, BarChart3 } from "lucide-react";
+import { LayoutDashboard, MessageSquare, TrendingUp, Users, LogOut, Home, Mail, FileText, BarChart3, Activity, Info, HelpCircle, ScrollText, Phone } from "lucide-react";
 
 const NAV_SECTIONS = [
   {
@@ -17,7 +17,17 @@ const NAV_SECTIONS = [
     items: [
       { path: "/debates", label: "Debates", icon: MessageSquare },
       { path: "/predictions", label: "Predictions", icon: TrendingUp },
+      { path: "/pulse", label: "Pulse", icon: Activity },
       { path: "/voices", label: "Voices", icon: Users },
+    ],
+  },
+  {
+    label: "PAGES",
+    items: [
+      { path: "/pages/about", label: "About", icon: Info },
+      { path: "/pages/faq", label: "FAQ", icon: HelpCircle },
+      { path: "/pages/terms", label: "Terms", icon: ScrollText },
+      { path: "/pages/contact", label: "Contact", icon: Phone },
     ],
   },
   {

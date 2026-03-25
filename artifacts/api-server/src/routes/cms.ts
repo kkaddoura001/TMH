@@ -1056,4 +1056,139 @@ router.get("/cms/analytics", requireCmsAuth, async (_req, res) => {
   }
 });
 
+const pageConfigs: Record<string, unknown> = {
+  about: {
+    hero: {
+      tagline: "Est. 2026 · Founded by Kareem Kaddoura",
+      title: "The Region's First Collective Mirror",
+      subtitle: "MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. Covering 19 countries. 541 million people. One platform.",
+    },
+    pillars: [
+      { num: "01", title: "Debates", body: "The questions no one asks out loud — about identity, money, religion, gender, power, and the future. Every debate is anonymous. Every vote is permanent. What the region thinks stays on record.", link: "/polls", cta: "Enter the Debates" },
+      { num: "02", title: "Predictions", body: "Not what should happen — what will. A Bloomberg-style prediction market for MENA's biggest questions. Track confidence over time, watch consensus shift, and bet on where the region is headed.", link: "/predictions", cta: "Make a Prediction" },
+      { num: "03", title: "The Pulse", body: "Exploding Topics for MENA. 36 data-driven trend cards across 8 categories — from press freedom collapse to the $4.1T sovereign wealth machine. Filterable by Power, Money, Society, Tech, Survival, Migration, Culture, and Health. Real-time population counter. Live tickers. The region's vital signs.", link: "/mena-pulse", cta: "Read The Pulse" },
+      { num: "04", title: "The Voices", body: "94 founders, operators, and changemakers from 10 countries — curated, not applied-for. Each Voice has a story, a lesson, and a quote. This is the region's leadership index, built one profile at a time.", link: "/profiles", cta: "Meet The Voices" },
+    ],
+    beliefs: [
+      { num: "01", title: "A Social Experiment", body: "Every question is a controlled provocation. The point is not agreement. The point is honesty." },
+      { num: "02", title: "No Editorial Agenda", body: "We write the questions. We never write the answers. What the region thinks is the region's business." },
+      { num: "03", title: "Private Opinions, Public Data", body: "Your vote is anonymous. The aggregate is not. That gap is where the truth lives." },
+      { num: "04", title: "The Questions No One Asks", body: "Not because they're dangerous. Because nobody built the room yet. We built the room." },
+      { num: "05", title: "Youngest Region on Earth", body: "60% of MENA is under 30. 541 million people. That's not a demographic stat — it's 541 million opinions waiting to be heard." },
+      { num: "06", title: "Real People Only", body: "No bots. No astroturfing. No sponsored opinions. Just the region, speaking for itself." },
+    ],
+  },
+  pulse: {
+    categories: [
+      { key: "ALL", label: "All Trends", color: "#DC143C" },
+      { key: "POWER", label: "Power & Politics", color: "#EF4444" },
+      { key: "MONEY", label: "Money & Markets", color: "#F59E0B" },
+      { key: "SOCIETY", label: "Society & Identity", color: "#EC4899" },
+      { key: "TECHNOLOGY", label: "Tech & AI", color: "#3B82F6" },
+      { key: "SURVIVAL", label: "Survival & Crisis", color: "#F97316" },
+      { key: "MIGRATION", label: "Migration & Talent", color: "#EF4444" },
+      { key: "CULTURE", label: "Culture & Religion", color: "#A855F7" },
+      { key: "HEALTH", label: "Health & Youth", color: "#10B981" },
+    ],
+    topicCards: [
+      { id: "authoritarianism-index", tag: "POWER", title: "Press Freedom Collapse", stat: "17 of 19 countries", delta: "Not Free", deltaUp: false, blurb: "17 of 19 MENA nations are rated 'Not Free' or 'Partly Free' by Freedom House.", source: "Freedom House 2026 / RSF Press Freedom Index" },
+      { id: "surveillance-tech", tag: "POWER", title: "Surveillance Tech Spending", stat: "$4.8B", delta: "+62% since 2021", deltaUp: true, blurb: "UAE deployed Pegasus spyware against its own citizens. MENA is the world's #1 buyer of spyware.", source: "Citizen Lab / Amnesty International" },
+      { id: "political-prisoners", tag: "POWER", title: "Political Detainees", stat: "60,000+", delta: "Across MENA", deltaUp: false, blurb: "Egypt holds 60,000+ political prisoners — more than during Mubarak.", source: "HRW / Amnesty International / ANHRI" },
+      { id: "wealth-inequality", tag: "MONEY", title: "Billionaire Wealth vs. GDP", stat: "Top 10 = $186B", delta: "+41%", deltaUp: true, blurb: "The 10 richest Arabs hold $186B — more than the GDP of Jordan, Lebanon, Tunisia, Libya, and Yemen combined.", source: "Forbes / World Bank" },
+    ],
+    hero: {
+      title: "MENA PULSE",
+      subtitle: "Real-time trend tracking across 19 countries. The region's vital signs.",
+    },
+  },
+  faq: {
+    sections: [
+      {
+        category: "The Platform",
+        questions: [
+          { q: "What is The Tribunal?", a: "The Tribunal, by The Middle East Hustle, is MENA's first opinion intelligence platform — part editorial, part data engine, part social experiment. We cover 19 countries and 541 million people across the Middle East and North Africa." },
+          { q: "Is The Tribunal free to use?", a: "Yes. Voting on debates, making predictions, browsing The Pulse trends, and exploring Voice profiles are all completely free." },
+          { q: "Who is behind The Tribunal?", a: "The Tribunal was founded by Kareem Kaddoura under The Middle East Hustle. The platform is editorially independent." },
+          { q: "Are the polls scientific?", a: "No. Our polls are not statistically representative surveys. They represent the self-selected opinions of people who visit the platform." },
+        ],
+      },
+      {
+        category: "Debates",
+        questions: [
+          { q: "How do the debates work?", a: "Every debate is a single question with multiple options. You click your answer. Your vote is anonymous — we don't store your IP address or personally identify you." },
+          { q: "Can I vote more than once?", a: "No. Each device can cast one vote per debate. We use browser storage (not cookies) to remember your votes." },
+          { q: "What is the Share Gate?", a: "The Share Gate sits between your vote and the full results. After you vote, you can unlock results by sharing on social media or entering your email." },
+        ],
+      },
+      {
+        category: "Predictions",
+        questions: [
+          { q: "What is the Predictions page?", a: "Predictions is our Bloomberg-style prediction market for MENA's biggest questions. Instead of asking 'what should happen,' we ask 'what will happen.'" },
+        ],
+      },
+      {
+        category: "The Pulse",
+        questions: [
+          { q: "What is The Pulse?", a: "The Pulse is our data-driven trend tracking page — think 'Exploding Topics' but built specifically for the MENA region." },
+        ],
+      },
+      {
+        category: "The Voices",
+        questions: [
+          { q: "How do I become a Voice?", a: "Apply through the 'Join The Voices' page. We look for verifiable impact, a unique story, and relevance to the MENA ecosystem." },
+        ],
+      },
+      {
+        category: "Data & Privacy",
+        questions: [
+          { q: "Is my vote anonymous?", a: "Yes. We do not store your IP address. We derive your approximate country from your IP at the time of voting, then discard the IP immediately." },
+        ],
+      },
+    ],
+  },
+  terms: {
+    lastUpdated: "2026-01-01",
+    sections: [
+      { id: "acceptance", title: "1. Acceptance of Terms", content: "By accessing or using The Tribunal, by The Middle East Hustle, you agree to be bound by these Terms and Conditions." },
+      { id: "platform", title: "2. What The Tribunal Is", content: "The Tribunal is an independent opinion and polling platform by The Middle East Hustle, focused on the Middle East and North Africa region." },
+      { id: "eligibility", title: "3. Age and Eligibility", content: "You must be at least 16 years old to use The Tribunal." },
+      { id: "data", title: "4. Data Collection", content: "When you vote on a poll, we collect: your anonymised vote selection, the poll ID and timestamp, your approximate country of origin. Your full IP address is never stored." },
+      { id: "cookies", title: "5. Cookies and Local Storage", content: "The Tribunal uses browser localStorage (not third-party cookies) to remember your voting history and preferences." },
+      { id: "ugc", title: "6. User-Generated Content", content: "Voice profiles, submitted poll questions, and application materials constitute user-generated content." },
+      { id: "ip", title: "7. Intellectual Property", content: "All branding, editorial content, design assets, and platform code are the intellectual property of The Middle East Hustle." },
+      { id: "sharing", title: "8. The Share Gate Mechanic", content: "The Share Gate requires users to share a poll or provide an email before accessing full results." },
+      { id: "disclaimers", title: "9. Disclaimers and Limitation of Liability", content: "THE PLATFORM IS PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND." },
+      { id: "prohibited", title: "10. Prohibited Conduct", content: "You agree not to: vote multiple times using VPNs/proxies, submit false information, or use bots to bypass the Share Gate." },
+      { id: "governing", title: "11. Governing Law", content: "These Terms are governed by the laws of the United Arab Emirates." },
+    ],
+  },
+  contact: {
+    emails: [
+      { label: "General Inquiries", email: "hello@themiddleeasthustle.com", description: "For questions, partnerships, and media inquiries" },
+      { label: "Legal & Data Requests", email: "legal@themiddleeasthustle.com", description: "For GDPR requests, legal notices, and data inquiries" },
+      { label: "Editorial & Corrections", email: "editorial@themiddleeasthustle.com", description: "For content corrections, editorial submissions, and fact-checking" },
+    ],
+    socialLinks: [
+      { platform: "X (Twitter)", url: "https://x.com/tmehustle" },
+      { platform: "LinkedIn", url: "https://linkedin.com/company/themiddleeasthustle" },
+      { platform: "Instagram", url: "https://instagram.com/themiddleeasthustle" },
+    ],
+    officeLocation: "Dubai, United Arab Emirates",
+  },
+};
+
+router.get("/cms/pages/:page", requireCmsAuth, (req, res) => {
+  const page = req.params.page;
+  const config = pageConfigs[page];
+  if (!config) return res.status(404).json({ error: "Page not found" });
+  return res.json(config);
+});
+
+router.put("/cms/pages/:page", requireCmsAuth, (req, res) => {
+  const page = req.params.page;
+  if (!pageConfigs[page]) return res.status(404).json({ error: "Page not found" });
+  pageConfigs[page] = req.body;
+  return res.json({ success: true, config: pageConfigs[page] });
+});
+
 export default router;

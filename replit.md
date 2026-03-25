@@ -25,7 +25,8 @@ Design aligned with main site: "THE TRIBUNAL." branding with crimson period, Pla
 
 Sidebar sections:
 - **Overview**: Dashboard (content stats + recent activity), Analytics (vote analytics, top polls, votes by category/country, daily activity), Homepage Manager (masthead, ticker, sections, banners, newsletter CTA)
-- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Voices (CRUD + full profile editor)
+- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Pulse (topic cards, categories, hero — MENA trend data), Voices (CRUD + full profile editor)
+- **Pages**: About (hero, pillars, beliefs editor), FAQ (sections + Q&A editor), Terms (sections editor with last-updated date), Contact (emails, social links, office location)
 - **Audience**: Subscribers (newsletter list from DB, search, CSV export), Applications ("Join The Voices" submissions from DB, review/approve/reject/shortlist)
 
 All CMS content endpoints are backed by real PostgreSQL queries via Drizzle ORM:

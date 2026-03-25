@@ -111,6 +111,10 @@ export const api = {
 
   getAnalytics: () => request("/analytics"),
 
+  getPage: (page: string) => request(`/pages/${page}`),
+  updatePage: (page: string, data: Record<string, unknown>) =>
+    request(`/pages/${page}`, { method: "PUT", body: JSON.stringify(data) }),
+
   getHomepage: () => request("/homepage"),
   updateHomepage: (data: Record<string, unknown>) =>
     request("/homepage", { method: "PUT", body: JSON.stringify(data) }),
