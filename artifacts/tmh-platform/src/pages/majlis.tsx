@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Layout } from "@/components/layout/Layout"
-import { useLocation } from "wouter"
-import { Send, Users, LogOut, ChevronDown, Shield, ArrowDown, MessageSquare } from "lucide-react"
+import { useLocation, Link } from "wouter"
+import { Send, Users, LogOut, ChevronDown, Shield, ArrowDown, MessageSquare, BarChart3, TrendingUp, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MajlisUser {
@@ -83,8 +83,74 @@ function buildMockMessages(): Message[] {
   return msgs
 }
 
+interface SharedContent {
+  type: "debate" | "prediction" | "pulse"
+  id: string
+  title: string
+  stat?: string
+  category?: string
+}
+
+function parseSharedContent(content: string): { text: string; shared: SharedContent | null } {
+  const shareRegex = /\[share:(debate|prediction|pulse):(\d+)\|([^\]]+)\]/
+  const match = content.match(shareRegex)
+  if (!match) return { text: content, shared: null }
+  const text = content.replace(shareRegex, "").trim()
+  const [, type, id, payload] = match
+  const parts = payload.split("|")
+  return {
+    text,
+    shared: {
+      type: type as SharedContent["type"],
+      id,
+      title: parts[0] || "",
+      stat: parts[1],
+      category: parts[2],
+    },
+  }
+}
+
+function SharedCard({ shared }: { shared: SharedContent }) {
+  const colorMap = { debate: "#DC143C", prediction: "#3B82F6", pulse: "#10B981" }
+  const iconMap = { debate: BarChart3, prediction: TrendingUp, pulse: Activity }
+  const linkMap = { debate: `/polls/${shared.id}`, prediction: `/predictions`, pulse: `/mena-pulse` }
+  const labelMap = { debate: "DEBATE", prediction: "PREDICTION", pulse: "PULSE" }
+  const Icon = iconMap[shared.type]
+  const color = colorMap[shared.type]
+
+  return (
+    <Link href={linkMap[shared.type]}>
+      <div
+        className="mt-2 border rounded p-3 cursor-pointer hover:bg-white/[0.03] transition-colors max-w-md"
+        style={{ borderColor: `${color}40` }}
+      >
+        <div className="flex items-center gap-2 mb-1.5">
+          <Icon className="w-3.5 h-3.5" style={{ color }} />
+          <span className="text-[8px] font-serif font-bold uppercase tracking-[0.2em]" style={{ color }}>
+            {labelMap[shared.type]}
+          </span>
+          {shared.category && (
+            <span className="text-[8px] font-serif uppercase tracking-wider text-muted-foreground">
+              · {shared.category}
+            </span>
+          )}
+        </div>
+        <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground">
+          {shared.title}
+        </p>
+        {shared.stat && (
+          <p className="text-[10px] mt-1 font-serif" style={{ color }}>
+            {shared.stat}
+          </p>
+        )}
+      </div>
+    </Link>
+  )
+}
+
 function MessageBubble({ message, isOwn, onReply }: { message: Message; isOwn: boolean; onReply: (m: Message) => void }) {
   const initials = message.profileName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+  const { text, shared } = parseSharedContent(message.content)
 
   return (
     <div className={cn("flex gap-3 group px-4 py-2 hover:bg-white/[0.02] transition-colors", isOwn && "flex-row-reverse")}>
@@ -108,9 +174,12 @@ function MessageBubble({ message, isOwn, onReply }: { message: Message; isOwn: b
             {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
-        <p className={cn("text-sm text-foreground/90 leading-relaxed break-words", isOwn && "text-right")}>
-          {message.content}
-        </p>
+        {text && (
+          <p className={cn("text-sm text-foreground/90 leading-relaxed break-words", isOwn && "text-right")}>
+            {text}
+          </p>
+        )}
+        {shared && <SharedCard shared={shared} />}
         <button
           onClick={() => onReply(message)}
           className="opacity-0 group-hover:opacity-100 text-[9px] text-muted-foreground hover:text-primary transition-all font-serif uppercase tracking-wider mt-0.5"
