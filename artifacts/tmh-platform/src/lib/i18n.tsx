@@ -89,6 +89,7 @@ const AR: Record<string, string> = {
   "Predictions": "التوقعات",
   "Voices": "الأصوات",
   "Join The Voices": "انضم للأصوات",
+  "Apply to Be a Voice": "قدّم لتصبح صوتاً",
   "by The Middle East Hustle": "من ذا ميدل إيست هاسل",
   "Opinion of Record": "رأي للتاريخ",
   "The voice of": "صوت",

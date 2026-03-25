@@ -71,7 +71,7 @@ export function Navbar() {
               href="/apply"
               className="hidden sm:flex items-center gap-2 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.15em] px-4 py-2 hover:bg-primary/90 transition-colors font-serif"
             >
-              {t("Join The Voices")}
+              {t("Apply to Be a Voice")}
             </Link>
 
             <button
@@ -115,7 +115,7 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full text-center bg-primary text-white font-bold uppercase tracking-[0.2em] text-sm py-3 font-serif hover:bg-primary/90 transition-colors"
               >
-                {t("Join The Voices")}
+                {t("Apply to Be a Voice")}
               </Link>
             </div>
           </div>
