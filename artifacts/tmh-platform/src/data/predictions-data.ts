@@ -172,6 +172,157 @@ export const PREDICTIONS: PredictionCard[] = [
   { id: 113, category: "Geopolitics & Governance", resolves: "Jun 2027", question: "Morocco will formally bid for the 2030 FIFA World Cup co-hosting", count: "8,234", yes: 84, no: 16, momentum: 0.4, up: true, data: spark(82, "up", 1) },
   { id: 114, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Dubai Creek Tower will be completed and open to the public", count: "7,345", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
   { id: 115, category: "Technology & AI", resolves: "Sep 2027", question: "Drone delivery will be commercially available in 3+ MENA cities", count: "6,901", yes: 61, no: 39, momentum: 1.3, up: true, data: spark(57, "up") },
+
+  // ─── MOROCCO ──────────────────────────────────────────────
+  { id: 116, category: "Infrastructure & Cities", resolves: "Jun 2030", question: "Morocco's TGV high-speed rail will extend from Casablanca to Marrakech by 2030", count: "7,823", yes: 54, no: 46, momentum: 1.1, up: true, data: spark(50, "up") },
+  { id: 117, category: "Sports & Entertainment", resolves: "Jun 2030", question: "Morocco will successfully co-host the 2030 FIFA World Cup with Spain and Portugal", count: "14,502", yes: 92, no: 8, momentum: 0.3, up: true, data: spark(90, "up", 1) },
+  { id: 118, category: "Business & Startups", resolves: "Dec 2027", question: "Tanger Med port will surpass 10 million TEU containers annually", count: "6,234", yes: 67, no: 33, momentum: 0.9, up: true, data: spark(63, "up") },
+  { id: 119, category: "Energy & Climate", resolves: "Dec 2028", question: "Morocco's Noor-Ouarzazate solar complex will reach full 580 MW capacity and export power to Europe", count: "8,012", yes: 58, no: 42, momentum: 1.4, up: true, data: spark(54, "up") },
+  { id: 120, category: "Economy & Finance", resolves: "Dec 2027", question: "Morocco's automotive sector will export $15 billion annually, surpassing South Africa", count: "5,678", yes: 62, no: 38, momentum: 1.2, up: true, data: spark(58, "up") },
+  { id: 121, category: "Culture & Society", resolves: "Dec 2026", question: "Morocco's Amazigh New Year (Yennayer) will be widely observed as a national holiday across North Africa", count: "4,567", yes: 71, no: 29, momentum: 0.5, up: true, data: spark(69, "up", 1) },
+  { id: 122, category: "Education & Workforce", resolves: "Jun 2028", question: "Morocco's mandatory French-language instruction in public schools will be reduced in favor of English", count: "6,345", yes: 44, no: 56, momentum: 1.7, up: true, data: spark(38, "up") },
+  { id: 123, category: "Health & Demographics", resolves: "Dec 2027", question: "Morocco's universal health insurance (AMO) will cover 90% of the population", count: "5,901", yes: 52, no: 48, momentum: 0.8, up: true, data: spark(49, "up") },
+
+  // ─── ALGERIA ──────────────────────────────────────────────
+  { id: 124, category: "Economy & Finance", resolves: "Dec 2027", question: "Algeria will reduce its oil and gas dependency to below 85% of total exports", count: "5,234", yes: 28, no: 72, momentum: 0.6, up: false, data: spark(31, "down", 1) },
+  { id: 125, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Algiers Metro will complete its extension to El Harrach and Baraki (Line 1 full build-out)", count: "4,567", yes: 43, no: 57, momentum: 0.7, up: false, data: spark(45, "flat") },
+  { id: 126, category: "Business & Startups", resolves: "Jun 2027", question: "Algeria's 2022 startup law will produce at least 5,000 registered startups", count: "5,123", yes: 51, no: 49, momentum: 1.3, up: true, data: spark(47, "up") },
+  { id: 127, category: "Energy & Climate", resolves: "Dec 2029", question: "Algeria will begin construction on its first nuclear power plant for electricity generation", count: "4,012", yes: 32, no: 68, momentum: 0.4, up: false, data: spark(34, "down", 1) },
+  { id: 128, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Algeria and Morocco will reopen their shared land border (closed since 1994)", count: "7,456", yes: 22, no: 78, momentum: 0.5, up: false, data: spark(24, "flat") },
+  { id: 129, category: "Culture & Society", resolves: "Jun 2027", question: "Algeria's film industry will produce a Cannes Film Festival official selection entry", count: "3,890", yes: 47, no: 53, momentum: 1.1, up: true, data: spark(43, "up") },
+  { id: 130, category: "Technology & AI", resolves: "Dec 2027", question: "Algeria will achieve 95% 4G coverage nationwide, up from 70% in 2024", count: "4,678", yes: 55, no: 45, momentum: 0.8, up: true, data: spark(52, "up") },
+
+  // ─── TUNISIA ──────────────────────────────────────────────
+  { id: 131, category: "Economy & Finance", resolves: "Dec 2027", question: "Tunisia will secure a new IMF loan program after rejecting the 2023 deal", count: "6,012", yes: 38, no: 62, momentum: 0.9, up: false, data: spark(41, "down") },
+  { id: 132, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Tunisia will hold free and competitive parliamentary elections under President Saied", count: "5,678", yes: 24, no: 76, momentum: 0.6, up: false, data: spark(27, "down", 1) },
+  { id: 133, category: "Business & Startups", resolves: "Jun 2027", question: "Tunisia's olive oil exports will exceed $1 billion, becoming the world's second-largest exporter", count: "4,891", yes: 63, no: 37, momentum: 0.7, up: true, data: spark(60, "up", 1) },
+  { id: 134, category: "Culture & Society", resolves: "Dec 2026", question: "Tunisia will maintain its 1956 Personal Status Code protections for women's rights despite constitutional changes", count: "5,234", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+  { id: 135, category: "Health & Demographics", resolves: "Dec 2028", question: "Tunisia's emigration of healthcare workers will exceed 2,000 doctors per year", count: "3,456", yes: 67, no: 33, momentum: 1.5, up: true, data: spark(62, "up") },
+  { id: 136, category: "Energy & Climate", resolves: "Dec 2028", question: "Tunisia's TuNur solar export project will begin transmitting power to Europe via subsea cable", count: "4,123", yes: 29, no: 71, momentum: 0.5, up: false, data: spark(32, "down", 1) },
+
+  // ─── EGYPT ────────────────────────────────────────────────
+  { id: 137, category: "Infrastructure & Cities", resolves: "Dec 2027", question: "Egypt's Grand Egyptian Museum in Giza will reach 10 million annual visitors", count: "9,567", yes: 55, no: 45, momentum: 1.3, up: true, data: spark(51, "up") },
+  { id: 138, category: "Economy & Finance", resolves: "Jun 2027", question: "The Ras El-Hekma mega-development (UAE's $35B deal) will break ground on Phase 1", count: "8,234", yes: 64, no: 36, momentum: 0.9, up: true, data: spark(61, "up") },
+  { id: 139, category: "Health & Demographics", resolves: "Dec 2028", question: "Egypt's population will officially surpass 115 million", count: "7,901", yes: 82, no: 18, momentum: 0.3, up: true, data: spark(80, "up", 1) },
+  { id: 140, category: "Technology & AI", resolves: "Dec 2027", question: "Egypt's Knowledge City in the New Administrative Capital will host 30+ tech companies", count: "5,456", yes: 48, no: 52, momentum: 1.1, up: true, data: spark(44, "up") },
+  { id: 141, category: "Energy & Climate", resolves: "Jun 2028", question: "Egypt's El Dabaa nuclear plant (built by Rosatom) will begin generating power", count: "6,789", yes: 39, no: 61, momentum: 0.7, up: false, data: spark(42, "down") },
+  { id: 142, category: "Culture & Society", resolves: "Dec 2026", question: "Egyptian cinema will produce 200+ feature films in 2026, reclaiming its 'Hollywood of the Arab World' title", count: "5,012", yes: 58, no: 42, momentum: 0.8, up: true, data: spark(55, "up") },
+  { id: 143, category: "Business & Startups", resolves: "Dec 2027", question: "Egypt's Suez Canal Economic Zone will attract $10 billion in cumulative FDI", count: "6,345", yes: 45, no: 55, momentum: 1.0, up: true, data: spark(41, "up") },
+
+  // ─── JORDAN ───────────────────────────────────────────────
+  { id: 144, category: "Energy & Climate", resolves: "Dec 2027", question: "Jordan will generate 35% of electricity from renewables (currently 27%)", count: "5,234", yes: 64, no: 36, momentum: 0.8, up: true, data: spark(60, "up") },
+  { id: 145, category: "Economy & Finance", resolves: "Jun 2028", question: "Jordan's national debt-to-GDP ratio will decrease below 85% (currently 89%)", count: "4,567", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
+  { id: 146, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "The Aqaba-Amman national railway project will begin passenger service", count: "5,901", yes: 33, no: 67, momentum: 0.6, up: false, data: spark(36, "down") },
+  { id: 147, category: "Technology & AI", resolves: "Jun 2027", question: "Jordan's tech sector will exceed $3 billion in revenue, led by Maktoob/Mawdoo3-era companies", count: "4,890", yes: 54, no: 46, momentum: 1.2, up: true, data: spark(50, "up") },
+  { id: 148, category: "Health & Demographics", resolves: "Dec 2027", question: "Jordan's water crisis will force year-round rationing in Amman (currently seasonal)", count: "6,123", yes: 61, no: 39, momentum: 1.6, up: true, data: spark(55, "up") },
+  { id: 149, category: "Culture & Society", resolves: "Dec 2026", question: "Jordan will amend its penal code to eliminate reduced sentences for 'honor' crimes", count: "5,345", yes: 38, no: 62, momentum: 0.7, up: false, data: spark(40, "flat") },
+
+  // ─── LEBANON ──────────────────────────────────────────────
+  { id: 150, category: "Economy & Finance", resolves: "Dec 2027", question: "Lebanon's banking sector will begin formal restructuring with depositor compensation plan", count: "7,234", yes: 34, no: 66, momentum: 0.8, up: false, data: spark(37, "down") },
+  { id: 151, category: "Infrastructure & Cities", resolves: "Jun 2028", question: "Beirut port explosion site will have a completed memorial and reconstruction plan underway", count: "5,678", yes: 42, no: 58, momentum: 0.9, up: true, data: spark(38, "up") },
+  { id: 152, category: "Health & Demographics", resolves: "Dec 2027", question: "Lebanon will lose more than 40% of its physicians to emigration (up from 30% in 2023)", count: "4,901", yes: 72, no: 28, momentum: 1.3, up: true, data: spark(68, "up") },
+  { id: 153, category: "Energy & Climate", resolves: "Dec 2028", question: "Lebanon will begin offshore gas extraction from Block 9 (Qana prospect)", count: "5,456", yes: 28, no: 72, momentum: 0.4, up: false, data: spark(31, "down", 1) },
+  { id: 154, category: "Culture & Society", resolves: "Jun 2027", question: "Beirut will reclaim its position as the Arab world's top publishing city by title output", count: "4,012", yes: 45, no: 55, momentum: 0.6, up: false, data: spark(48, "flat") },
+  { id: 155, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Lebanon's new government will implement the Taif Agreement's decentralization provisions", count: "5,234", yes: 21, no: 79, momentum: 0.3, up: false, data: spark(23, "down", 1) },
+
+  // ─── IRAQ ─────────────────────────────────────────────────
+  { id: 156, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Iraq's Grand Faw Port on the Persian Gulf will complete Phase 1 and begin commercial operations", count: "7,123", yes: 52, no: 48, momentum: 1.1, up: true, data: spark(48, "up") },
+  { id: 157, category: "Economy & Finance", resolves: "Jun 2027", question: "Iraq's Development Road (1,200 km rail corridor to Turkey) will complete its first section", count: "5,890", yes: 35, no: 65, momentum: 0.7, up: false, data: spark(38, "down") },
+  { id: 158, category: "Energy & Climate", resolves: "Dec 2027", question: "Iraq will reduce natural gas flaring by 50% from 2023 levels (currently world's 2nd-largest flarer)", count: "4,567", yes: 27, no: 73, momentum: 0.5, up: false, data: spark(30, "down", 1) },
+  { id: 159, category: "Health & Demographics", resolves: "Dec 2028", question: "Iraq's cancer rates in Basra and Fallujah will be formally linked to depleted uranium exposure by WHO", count: "3,901", yes: 44, no: 56, momentum: 0.8, up: true, data: spark(40, "up") },
+  { id: 160, category: "Culture & Society", resolves: "Jun 2027", question: "Iraqi Kurdistan's tourism sector will exceed 5 million visitors annually", count: "5,234", yes: 57, no: 43, momentum: 1.0, up: true, data: spark(53, "up") },
+  { id: 161, category: "Technology & AI", resolves: "Dec 2027", question: "Iraq will complete its national fiber-optic backbone connecting all 18 governorates", count: "4,345", yes: 41, no: 59, momentum: 0.6, up: false, data: spark(43, "flat") },
+
+  // ─── KUWAIT ───────────────────────────────────────────────
+  { id: 162, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "Kuwait's Mubarak Al-Kabeer Port (Bubiyan Island) will reach initial operating capacity", count: "5,678", yes: 38, no: 62, momentum: 0.7, up: false, data: spark(41, "down") },
+  { id: 163, category: "Economy & Finance", resolves: "Dec 2026", question: "Kuwait's parliament will pass the public debt law after 7+ years of deadlock", count: "6,890", yes: 52, no: 48, momentum: 1.4, up: true, data: spark(47, "up") },
+  { id: 164, category: "Health & Demographics", resolves: "Dec 2027", question: "Kuwait's diabetes prevalence will remain the world's highest at 24%+ of adults", count: "4,123", yes: 78, no: 22, momentum: 0.3, up: true, data: spark(76, "up", 1) },
+  { id: 165, category: "Geopolitics & Governance", resolves: "Jun 2028", question: "Kuwait will implement its expat population cap, reducing non-Kuwaiti residents by 15%", count: "5,456", yes: 34, no: 66, momentum: 0.9, up: false, data: spark(37, "down") },
+  { id: 166, category: "Energy & Climate", resolves: "Dec 2027", question: "Kuwait's Shagaya renewable energy park will reach its 4.5 GW target", count: "4,789", yes: 29, no: 71, momentum: 0.5, up: false, data: spark(32, "down", 1) },
+
+  // ─── BAHRAIN ──────────────────────────────────────────────
+  { id: 167, category: "Economy & Finance", resolves: "Dec 2027", question: "Bahrain's fiscal balance plan will reduce its budget deficit below 3% of GDP", count: "4,567", yes: 36, no: 64, momentum: 0.7, up: false, data: spark(39, "down") },
+  { id: 168, category: "Business & Startups", resolves: "Jun 2027", question: "Bahrain's fintech ecosystem will host 200+ licensed fintech firms (currently 120+)", count: "5,234", yes: 58, no: 42, momentum: 1.1, up: true, data: spark(54, "up") },
+  { id: 169, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "The King Hamad Causeway (second Bahrain-Saudi link) will begin construction", count: "6,012", yes: 41, no: 59, momentum: 0.6, up: false, data: spark(43, "flat") },
+  { id: 170, category: "Culture & Society", resolves: "Jun 2027", question: "Bahrain's Pearling Path UNESCO World Heritage site will draw 500,000 annual tourists", count: "3,890", yes: 49, no: 51, momentum: 0.8, up: true, data: spark(46, "up") },
+
+  // ─── QATAR ────────────────────────────────────────────────
+  { id: 171, category: "Energy & Climate", resolves: "Dec 2027", question: "Qatar's North Field LNG expansion will increase production capacity to 126 MTPA (from 77 MTPA)", count: "8,456", yes: 71, no: 29, momentum: 0.6, up: true, data: spark(68, "up", 1) },
+  { id: 172, category: "Education & Workforce", resolves: "Jun 2028", question: "Qatar Foundation's Education City will host 15+ international university branches", count: "5,234", yes: 66, no: 34, momentum: 0.5, up: true, data: spark(64, "up", 1) },
+  { id: 173, category: "Economy & Finance", resolves: "Dec 2027", question: "Qatar Investment Authority's global portfolio will exceed $500 billion in assets", count: "6,789", yes: 73, no: 27, momentum: 0.8, up: true, data: spark(70, "up") },
+  { id: 174, category: "Culture & Society", resolves: "Dec 2026", question: "Qatar's kafala system reforms will result in measurable improvements in worker conditions per ILO audit", count: "5,678", yes: 32, no: 68, momentum: 0.7, up: false, data: spark(35, "down") },
+
+  // ─── OMAN ─────────────────────────────────────────────────
+  { id: 175, category: "Economy & Finance", resolves: "Dec 2028", question: "Oman's Vision 2040 will reduce oil dependency to below 60% of government revenue", count: "5,345", yes: 42, no: 58, momentum: 0.9, up: true, data: spark(38, "up") },
+  { id: 176, category: "Infrastructure & Cities", resolves: "Jun 2028", question: "Oman's national railway (connecting Muscat to Sohar and Duqm) will begin operations", count: "4,901", yes: 36, no: 64, momentum: 0.5, up: false, data: spark(38, "down", 1) },
+  { id: 177, category: "Business & Startups", resolves: "Dec 2027", question: "Oman's Duqm Special Economic Zone will attract cumulative investment exceeding $15 billion", count: "5,123", yes: 49, no: 51, momentum: 1.0, up: true, data: spark(45, "up") },
+  { id: 178, category: "Culture & Society", resolves: "Dec 2026", question: "Oman's tourism sector will surpass 3.5 million visitors (Vision 2040 target ramp-up)", count: "4,567", yes: 54, no: 46, momentum: 0.7, up: true, data: spark(51, "up") },
+
+  // ─── TURKEY ───────────────────────────────────────────────
+  { id: 179, category: "Economy & Finance", resolves: "Dec 2027", question: "Turkey's inflation will drop below 20% annually (from 65% peak in 2024)", count: "8,901", yes: 47, no: 53, momentum: 1.5, up: true, data: spark(41, "up") },
+  { id: 180, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Turkey's Kanal Istanbul (parallel to the Bosphorus) will complete its first phase", count: "7,234", yes: 28, no: 72, momentum: 0.4, up: false, data: spark(31, "down", 1) },
+  { id: 181, category: "Business & Startups", resolves: "Jun 2027", question: "Turkey's defense industry exports will exceed $10 billion annually (Baykar drones leading)", count: "6,567", yes: 62, no: 38, momentum: 1.3, up: true, data: spark(58, "up") },
+  { id: 182, category: "Health & Demographics", resolves: "Dec 2027", question: "Turkey's medical tourism revenue will surpass $15 billion (currently $10B+)", count: "5,890", yes: 56, no: 44, momentum: 0.9, up: true, data: spark(52, "up") },
+  { id: 183, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Turkey will hold municipal elections with opposition parties winning 5+ major cities", count: "6,234", yes: 54, no: 46, momentum: 1.1, up: true, data: spark(50, "up") },
+  { id: 184, category: "Energy & Climate", resolves: "Dec 2027", question: "Turkey's Akkuyu nuclear power plant will deliver first electricity to the grid", count: "7,012", yes: 61, no: 39, momentum: 0.7, up: true, data: spark(58, "up") },
+  { id: 185, category: "Culture & Society", resolves: "Jun 2027", question: "Turkish TV series (dizi) export revenue will exceed $1 billion annually", count: "5,456", yes: 74, no: 26, momentum: 0.5, up: true, data: spark(72, "up", 1) },
+  { id: 186, category: "Sports & Entertainment", resolves: "Dec 2028", question: "Istanbul will submit another Summer Olympics bid (after 5 failed bids)", count: "4,678", yes: 51, no: 49, momentum: 0.8, up: true, data: spark(48, "up") },
+
+  // ─── PALESTINE ────────────────────────────────────────────
+  { id: 187, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "The number of UN member states recognizing Palestinian statehood will exceed 160 (currently 146)", count: "9,012", yes: 71, no: 29, momentum: 1.4, up: true, data: spark(66, "up") },
+  { id: 188, category: "Economy & Finance", resolves: "Dec 2028", question: "Gaza reconstruction costs will officially be assessed at over $50 billion by the World Bank", count: "7,456", yes: 78, no: 22, momentum: 0.6, up: true, data: spark(75, "up", 1) },
+  { id: 189, category: "Health & Demographics", resolves: "Jun 2028", question: "UNRWA will face existential funding crisis with annual budget gap exceeding $500 million", count: "6,345", yes: 74, no: 26, momentum: 1.7, up: true, data: spark(69, "up") },
+  { id: 190, category: "Technology & AI", resolves: "Dec 2027", question: "Palestinian tech startups in Ramallah will collectively raise over $200 million in funding", count: "4,123", yes: 41, no: 59, momentum: 1.1, up: true, data: spark(36, "up") },
+
+  // ─── YEMEN ────────────────────────────────────────────────
+  { id: 191, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Yemen's Houthi-controlled areas will maintain de facto independence from the recognized government", count: "7,890", yes: 76, no: 24, momentum: 0.5, up: true, data: spark(74, "up", 1) },
+  { id: 192, category: "Health & Demographics", resolves: "Dec 2027", question: "Yemen will remain the world's worst humanitarian crisis with 18+ million people needing aid", count: "6,567", yes: 81, no: 19, momentum: 0.4, up: true, data: spark(79, "up", 1) },
+  { id: 193, category: "Economy & Finance", resolves: "Jun 2028", question: "Yemen's rial will continue dual exchange rates between Aden and Sana'a governments", count: "4,901", yes: 72, no: 28, momentum: 0.6, up: true, data: spark(69, "up") },
+  { id: 194, category: "Energy & Climate", resolves: "Dec 2028", question: "The Safer oil tanker environmental disaster in the Red Sea will cost over $20 billion in damages", count: "5,234", yes: 48, no: 52, momentum: 0.9, up: true, data: spark(44, "up") },
+
+  // ─── SUDAN ────────────────────────────────────────────────
+  { id: 195, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Sudan's civil war between SAF and RSF will continue with no formal ceasefire by end of 2027", count: "8,234", yes: 68, no: 32, momentum: 1.2, up: true, data: spark(64, "up") },
+  { id: 196, category: "Health & Demographics", resolves: "Jun 2027", question: "Sudan's internally displaced population will exceed 12 million (currently 9M+)", count: "7,012", yes: 75, no: 25, momentum: 1.8, up: true, data: spark(70, "up") },
+  { id: 197, category: "Economy & Finance", resolves: "Dec 2027", question: "Sudan's agricultural sector will remain below 50% of its pre-war production capacity", count: "4,567", yes: 71, no: 29, momentum: 0.7, up: true, data: spark(67, "up") },
+  { id: 198, category: "Culture & Society", resolves: "Dec 2028", question: "Sudan's cultural heritage sites in Khartoum including the National Museum will sustain irreparable war damage", count: "5,123", yes: 64, no: 36, momentum: 1.0, up: true, data: spark(60, "up") },
+
+  // ─── SYRIA ────────────────────────────────────────────────
+  { id: 199, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Western sanctions on Syria will be partially lifted to enable reconstruction", count: "6,789", yes: 37, no: 63, momentum: 0.8, up: true, data: spark(33, "up") },
+  { id: 200, category: "Economy & Finance", resolves: "Dec 2028", question: "Syria's reconstruction will attract less than $5 billion in international funding (vs. $400B needed)", count: "5,456", yes: 74, no: 26, momentum: 0.6, up: true, data: spark(71, "up") },
+  { id: 201, category: "Health & Demographics", resolves: "Jun 2028", question: "Fewer than 500,000 Syrian refugees will have returned home (out of 5.5 million abroad)", count: "6,012", yes: 68, no: 32, momentum: 0.9, up: true, data: spark(64, "up") },
+  { id: 202, category: "Culture & Society", resolves: "Dec 2027", question: "Syria's pre-war population of 21 million will remain below 18 million due to displacement and emigration", count: "4,890", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+
+  // ─── LIBYA ────────────────────────────────────────────────
+  { id: 203, category: "Energy & Climate", resolves: "Dec 2027", question: "Libya's oil production will stabilize above 1.2 million barrels per day despite political division", count: "5,678", yes: 51, no: 49, momentum: 1.0, up: true, data: spark(48, "up") },
+  { id: 204, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Libya will remain governed by two rival administrations (Tripoli and Benghazi) through 2028", count: "6,345", yes: 73, no: 27, momentum: 0.5, up: true, data: spark(71, "up", 1) },
+  { id: 205, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Derna flood reconstruction (2023 disaster, 11,000+ killed) will be less than 30% complete", count: "4,901", yes: 66, no: 34, momentum: 0.8, up: true, data: spark(62, "up") },
+  { id: 206, category: "Health & Demographics", resolves: "Jun 2027", question: "Libya's healthcare system will continue operating at below 50% capacity due to conflict damage", count: "4,234", yes: 69, no: 31, momentum: 0.6, up: true, data: spark(66, "up") },
+
+  // ─── CROSS-REGIONAL: DIVERSE COUNTRY FOCUS ────────────────
+  { id: 207, category: "Economy & Finance", resolves: "Dec 2027", question: "Morocco's phosphate exports (OCP Group) will generate $10+ billion annually due to global fertilizer demand", count: "6,234", yes: 66, no: 34, momentum: 1.1, up: true, data: spark(62, "up") },
+  { id: 208, category: "Technology & AI", resolves: "Jun 2028", question: "Turkey's Baykar will export Bayraktar TB3 drones to 30+ countries worldwide", count: "7,012", yes: 64, no: 36, momentum: 1.3, up: true, data: spark(59, "up") },
+  { id: 209, category: "Education & Workforce", resolves: "Dec 2027", question: "Egyptian expat remittances will exceed $35 billion annually (key source of foreign currency)", count: "5,890", yes: 68, no: 32, momentum: 0.7, up: true, data: spark(65, "up") },
+  { id: 210, category: "Business & Startups", resolves: "Jun 2027", question: "Jordan will have 1,000+ active tech startups, cementing its role as the Levant's startup hub", count: "4,567", yes: 55, no: 45, momentum: 1.0, up: true, data: spark(51, "up") },
+  { id: 211, category: "Energy & Climate", resolves: "Dec 2028", question: "Algeria's Trans-Saharan gas pipeline to Nigeria will begin construction", count: "5,123", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
+  { id: 212, category: "Infrastructure & Cities", resolves: "Dec 2027", question: "Kuwait's South Al-Mutlaa City project will deliver 30,000 housing units (out of planned 400,000)", count: "4,678", yes: 43, no: 57, momentum: 0.6, up: false, data: spark(45, "flat") },
+  { id: 213, category: "Culture & Society", resolves: "Jun 2027", question: "Lebanon's literary scene will produce 5+ internationally translated Arabic novels per year", count: "3,456", yes: 62, no: 38, momentum: 0.5, up: true, data: spark(59, "up") },
+  { id: 214, category: "Sports & Entertainment", resolves: "Dec 2026", question: "Morocco's Atlas Lions will remain in the FIFA top 15 rankings through 2026", count: "6,789", yes: 61, no: 39, momentum: 0.8, up: true, data: spark(58, "up") },
+  { id: 215, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Algeria will maintain its non-aligned foreign policy, refusing to join any Saudi or Iran-led bloc", count: "5,012", yes: 79, no: 21, momentum: 0.3, up: true, data: spark(77, "up", 1) },
+  { id: 216, category: "Health & Demographics", resolves: "Dec 2028", question: "Turkey will face a net emigration of skilled workers exceeding 200,000 annually", count: "5,678", yes: 58, no: 42, momentum: 1.4, up: true, data: spark(53, "up") },
+  { id: 217, category: "Economy & Finance", resolves: "Jun 2027", question: "Bahrain's aluminum industry (Alba) will remain the country's largest non-oil export at $3B+", count: "4,234", yes: 76, no: 24, momentum: 0.4, up: true, data: spark(74, "up", 1) },
+  { id: 218, category: "Technology & AI", resolves: "Dec 2027", question: "Qatar's TASMU smart city platform will achieve 90% digital government service delivery", count: "5,345", yes: 62, no: 38, momentum: 0.9, up: true, data: spark(58, "up") },
+  { id: 219, category: "Business & Startups", resolves: "Dec 2028", question: "Egypt's Golden Triangle mining project in the Eastern Desert will begin gold and mineral extraction", count: "4,901", yes: 44, no: 56, momentum: 0.7, up: true, data: spark(40, "up") },
+  { id: 220, category: "Education & Workforce", resolves: "Jun 2028", question: "Tunisia's youth emigration rate will exceed 50% of university graduates within 5 years of graduation", count: "4,567", yes: 66, no: 34, momentum: 1.5, up: true, data: spark(61, "up") },
+  { id: 221, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "Iraq's Bismayah new city project south of Baghdad will house 500,000 residents", count: "4,234", yes: 37, no: 63, momentum: 0.6, up: false, data: spark(39, "down") },
+  { id: 222, category: "Sports & Entertainment", resolves: "Jun 2027", question: "Algeria's national football team will qualify for the 2026 Africa Cup of Nations", count: "5,123", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+  { id: 223, category: "Energy & Climate", resolves: "Dec 2028", question: "Jordan's Red Sea–Dead Sea desalination project will begin delivering water to Amman", count: "4,890", yes: 34, no: 66, momentum: 0.7, up: false, data: spark(37, "down") },
+  { id: 224, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Iraq's Kurdistan Region will hold an independence referendum or formal autonomy vote", count: "4,012", yes: 18, no: 82, momentum: 0.4, up: false, data: spark(20, "flat", 1) },
+  { id: 225, category: "Culture & Society", resolves: "Jun 2028", question: "Oman will open its Royal Opera House second venue, expanding Muscat's cultural tourism", count: "3,678", yes: 58, no: 42, momentum: 0.6, up: true, data: spark(55, "up") },
+  { id: 226, category: "Economy & Finance", resolves: "Dec 2027", question: "Turkey's GDP will surpass $1.2 trillion, making it the world's 16th largest economy", count: "6,567", yes: 59, no: 41, momentum: 1.0, up: true, data: spark(55, "up") },
+  { id: 227, category: "Health & Demographics", resolves: "Dec 2028", question: "Algeria's population will surpass 48 million with a fertility rate above 2.8", count: "4,345", yes: 75, no: 25, momentum: 0.3, up: true, data: spark(73, "up", 1) },
+  { id: 228, category: "Technology & AI", resolves: "Jun 2027", question: "Morocco's Casablanca Finance City will host 250+ international financial firms", count: "4,789", yes: 56, no: 44, momentum: 0.8, up: true, data: spark(53, "up") },
+  { id: 229, category: "Business & Startups", resolves: "Dec 2027", question: "Kuwait's direct investment portfolio through KIA will exceed $800 billion globally", count: "5,012", yes: 65, no: 35, momentum: 0.6, up: true, data: spark(62, "up") },
+  { id: 230, category: "Education & Workforce", resolves: "Dec 2027", question: "Oman's Saudization (Omanization) rate in the private sector will reach 42%", count: "4,123", yes: 48, no: 52, momentum: 0.9, up: true, data: spark(44, "up") },
 ]
 
 export const PREDICTIONS_TICKER = [
@@ -179,16 +330,30 @@ export const PREDICTIONS_TICKER = [
   { label: "$10B STARTUP", yes: 44, delta: 1.3, up: false },
   { label: "UAE INCOME TAX", yes: 38, delta: 0.8, up: true },
   { label: "ARABIC SCHOOLS", yes: 58, delta: 1.4, up: true },
-  { label: "MENA CANNABIS", yes: 29, delta: 0.6, up: false },
-  { label: "JOB SURVIVAL", yes: 71, delta: 2.1, up: true },
   { label: "NEOM LINE", yes: 36, delta: 1.8, up: false },
   { label: "RIYADH METRO", yes: 64, delta: 1.1, up: true },
   { label: "SAUDI 2034 WC", yes: 91, delta: 0.2, up: true },
-  { label: "ESPORTS $1B", yes: 48, delta: 2.1, up: true },
   { label: "EGYPT CAPITAL", yes: 48, delta: 1.5, up: true },
-  { label: "YOUTH JOBS", yes: 32, delta: 0.9, up: false },
   { label: "GREEN H2 OMAN", yes: 41, delta: 0.5, up: true },
-  { label: "JEDDAH TOWER", yes: 53, delta: 2.6, up: true },
-  { label: "ARAMCO CAP", yes: 37, delta: 1.9, up: true },
   { label: "GCC VISA", yes: 48, delta: 1.4, up: true },
+  { label: "MOROCCO 2030 WC", yes: 92, delta: 0.3, up: true },
+  { label: "TANGER MED", yes: 67, delta: 0.9, up: true },
+  { label: "ALGERIA BORDER", yes: 22, delta: 0.5, up: false },
+  { label: "TUNISIA IMF", yes: 38, delta: 0.9, up: false },
+  { label: "EGYPT 115M POP", yes: 82, delta: 0.3, up: true },
+  { label: "JORDAN WATER", yes: 61, delta: 1.6, up: true },
+  { label: "LEBANON BANKS", yes: 34, delta: 0.8, up: false },
+  { label: "IRAQ GRAND FAW", yes: 52, delta: 1.1, up: true },
+  { label: "KUWAIT DEBT LAW", yes: 52, delta: 1.4, up: true },
+  { label: "BAHRAIN FINTECH", yes: 58, delta: 1.1, up: true },
+  { label: "QATAR LNG 126MT", yes: 71, delta: 0.6, up: true },
+  { label: "TURKEY INFLATION", yes: 47, delta: 1.5, up: true },
+  { label: "LIBYA ELECTION", yes: 22, delta: 0.3, up: false },
+  { label: "SUDAN WAR", yes: 68, delta: 1.2, up: true },
+  { label: "SYRIA SANCTIONS", yes: 37, delta: 0.8, up: true },
+  { label: "PALESTINE 160 UN", yes: 71, delta: 1.4, up: true },
+  { label: "YEMEN CRISIS", yes: 81, delta: 0.4, up: true },
+  { label: "MOROCCO SOLAR", yes: 58, delta: 1.4, up: true },
+  { label: "TURKEY DRONES", yes: 62, delta: 1.3, up: true },
+  { label: "BAYKAR TB3", yes: 64, delta: 1.3, up: true },
 ]
