@@ -9,7 +9,7 @@ import { ArrowRight } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
-import { PREDICTIONS } from "@/data/predictions-data"
+import { PREDICTIONS, type PredictionCard } from "@/data/predictions-data"
 
 const MENA_POP_BASE = 525_000_000
 const MENA_POP_BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()

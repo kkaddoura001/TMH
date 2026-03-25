@@ -13,11 +13,19 @@ export interface PredictionCard {
 
 function spark(base: number, trend: "up" | "down" | "flat", volatility = 2): number[] {
   const seed = base * 137 + (trend === "up" ? 31 : trend === "down" ? 59 : 17) + volatility * 7
-  const pts: number[] = [base]
-  for (let i = 1; i < 8; i++) {
-    const s = Math.sin(seed * (i + 1) * 0.7931 + i * 2.1) * 0.5 + 0.5
-    const d = trend === "up" ? s * volatility : trend === "down" ? -s * volatility : (s - 0.5) * volatility
-    pts.push(Math.round(Math.max(5, Math.min(95, pts[i - 1] + d))))
+  const len = 12
+  const pts: number[] = []
+  const startOffset = trend === "up" ? -(volatility * 4) : trend === "down" ? (volatility * 4) : 0
+  pts.push(Math.round(Math.max(8, Math.min(92, base + startOffset))))
+  for (let i = 1; i < len; i++) {
+    const progress = i / (len - 1)
+    const trendPull = trend === "up" ? volatility * 1.5 * progress : trend === "down" ? -volatility * 1.5 * progress : 0
+    const noise = Math.sin(seed * (i + 1) * 0.7931 + i * 2.1) * volatility * 2.5
+    const wobble = Math.cos(seed * i * 1.31 + i * 3.7) * volatility * 1.2
+    const target = base + trendPull * (len - 1) + noise + wobble
+    const prev = pts[i - 1]
+    const jump = (target - prev) * 0.6
+    pts.push(Math.round(Math.max(8, Math.min(92, prev + jump))))
   }
   return pts
 }
