@@ -24,9 +24,27 @@ export const majlisUsersTable = pgTable("majlis_users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const majlisChannelsTable = pgTable("majlis_channels", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("group"),
+  createdBy: integer("created_by").references(() => majlisUsersTable.id),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const majlisChannelMembersTable = pgTable("majlis_channel_members", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id").notNull().references(() => majlisChannelsTable.id),
+  userId: integer("user_id").notNull().references(() => majlisUsersTable.id),
+  lastReadMessageId: integer("last_read_message_id"),
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
 export const majlisMessagesTable = pgTable("majlis_messages", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => majlisUsersTable.id),
+  channelId: integer("channel_id").references(() => majlisChannelsTable.id),
   content: text("content").notNull(),
   replyToId: integer("reply_to_id"),
   isEdited: boolean("is_edited").notNull().default(false),
@@ -37,4 +55,6 @@ export const majlisMessagesTable = pgTable("majlis_messages", {
 
 export type MajlisInvite = typeof majlisInvitesTable.$inferSelect;
 export type MajlisUser = typeof majlisUsersTable.$inferSelect;
+export type MajlisChannel = typeof majlisChannelsTable.$inferSelect;
+export type MajlisChannelMember = typeof majlisChannelMembersTable.$inferSelect;
 export type MajlisMessage = typeof majlisMessagesTable.$inferSelect;

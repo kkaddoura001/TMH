@@ -112,7 +112,9 @@ artifacts-monorepo/
 - `cms_configs` — Key-value config store (homepage, page configs)
 - `design_tokens` — Design system tokens (colors, typography, UI values)
 - `majlis_users` — Authenticated Majlis chat users (FK to profiles, email + hashed password, ban/mute flags)
-- `majlis_messages` — Chat messages with reply threading, edit/delete tracking
+- `majlis_channels` — Chat channels (group or DM, with default "General" channel)
+- `majlis_channel_members` — Channel membership with last-read message tracking for unread counts
+- `majlis_messages` — Chat messages with reply threading, edit/delete tracking, nullable channelId FK, AES-256-CBC encrypted content
 
 ### API Endpoints
 - `GET /api/polls` — List polls (with filter/category query params)
@@ -143,20 +145,32 @@ CMS admin endpoints (`/api/cms/*`) require `x-cms-token` header for mutations.
 - `POST /api/majlis/auth/register` — Register (requires valid profileId)
 - `POST /api/majlis/auth/login` — Login with email + password
 - `POST /api/majlis/auth/verify` — Verify session token
-- `GET /api/majlis/messages` — Paginated message history (auth required)
-- `POST /api/majlis/messages` — Send message (auth required)
-- `GET /api/majlis/messages/poll` — Poll for new messages after ID (auth required)
+- `POST /api/majlis/channels` — Create group or DM channel (DM dedup)
+- `GET /api/majlis/channels` — List user's channels with last message + unread count
+- `GET /api/majlis/channels/:id` — Channel details + members
+- `POST /api/majlis/channels/:id/members` — Add members (creator-only for groups)
+- `DELETE /api/majlis/channels/:id/members/:userId` — Leave group channel
+- `GET /api/majlis/channels/:channelId/messages` — Paginated, decrypted messages for channel
+- `POST /api/majlis/channels/:channelId/messages` — Send encrypted message to channel
+- `GET /api/majlis/channels/:channelId/messages/poll` — Poll for new messages in channel
+- `GET /api/majlis/messages` — Legacy endpoint (routes to General channel)
+- `POST /api/majlis/messages` — Legacy endpoint (routes to General channel)
+- `GET /api/majlis/messages/poll` — Legacy poll endpoint (routes to General channel)
 - `GET /api/majlis/members` — List members with online status (auth required)
 - CMS endpoints: `GET /api/cms/majlis/stats`, `GET/PATCH /api/cms/majlis/users`, `GET/DELETE /api/cms/majlis/messages`
 
 ### The Majlis (Private Chat)
 - **Route**: `/majlis` — protected chat room, redirects to `/majlis/login` if not authenticated
-- **Auth**: Email + password registration (invite-only, requires approved Voice profile ID)
+- **Auth**: Email + password registration (invite-only, requires approved Voice profile ID). Login/register pages call real API (no mock data).
 - **Session**: JWT-like token in `x-majlis-token` header, stored in `localStorage` as `majlis_token`
-- **Real-time**: Polling every 3 seconds for new messages
-- **Design**: Dark theme with crimson accents, editorial feel, member sidebar with online status
+- **Layout**: Three-panel — channel sidebar (left), active chat (center), members panel (right). Mobile: left sidebar is slide-out drawer.
+- **Channels**: Group channels and DMs. Default "General" channel seeded on first access. DM dedup prevents duplicate conversations.
+- **Encryption**: Messages encrypted at rest with AES-256-CBC (per-message IV). `MAJLIS_ENCRYPTION_KEY` env var required (32-byte hex). Decrypted server-side before returning.
+- **Real-time**: Polling every 3 seconds for new messages, channel list refreshes every 10 seconds
+- **Design**: Dark theme with crimson accents, editorial feel, member sidebar with online status and DM button
 - **Entry points**: Navbar (lock icon), Profiles page hero button, individual profile detail links
 - **CMS**: Majlis management under COMMUNITY section — user management (ban/mute/activate), message moderation
+- **Edge cases**: Banned users blocked at auth middleware, muted users shown notice + disabled input, unread indicators on channels
 
 ## Database State (as of March 2026)
 - **327 polls** total across 15 categories

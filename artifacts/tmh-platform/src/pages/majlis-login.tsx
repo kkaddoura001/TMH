@@ -3,19 +3,7 @@ import { Layout } from "@/components/layout/Layout"
 import { useLocation } from "wouter"
 import { Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
 
-const MOCK_USER = {
-  id: 1,
-  displayName: "Mohammed Al Zaben",
-  email: "mohammed@tribunal.com",
-  profileId: 219,
-  profile: {
-    name: "Mohammed Al Zaben",
-    role: "Founder & CEO",
-    company: "The Tribunal",
-    imageUrl: null,
-    isVerified: true,
-  },
-}
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
 
 export default function MajlisLogin() {
   const [, navigate] = useLocation()
@@ -32,23 +20,49 @@ export default function MajlisLogin() {
     setError("")
     setLoading(true)
 
-    await new Promise(r => setTimeout(r, 800))
+    try {
+      if (mode === "register" && !inviteToken.trim()) {
+        setError("A valid invite token is required to register")
+        setLoading(false)
+        return
+      }
+      if (!email.trim() || !password.trim()) {
+        setError("Email and password are required")
+        setLoading(false)
+        return
+      }
 
-    if (mode === "register" && !inviteToken.trim()) {
-      setError("A valid invite token is required to register")
-      setLoading(false)
-      return
-    }
-    if (!email.trim() || !password.trim()) {
-      setError("Email and password are required")
-      setLoading(false)
-      return
-    }
+      const endpoint = mode === "login"
+        ? `${API_BASE}/api/majlis/auth/login`
+        : `${API_BASE}/api/majlis/auth/register`
 
-    localStorage.setItem("majlis_token", "mock_token_demo")
-    localStorage.setItem("majlis_user", JSON.stringify(MOCK_USER))
-    navigate("/majlis")
-    setLoading(false)
+      const body: Record<string, string> = { email: email.trim(), password }
+      if (mode === "register") {
+        body.inviteToken = inviteToken.trim()
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Authentication failed")
+        setLoading(false)
+        return
+      }
+
+      localStorage.setItem("majlis_token", data.token)
+      localStorage.setItem("majlis_user", JSON.stringify(data.user))
+      navigate("/majlis")
+    } catch {
+      setError("Network error. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

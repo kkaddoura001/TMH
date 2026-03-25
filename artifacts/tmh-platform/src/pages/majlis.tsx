@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { useLocation, Link } from "wouter"
-import { Send, Users, LogOut, ChevronDown, Shield, ArrowDown, MessageSquare, BarChart3, TrendingUp, Activity } from "lucide-react"
+import { Send, Users, LogOut, ChevronDown, Shield, ArrowDown, MessageSquare, Hash, Mail, Plus, X, Menu, BarChart3, TrendingUp, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
 
 interface MajlisUser {
   id: number
@@ -45,6 +47,19 @@ interface Member {
   profileImage: string | null
   profileVerified: boolean
   profileCountry: string
+  isMuted?: boolean
+}
+
+interface Channel {
+  id: number
+  name: string
+  type: string
+  isDefault: boolean
+  displayName: string
+  createdAt: string
+  createdBy: number | null
+  lastMessage: { content: string; userName: string; createdAt: string } | null
+  unreadCount: number
 }
 
 function getUser(): MajlisUser | null {
@@ -54,36 +69,16 @@ function getUser(): MajlisUser | null {
   } catch { return null }
 }
 
-const MOCK_MEMBERS: Member[] = [
-  { id: 1, displayName: "Mohammed Al Zaben", profileId: 219, isOnline: true, profileName: "Mohammed Al Zaben", profileRole: "Founder & CEO", profileCompany: "The Tribunal", profileImage: null, profileVerified: true, profileCountry: "Saudi Arabia" },
-  { id: 2, displayName: "Layla Hassan", profileId: 220, isOnline: true, profileName: "Layla Hassan", profileRole: "Managing Partner", profileCompany: "Crescent Ventures", profileImage: null, profileVerified: true, profileCountry: "UAE" },
-  { id: 3, displayName: "Omar Khalil", profileId: 221, isOnline: true, profileName: "Omar Khalil", profileRole: "Chief Strategy Officer", profileCompany: "NEOM Tech", profileImage: null, profileVerified: true, profileCountry: "Saudi Arabia" },
-  { id: 4, displayName: "Fatima Al-Rashid", profileId: 222, isOnline: false, profileName: "Fatima Al-Rashid", profileRole: "Founder", profileCompany: "Souq Labs", profileImage: null, profileVerified: true, profileCountry: "Kuwait" },
-  { id: 5, displayName: "Youssef Mansour", profileId: 223, isOnline: false, profileName: "Youssef Mansour", profileRole: "VP of Growth", profileCompany: "Careem", profileImage: null, profileVerified: true, profileCountry: "Egypt" },
-  { id: 6, displayName: "Nadia Belhaj", profileId: 224, isOnline: true, profileName: "Nadia Belhaj", profileRole: "CEO", profileCompany: "Atlas Digital", profileImage: null, profileVerified: true, profileCountry: "Morocco" },
-  { id: 7, displayName: "Tariq Al-Farsi", profileId: 225, isOnline: false, profileName: "Tariq Al-Farsi", profileRole: "Investor", profileCompany: "Gulf Capital", profileImage: null, profileVerified: true, profileCountry: "Oman" },
-  { id: 8, displayName: "Rania Jaber", profileId: 226, isOnline: false, profileName: "Rania Jaber", profileRole: "Head of Policy", profileCompany: "MENA Council", profileImage: null, profileVerified: true, profileCountry: "Jordan" },
-]
+function getToken(): string | null {
+  return localStorage.getItem("majlis_token")
+}
 
-function buildMockMessages(): Message[] {
-  const now = Date.now()
-  const msgs: Message[] = [
-    { id: 1, content: "Salam everyone. Excited to finally have a private space for real talk about the MENA ecosystem.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 5).toISOString(), userId: 2, userName: "Layla Hassan", profileId: 220, profileName: "Layla Hassan", profileRole: "Managing Partner", profileCompany: "Crescent Ventures", profileImage: null, profileVerified: true },
-    { id: 2, content: "Agreed. Too much noise on public channels. This feels like it could be the real deal for founders who actually build.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 4.8).toISOString(), userId: 3, userName: "Omar Khalil", profileId: 221, profileName: "Omar Khalil", profileRole: "Chief Strategy Officer", profileCompany: "NEOM Tech", profileImage: null, profileVerified: true },
-    { id: 3, content: "Question for the group — anyone seeing deal flow slow down in Q1? We're seeing a 30% dip in Series A activity across the Gulf.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 4).toISOString(), userId: 2, userName: "Layla Hassan", profileId: 220, profileName: "Layla Hassan", profileRole: "Managing Partner", profileCompany: "Crescent Ventures", profileImage: null, profileVerified: true },
-    { id: 4, content: "Not slowing here. Actually the opposite — we're seeing more cross-border deals. UAE-Saudi corridor is hotter than ever.", replyToId: 3, isEdited: false, createdAt: new Date(now - 3600000 * 3.5).toISOString(), userId: 6, userName: "Nadia Belhaj", profileId: 224, profileName: "Nadia Belhaj", profileRole: "CEO", profileCompany: "Atlas Digital", profileImage: null, profileVerified: true },
-    { id: 5, content: "Same. North Africa is quietly booming. Morocco alone had 4 exits last quarter. The ecosystem is maturing faster than people realize.", replyToId: 3, isEdited: false, createdAt: new Date(now - 3600000 * 3.2).toISOString(), userId: 5, userName: "Youssef Mansour", profileId: 223, profileName: "Youssef Mansour", profileRole: "VP of Growth", profileCompany: "Careem", profileImage: null, profileVerified: true },
-    { id: 6, content: "The talent gap is the real bottleneck though. Every founder I talk to says hiring senior engineers is their #1 pain point.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 2.5).toISOString(), userId: 3, userName: "Omar Khalil", profileId: 221, profileName: "Omar Khalil", profileRole: "Chief Strategy Officer", profileCompany: "NEOM Tech", profileImage: null, profileVerified: true },
-    { id: 7, content: "We solved that by building a remote-first engineering hub in Amman. Jordan has incredible talent at a fraction of the cost. Happy to share our playbook.", replyToId: 6, isEdited: false, createdAt: new Date(now - 3600000 * 2).toISOString(), userId: 8, userName: "Rania Jaber", profileId: 226, profileName: "Rania Jaber", profileRole: "Head of Policy", profileCompany: "MENA Council", profileImage: null, profileVerified: true },
-    { id: 8, content: "Would love that. Can you share more details here or should we set up a call?", replyToId: 7, isEdited: false, createdAt: new Date(now - 3600000 * 1.5).toISOString(), userId: 1, userName: "Mohammed Al Zaben", profileId: 219, profileName: "Mohammed Al Zaben", profileRole: "Founder & CEO", profileCompany: "The Tribunal", profileImage: null, profileVerified: true },
-    { id: 9, content: "Let's do it here. Transparency is what makes The Majlis special. Quick summary: we partnered with 3 universities in Amman, run a 12-week accelerator for junior devs, and our retention rate is 92%.", replyToId: 8, isEdited: false, createdAt: new Date(now - 3600000 * 1).toISOString(), userId: 8, userName: "Rania Jaber", profileId: 226, profileName: "Rania Jaber", profileRole: "Head of Policy", profileCompany: "MENA Council", profileImage: null, profileVerified: true },
-    { id: 10, content: "That's brilliant. We need more of this cross-market collaboration. This is exactly why this room exists.", replyToId: null, isEdited: false, createdAt: new Date(now - 3600000 * 0.5).toISOString(), userId: 7, userName: "Tariq Al-Farsi", profileId: 225, profileName: "Tariq Al-Farsi", profileRole: "Investor", profileCompany: "Gulf Capital", profileImage: null, profileVerified: true },
-    { id: 11, content: "Has everyone seen this debate? The results are wild 🔥 [share:debate:549|Will your job still exist in 5 years? Be honest.|9,003 votes|Technology & AI]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 3).toISOString(), userId: 3, userName: "Omar Khalil", profileId: 221, profileName: "Omar Khalil", profileRole: "Chief Strategy Officer", profileCompany: "NEOM Tech", profileImage: null, profileVerified: true },
-    { id: 12, content: "This prediction is going to age terribly 😂 [share:prediction:1|Saudi Arabia's non-oil GDP will exceed 50% of total GDP by end of 2026|Yes 62% · No 38%|Economy & Finance]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 2).toISOString(), userId: 6, userName: "Nadia Belhaj", profileId: 224, profileName: "Nadia Belhaj", profileRole: "CEO", profileCompany: "Atlas Digital", profileImage: null, profileVerified: true },
-    { id: 13, content: "The sovereign wealth data is insane [share:pulse:0|Sovereign Wealth Power|$4.1 Trillion|Money]", replyToId: null, isEdited: false, createdAt: new Date(now - 600000 * 1.5).toISOString(), userId: 2, userName: "Layla Hassan", profileId: 220, profileName: "Layla Hassan", profileRole: "Managing Partner", profileCompany: "Crescent Ventures", profileImage: null, profileVerified: true },
-    { id: 14, content: "By the way — there's a private dinner happening at LEAP next week. I can get invites for anyone here. DM me your details.", replyToId: null, isEdited: false, createdAt: new Date(now - 600000).toISOString(), userId: 4, userName: "Fatima Al-Rashid", profileId: 222, profileName: "Fatima Al-Rashid", profileRole: "Founder", profileCompany: "Souq Labs", profileImage: null, profileVerified: true },
-  ]
-  return msgs
+function apiHeaders(): Record<string, string> {
+  const token = getToken()
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { "x-majlis-token": token } : {}),
+  }
 }
 
 interface SharedContent {
@@ -151,7 +146,7 @@ function SharedCard({ shared }: { shared: SharedContent }) {
   )
 }
 
-function MessageBubble({ message, isOwn, onReply }: { message: Message; isOwn: boolean; onReply: (m: Message) => void }) {
+function MessageBubble({ message, isOwn, onReply, isDeleted }: { message: Message; isOwn: boolean; onReply: (m: Message) => void; isDeleted?: boolean }) {
   const initials = message.profileName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
   const { text, shared } = parseSharedContent(message.content)
 
@@ -177,24 +172,147 @@ function MessageBubble({ message, isOwn, onReply }: { message: Message; isOwn: b
             {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
-        {text && (
-          <p className={cn("text-sm text-foreground/90 leading-relaxed break-words", isOwn && "text-right")}>
-            {text}
+        {isDeleted ? (
+          <p className={cn("text-sm text-muted-foreground/50 italic leading-relaxed", isOwn && "text-right")}>
+            This message was deleted
           </p>
+        ) : (
+          <>
+            {text && (
+              <p className={cn("text-sm text-foreground/90 leading-relaxed break-words", isOwn && "text-right")}>
+                {text}
+              </p>
+            )}
+            {shared && <SharedCard shared={shared} />}
+            <button
+              onClick={() => onReply(message)}
+              className="opacity-0 group-hover:opacity-100 text-[9px] text-muted-foreground hover:text-primary transition-all font-serif uppercase tracking-wider mt-0.5"
+            >
+              Reply
+            </button>
+          </>
         )}
-        {shared && <SharedCard shared={shared} />}
-        <button
-          onClick={() => onReply(message)}
-          className="opacity-0 group-hover:opacity-100 text-[9px] text-muted-foreground hover:text-primary transition-all font-serif uppercase tracking-wider mt-0.5"
-        >
-          Reply
-        </button>
       </div>
     </div>
   )
 }
 
-function MembersSidebar({ members, show, onClose }: { members: Member[]; show: boolean; onClose: () => void }) {
+function ChannelSidebar({
+  channels, activeChannelId, onSelect, onCreateGroup, show, onClose
+}: {
+  channels: Channel[]
+  activeChannelId: number | null
+  onSelect: (id: number) => void
+  onCreateGroup: () => void
+  show: boolean
+  onClose: () => void
+}) {
+  const groups = channels.filter(c => c.type === "group")
+  const dms = channels.filter(c => c.type === "dm")
+
+  return (
+    <>
+      {show && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
+      )}
+      <div className={cn(
+        "w-72 border-r border-border bg-card flex-shrink-0 flex flex-col overflow-hidden z-50",
+        "fixed lg:relative inset-y-0 left-0 transition-transform duration-200",
+        show ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h3 className="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            Channels
+          </h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onCreateGroup}
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="Create Group"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button onClick={onClose} className="lg:hidden text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {groups.length > 0 && (
+            <div className="py-2">
+              <p className="px-4 py-1 text-[9px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Groups
+              </p>
+              {groups.map(ch => (
+                <ChannelItem key={ch.id} channel={ch} active={ch.id === activeChannelId} onSelect={onSelect} />
+              ))}
+            </div>
+          )}
+          {dms.length > 0 && (
+            <div className="py-2">
+              <p className="px-4 py-1 text-[9px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Direct Messages
+              </p>
+              {dms.map(ch => (
+                <ChannelItem key={ch.id} channel={ch} active={ch.id === activeChannelId} onSelect={onSelect} />
+              ))}
+            </div>
+          )}
+          {channels.length === 0 && (
+            <div className="p-4 text-center">
+              <p className="text-xs text-muted-foreground">No channels yet</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ChannelItem({ channel, active, onSelect }: { channel: Channel; active: boolean; onSelect: (id: number) => void }) {
+  return (
+    <button
+      onClick={() => onSelect(channel.id)}
+      className={cn(
+        "w-full text-left px-4 py-2.5 flex items-start gap-2.5 hover:bg-muted/30 transition-colors",
+        active && "bg-primary/10 border-r-2 border-primary"
+      )}
+    >
+      <div className="flex-shrink-0 mt-0.5">
+        {channel.type === "dm" ? (
+          <Mail className="w-4 h-4 text-muted-foreground" />
+        ) : (
+          <Hash className="w-4 h-4 text-muted-foreground" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className={cn("text-xs font-medium truncate", active ? "text-foreground" : "text-foreground/80")}>
+            {channel.displayName}
+          </span>
+          {channel.unreadCount > 0 && (
+            <span className="flex-shrink-0 w-5 h-5 bg-primary text-white text-[9px] font-bold flex items-center justify-center rounded-full">
+              {channel.unreadCount > 9 ? "9+" : channel.unreadCount}
+            </span>
+          )}
+        </div>
+        {channel.lastMessage && (
+          <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+            <span className="font-medium">{channel.lastMessage.userName}:</span> {channel.lastMessage.content}
+          </p>
+        )}
+      </div>
+    </button>
+  )
+}
+
+function MembersSidebar({ members, show, onClose, onDm, currentUserId }: {
+  members: Member[]
+  show: boolean
+  onClose: () => void
+  onDm: (memberId: number) => void
+  currentUserId: number
+}) {
   const online = members.filter(m => m.isOnline)
   const offline = members.filter(m => !m.isOnline)
 
@@ -218,7 +336,7 @@ function MembersSidebar({ members, show, onClose }: { members: Member[]; show: b
               Online — {online.length}
             </p>
             {online.map(m => (
-              <MemberItem key={m.id} member={m} />
+              <MemberItem key={m.id} member={m} onDm={onDm} isCurrentUser={m.id === currentUserId} />
             ))}
           </>
         )}
@@ -228,7 +346,7 @@ function MembersSidebar({ members, show, onClose }: { members: Member[]; show: b
               Offline — {offline.length}
             </p>
             {offline.map(m => (
-              <MemberItem key={m.id} member={m} />
+              <MemberItem key={m.id} member={m} onDm={onDm} isCurrentUser={m.id === currentUserId} />
             ))}
           </>
         )}
@@ -237,11 +355,11 @@ function MembersSidebar({ members, show, onClose }: { members: Member[]; show: b
   )
 }
 
-function MemberItem({ member }: { member: Member }) {
+function MemberItem({ member, onDm, isCurrentUser }: { member: Member; onDm: (id: number) => void; isCurrentUser: boolean }) {
   const initials = member.profileName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
 
   return (
-    <div className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-muted/30 transition-colors">
+    <div className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-muted/30 transition-colors group">
       <div className="relative flex-shrink-0">
         <div className="w-7 h-7 rounded-full overflow-hidden border border-border">
           {member.profileImage ? (
@@ -257,7 +375,7 @@ function MemberItem({ member }: { member: Member }) {
           member.isOnline ? "bg-green-400" : "bg-muted-foreground/30"
         )} />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1">
           <span className="text-xs font-medium text-foreground truncate">{member.profileName}</span>
           {member.profileVerified && <Shield className="w-2.5 h-2.5 text-primary flex-shrink-0" />}
@@ -266,6 +384,90 @@ function MemberItem({ member }: { member: Member }) {
           {member.profileRole}{member.profileCountry ? ` · ${member.profileCountry}` : ""}
         </span>
       </div>
+      {!isCurrentUser && (
+        <button
+          onClick={() => onDm(member.id)}
+          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all flex-shrink-0"
+          title={`Message ${member.profileName}`}
+        >
+          <Mail className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  )
+}
+
+function CreateGroupModal({ members, onClose, onSubmit }: {
+  members: Member[]
+  onClose: () => void
+  onSubmit: (name: string, memberIds: number[]) => void
+}) {
+  const [name, setName] = useState("")
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+
+  const toggle = (id: number) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-card border border-border w-full max-w-md max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h3 className="text-sm font-display font-bold uppercase tracking-tight text-foreground">
+            Create Group Channel
+          </h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+          <div>
+            <label className="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-1.5">
+              Channel Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g. Founders Circle"
+              className="w-full bg-background border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-1.5">
+              Add Members ({selected.size} selected)
+            </label>
+            <div className="space-y-1 max-h-48 overflow-y-auto border border-border p-2">
+              {members.map(m => (
+                <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted/30 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(m.id)}
+                    onChange={() => toggle(m.id)}
+                    className="accent-primary"
+                  />
+                  <span className="text-xs text-foreground">{m.profileName}</span>
+                  <span className="text-[9px] text-muted-foreground">{m.profileRole}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="p-4 border-t border-border">
+          <button
+            onClick={() => { if (name.trim()) onSubmit(name.trim(), Array.from(selected)) }}
+            disabled={!name.trim()}
+            className="w-full bg-primary text-white font-serif font-bold uppercase tracking-[0.2em] text-xs py-3 hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            Create Channel
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -273,37 +475,149 @@ function MemberItem({ member }: { member: Member }) {
 export default function Majlis() {
   const [, navigate] = useLocation()
   const [user, setUser] = useState<MajlisUser | null>(null)
+  const [channels, setChannels] = useState<Channel[]>([])
+  const [activeChannelId, setActiveChannelId] = useState<number | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [members] = useState<Member[]>(MOCK_MEMBERS)
+  const [members, setMembers] = useState<Member[]>([])
   const [input, setInput] = useState("")
   const [replyTo, setReplyTo] = useState<Message | null>(null)
   const [sending, setSending] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const [newMsgCount, setNewMsgCount] = useState(0)
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottomRef = useRef(true)
-  const nextIdRef = useRef(200)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const channelPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem("majlis_token")
+    const token = getToken()
     const u = getUser()
     if (!token || !u) {
       navigate("/majlis/login")
       return
     }
     setUser(u)
-    setMessages(buildMockMessages())
+
+    fetch(`${API_BASE}/api/majlis/auth/verify`, { method: "POST", headers: apiHeaders() })
+      .then(r => {
+        if (!r.ok) {
+          localStorage.removeItem("majlis_token")
+          localStorage.removeItem("majlis_user")
+          navigate("/majlis/login")
+        }
+      })
+      .catch(() => {})
   }, [navigate])
 
-  useEffect(() => {
-    if (user && messages.length > 0) {
+  const loadChannels = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/channels`, { headers: apiHeaders() })
+      if (!res.ok) return
+      const data = await res.json()
+      setChannels(data.channels)
+      if (!activeChannelId && data.channels.length > 0) {
+        setActiveChannelId(data.channels[0].id)
+      }
+    } catch {}
+  }, [activeChannelId])
+
+  const loadMembers = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/members`, { headers: apiHeaders() })
+      if (!res.ok) return
+      const data = await res.json()
+      setMembers(data.members)
+    } catch {}
+  }, [])
+
+  const loadMessages = useCallback(async (channelId: number) => {
+    setLoadingMessages(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/channels/${channelId}/messages`, { headers: apiHeaders() })
+      if (!res.ok) return
+      const data = await res.json()
+      setMessages(data.messages)
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-      }, 100)
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+      }, 50)
+    } catch {}
+    setLoadingMessages(false)
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      loadChannels()
+      loadMembers()
     }
-  }, [user, messages.length === 0])
+  }, [user, loadChannels, loadMembers])
+
+  useEffect(() => {
+    if (activeChannelId) {
+      loadMessages(activeChannelId)
+    }
+  }, [activeChannelId, loadMessages])
+
+  useEffect(() => {
+    if (!activeChannelId) return
+
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+
+    pollIntervalRef.current = setInterval(async () => {
+      if (!activeChannelId) return
+      const lastId = messages.length > 0 ? Math.max(...messages.map(m => m.id)) : 0
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/majlis/channels/${activeChannelId}/messages/poll?after=${lastId}`,
+          { headers: apiHeaders() }
+        )
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.messages.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id))
+            const newMsgs = data.messages.filter((m: Message) => !existingIds.has(m.id))
+            if (newMsgs.length === 0) return prev
+            if (!isAtBottomRef.current) {
+              setNewMsgCount(c => c + newMsgs.length)
+            }
+            return [...prev, ...newMsgs]
+          })
+          if (isAtBottomRef.current) {
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50)
+          }
+        }
+      } catch {}
+    }, 3000)
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+    }
+  }, [activeChannelId, messages])
+
+  useEffect(() => {
+    if (channelPollRef.current) clearInterval(channelPollRef.current)
+
+    channelPollRef.current = setInterval(() => {
+      loadChannels()
+    }, 10000)
+
+    return () => {
+      if (channelPollRef.current) clearInterval(channelPollRef.current)
+    }
+  }, [loadChannels])
+
+  useEffect(() => {
+    if (user) {
+      const currentMember = members.find(m => m.id === user.id)
+      setIsMuted(currentMember?.isMuted ?? false)
+    }
+  }, [members, user])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -321,32 +635,67 @@ export default function Majlis() {
   }, [])
 
   const handleSend = async () => {
-    if (!input.trim() || sending || !user) return
+    if (!input.trim() || sending || !user || !activeChannelId) return
+    if (isMuted) return
     setSending(true)
 
-    await new Promise(r => setTimeout(r, 300))
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/channels/${activeChannelId}/messages`, {
+        method: "POST",
+        headers: apiHeaders(),
+        body: JSON.stringify({ content: input.trim(), replyToId: replyTo?.id ?? null }),
+      })
 
-    const newMsg: Message = {
-      id: nextIdRef.current++,
-      content: input.trim(),
-      replyToId: replyTo?.id ?? null,
-      isEdited: false,
-      createdAt: new Date().toISOString(),
-      userId: user.id,
-      userName: user.displayName,
-      profileId: user.profileId,
-      profileName: user.profile?.name ?? user.displayName,
-      profileRole: user.profile?.role ?? "",
-      profileCompany: user.profile?.company ?? null,
-      profileImage: user.profile?.imageUrl ?? null,
-      profileVerified: user.profile?.isVerified ?? true,
+      if (!res.ok) {
+        const data = await res.json()
+        console.error(data.error)
+        setSending(false)
+        return
+      }
+
+      const data = await res.json()
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id))
+        if (existingIds.has(data.message.id)) return prev
+        return [...prev, data.message]
+      })
+      setInput("")
+      setReplyTo(null)
+      setTimeout(scrollToBottom, 50)
+    } catch (err) {
+      console.error(err)
     }
-
-    setMessages(prev => [...prev, newMsg])
-    setInput("")
-    setReplyTo(null)
     setSending(false)
-    setTimeout(scrollToBottom, 50)
+  }
+
+  const handleDm = async (memberId: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/channels`, {
+        method: "POST",
+        headers: apiHeaders(),
+        body: JSON.stringify({ type: "dm", memberIds: [memberId] }),
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      await loadChannels()
+      setActiveChannelId(data.channel.id)
+      setShowMembers(false)
+    } catch {}
+  }
+
+  const handleCreateGroup = async (name: string, memberIds: number[]) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/channels`, {
+        method: "POST",
+        headers: apiHeaders(),
+        body: JSON.stringify({ name, type: "group", memberIds }),
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      await loadChannels()
+      setActiveChannelId(data.channel.id)
+      setShowCreateGroup(false)
+    } catch {}
   }
 
   const handleLogout = () => {
@@ -355,6 +704,7 @@ export default function Majlis() {
     navigate("/majlis/login")
   }
 
+  const activeChannel = channels.find(c => c.id === activeChannelId)
   const onlineCount = members.filter(m => m.isOnline).length
 
   if (!user) {
@@ -372,6 +722,12 @@ export default function Majlis() {
       <div className="h-screen flex flex-col pt-16">
         <div className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="lg:hidden p-1 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
             <h1 className="font-display text-lg font-black uppercase tracking-tight text-foreground leading-none">
               The Majlis<span className="text-primary">.</span>
             </h1>
@@ -404,20 +760,44 @@ export default function Majlis() {
         </div>
 
         <div className="flex flex-1 overflow-hidden">
+          <ChannelSidebar
+            channels={channels}
+            activeChannelId={activeChannelId}
+            onSelect={(id) => { setActiveChannelId(id); setShowSidebar(false) }}
+            onCreateGroup={() => setShowCreateGroup(true)}
+            show={showSidebar}
+            onClose={() => setShowSidebar(false)}
+          />
+
           <div className="flex-1 flex flex-col min-w-0">
+            {activeChannel && (
+              <div className="px-4 py-2 border-b border-border bg-card/30 flex items-center gap-2">
+                {activeChannel.type === "dm" ? (
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <Hash className="w-4 h-4 text-muted-foreground" />
+                )}
+                <span className="text-sm font-medium text-foreground">{activeChannel.displayName}</span>
+              </div>
+            )}
+
             <div
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto py-4 space-y-0.5 relative"
               onScroll={checkIfAtBottom}
             >
-              {messages.length === 0 ? (
+              {loadingMessages ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm text-muted-foreground">Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <MessageSquare className="w-10 h-10 text-muted-foreground/30 mb-4" />
                   <h3 className="font-display text-xl font-black uppercase text-foreground mb-1">
-                    Welcome to The Majlis<span className="text-primary">.</span>
+                    {activeChannel ? `Welcome to ${activeChannel.displayName}` : "Welcome to The Majlis"}<span className="text-primary">.</span>
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-md">
-                    A private space for MENA's verified voices. Start the conversation.
+                    {activeChannel?.type === "dm" ? "Start a private conversation." : "Start the conversation."}
                   </p>
                 </div>
               ) : (
@@ -427,6 +807,7 @@ export default function Majlis() {
                     message={msg}
                     isOwn={msg.userId === user.id}
                     onReply={setReplyTo}
+                    isDeleted={false}
                   />
                 ))
               )}
@@ -446,6 +827,11 @@ export default function Majlis() {
             )}
 
             <div className="border-t border-border p-3 flex-shrink-0 bg-card/30">
+              {isMuted && (
+                <div className="mb-2 px-3 py-2 bg-yellow-400/10 border border-yellow-400/20 text-xs text-yellow-400">
+                  You are currently muted. You can read messages but cannot send.
+                </div>
+              )}
               {replyTo && (
                 <div className="flex items-center gap-2 mb-2 px-2 py-1 bg-primary/5 border-l-2 border-primary">
                   <span className="text-[10px] text-muted-foreground flex-1 truncate">
@@ -462,13 +848,14 @@ export default function Majlis() {
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                  placeholder="Type your message..."
+                  placeholder={isMuted ? "You are muted" : "Type your message..."}
                   maxLength={2000}
-                  className="flex-1 bg-background border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
+                  disabled={isMuted || !activeChannelId}
+                  className="flex-1 bg-background border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors disabled:opacity-50"
                 />
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim() || sending}
+                  disabled={!input.trim() || sending || isMuted || !activeChannelId}
                   className="bg-primary text-white px-4 py-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
@@ -477,9 +864,23 @@ export default function Majlis() {
             </div>
           </div>
 
-          <MembersSidebar members={members} show={showMembers} onClose={() => setShowMembers(false)} />
+          <MembersSidebar
+            members={members}
+            show={showMembers}
+            onClose={() => setShowMembers(false)}
+            onDm={handleDm}
+            currentUserId={user.id}
+          />
         </div>
       </div>
+
+      {showCreateGroup && (
+        <CreateGroupModal
+          members={members.filter(m => m.id !== user.id)}
+          onClose={() => setShowCreateGroup(false)}
+          onSubmit={handleCreateGroup}
+        />
+      )}
     </Layout>
   )
 }

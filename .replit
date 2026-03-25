@@ -27,3 +27,8 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+MAJLIS_ENCRYPTION_KEY = "8c25fbdf64d0d9c7b4334aed2321519f42a5b94629790625cfda4606ca28c357"
