@@ -29,8 +29,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-primary">TMH</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Content Management System</p>
+          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 900, fontSize: "1.8rem", letterSpacing: "-0.02em", lineHeight: 1 }}>
+            <span className="text-foreground">THE TRIBUNAL</span><span className="text-primary">.</span>
+          </h1>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.25em", color: "hsl(var(--muted-foreground))", marginTop: "0.5rem" }}>
+            Content Management System
+          </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

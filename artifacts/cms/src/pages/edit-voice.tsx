@@ -78,7 +78,7 @@ export default function EditVoicePage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold">{isNew ? "New Voice" : "Edit Voice"}</h1>
+        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide">{isNew ? "New Voice" : "Edit Voice"}</h1>
         <button onClick={() => setShowPreview(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80">
           <Eye className="w-3.5 h-3.5" /> Preview
         </button>

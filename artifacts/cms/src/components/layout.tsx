@@ -19,7 +19,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background flex">
       <aside className="w-56 border-r border-border bg-card flex flex-col shrink-0">
         <div className="p-4 border-b border-border">
-          <h1 className="font-serif text-xl font-bold text-primary">TMH CMS</h1>
+          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 900, fontSize: "1rem", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+            <span className="text-foreground">THE TRIBUNAL</span><span className="text-primary">.</span>
+          </h1>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.5rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "hsl(var(--muted-foreground))", marginTop: "0.15rem" }}>
+            CMS
+          </p>
         </div>
         <nav className="flex-1 p-2 space-y-0.5">
           {NAV_ITEMS.map(item => {

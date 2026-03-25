@@ -41,7 +41,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-2xl font-bold">Dashboard</h1>
+        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">Content overview and quick actions</p>
       </div>
 

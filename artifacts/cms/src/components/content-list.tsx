@@ -108,7 +108,7 @@ export default function ContentList({ type, title, getItems, getTitle, getCatego
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold">{title}</h1>
+        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide">{title}</h1>
         <div className="flex gap-2">
           <button onClick={() => setShowUpload(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80">
             <Upload className="w-3.5 h-3.5" /> Upload JSON

@@ -127,7 +127,7 @@ export default function HomepagePage() {
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold">Homepage Manager</h1>
+        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide">Homepage Manager</h1>
         <div className="flex items-center gap-2">
           <button onClick={openFullPreview} className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border text-foreground rounded-md text-sm hover:bg-accent">
             <Monitor className="w-3.5 h-3.5" /> Preview

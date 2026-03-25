@@ -17,12 +17,19 @@ Full-stack polling and opinion platform for the Middle East. Users vote on daily
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle for API)
 
+## CMS (Content Management System)
+
+Located at `artifacts/cms/`, served at `/cms`. Admin interface for managing Debates, Predictions, Voices, and Homepage content. Login: `admin` / `1234` (default, overridable via `CMS_USERNAME`/`CMS_PIN` env vars).
+
+Design aligned with main site: "THE TRIBUNAL." branding with crimson period, Playfair Display headings, Barlow Condensed uppercase labels, sharp corners (radius: .125rem), muted-foreground at 63% lightness, dark-only theme.
+
 ## Structure
 
 ```text
 artifacts-monorepo/
 ├── artifacts/
 │   ├── api-server/         # Express API server (port 8080, served at /api)
+│   ├── cms/                # React + Vite CMS (served at /cms)
 │   └── tmh-platform/       # React + Vite frontend (served at /)
 ├── lib/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config

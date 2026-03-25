@@ -103,7 +103,7 @@
   --secondary-foreground: 30 10% 80%;
 
   --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 48%;
+  --muted-foreground: 0 0% 63%;
 
   --accent: 30 10% 94%;
   --accent-foreground: 0 0% 6%;
@@ -123,7 +123,7 @@
   --app-font-sans: 'DM Sans', system-ui, sans-serif;
   --app-font-serif: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --app-font-mono: Menlo, monospace;
-  --radius: .5rem;
+  --radius: .125rem;
 
   --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.2);
   --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,0.3);
