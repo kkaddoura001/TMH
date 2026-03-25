@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMH CMS — All Pages Source Code</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; background: #0a0a0a; color: #e0e0e0; margin: 0; padding: 20px; }
+      h1 { color: #f43f5e; text-align: center; margin-bottom: 10px; }
+      .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+      .toc { max-width: 800px; margin: 0 auto 40px; background: #1a1a1a; border-radius: 8px; padding: 20px; border: 1px solid #333; }
+      .toc h2 { color: #f43f5e; margin-top: 0; }
+      .toc a { color: #60a5fa; text-decoration: none; display: block; padding: 4px 0; }
+      .toc a:hover { text-decoration: underline; }
+      .file-section { max-width: 1000px; margin: 0 auto 40px; }
+      .file-header { background: #1a1a1a; border: 1px solid #333; border-bottom: none; border-radius: 8px 8px 0 0; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+      .file-header h3 { margin: 0; color: #f43f5e; font-size: 14px; }
+      .file-header .lang { color: #888; font-size: 12px; }
+      pre { background: #111; border: 1px solid #333; border-radius: 0 0 8px 8px; padding: 16px; overflow-x: auto; margin: 0; font-size: 13px; line-height: 1.5; }
+      code { color: #d4d4d4; }
+      .back-top { text-align: center; margin: 20px 0; }
+      .back-top a { color: #60a5fa; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <h1>TMH Content Management System</h1>
+    <p class="subtitle">Complete source code for all CMS pages and components (25 files)</p>
+
+    <div class="toc" id="top">
+      <h2>Table of Contents</h2>
+      <a href="#artifacts-cms-src-main-tsx">src/main.tsx</a>
+    <a href="#artifacts-cms-src-App-tsx">src/App.tsx</a>
+    <a href="#artifacts-cms-src-index-css">src/index.css</a>
+    <a href="#artifacts-cms-src-lib-auth-tsx">src/lib/auth.tsx</a>
+    <a href="#artifacts-cms-src-lib-api-ts">src/lib/api.ts</a>
+    <a href="#artifacts-cms-src-lib-utils-ts">src/lib/utils.ts</a>
+    <a href="#artifacts-cms-src-components-layout-tsx">src/components/layout.tsx</a>
+    <a href="#artifacts-cms-src-components-content-list-tsx">src/components/content-list.tsx</a>
+    <a href="#artifacts-cms-src-components-preview-panel-tsx">src/components/preview-panel.tsx</a>
+    <a href="#artifacts-cms-src-components-combo-select-tsx">src/components/combo-select.tsx</a>
+    <a href="#artifacts-cms-src-components-tag-input-tsx">src/components/tag-input.tsx</a>
+    <a href="#artifacts-cms-src-components-status-badge-tsx">src/components/status-badge.tsx</a>
+    <a href="#artifacts-cms-src-components-dynamic-list-tsx">src/components/dynamic-list.tsx</a>
+    <a href="#artifacts-cms-src-pages-login-tsx">src/pages/login.tsx</a>
+    <a href="#artifacts-cms-src-pages-dashboard-tsx">src/pages/dashboard.tsx</a>
+    <a href="#artifacts-cms-src-pages-debates-tsx">src/pages/debates.tsx</a>
+    <a href="#artifacts-cms-src-pages-predictions-tsx">src/pages/predictions.tsx</a>
+    <a href="#artifacts-cms-src-pages-voices-tsx">src/pages/voices.tsx</a>
+    <a href="#artifacts-cms-src-pages-edit-debate-tsx">src/pages/edit-debate.tsx</a>
+    <a href="#artifacts-cms-src-pages-edit-prediction-tsx">src/pages/edit-prediction.tsx</a>
+    <a href="#artifacts-cms-src-pages-edit-voice-tsx">src/pages/edit-voice.tsx</a>
+    <a href="#artifacts-cms-src-pages-homepage-tsx">src/pages/homepage.tsx</a>
+    <a href="#artifacts-cms-src-pages-not-found-tsx">src/pages/not-found.tsx</a>
+    <a href="#artifacts-cms-src-hooks-use-mobile-tsx">src/hooks/use-mobile.tsx</a>
+    <a href="#artifacts-cms-src-hooks-use-toast-ts">src/hooks/use-toast.ts</a>
+  </div>
+
+  <div class="file-section" id="artifacts-cms-src-main-tsx">
+      <div class="file-header">
+        <h3>src/main.tsx</h3>
+        <span class="lang">TSX · 6 lines</span>
+      </div>
+      <pre><code>import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(&lt;App /&gt;);
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-App-tsx">
+      <div class="file-header">
+        <h3>src/App.tsx</h3>
+        <span class="lang">TSX · 65 lines</span>
+      </div>
+      <pre><code>import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import Layout from "@/components/layout";
+import LoginPage from "@/pages/login";
+import DashboardPage from "@/pages/dashboard";
+import DebatesPage from "@/pages/debates";
+import PredictionsPage from "@/pages/predictions";
+import VoicesPage from "@/pages/voices";
+import EditDebatePage from "@/pages/edit-debate";
+import EditPredictionPage from "@/pages/edit-prediction";
+import EditVoicePage from "@/pages/edit-voice";
+import HomepagePage from "@/pages/homepage";
+
+const queryClient = new QueryClient();
+
+function ProtectedRoutes() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      &lt;div className="min-h-screen flex items-center justify-center bg-background"&gt;
+        &lt;p className="text-muted-foreground"&gt;Loading...&lt;/p&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (!isAuthenticated) return &lt;LoginPage /&gt;;
+
+  return (
+    &lt;Layout&gt;
+      &lt;Switch&gt;
+        &lt;Route path="/dashboard" component={DashboardPage} /&gt;
+        &lt;Route path="/homepage" component={HomepagePage} /&gt;
+        &lt;Route path="/debates" component={DebatesPage} /&gt;
+        &lt;Route path="/debates/:id/edit" component={EditDebatePage} /&gt;
+        &lt;Route path="/predictions" component={PredictionsPage} /&gt;
+        &lt;Route path="/predictions/:id/edit" component={EditPredictionPage} /&gt;
+        &lt;Route path="/voices" component={VoicesPage} /&gt;
+        &lt;Route path="/voices/:id/edit" component={EditVoicePage} /&gt;
+        &lt;Route path="/"&gt;
+          &lt;Redirect to="/dashboard" /&gt;
+        &lt;/Route&gt;
+        &lt;Route&gt;
+          &lt;Redirect to="/dashboard" /&gt;
+        &lt;/Route&gt;
+      &lt;/Switch&gt;
+    &lt;/Layout&gt;
+  );
+}
+
+function App() {
+  return (
+    &lt;QueryClientProvider client={queryClient}&gt;
+      &lt;WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}&gt;
+        &lt;AuthProvider&gt;
+          &lt;ProtectedRoutes /&gt;
+        &lt;/AuthProvider&gt;
+      &lt;/WouterRouter&gt;
+    &lt;/QueryClientProvider&gt;
+  );
+}
+
+export default App;
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-index-css">
+      <div class="file-header">
+        <h3>src/index.css</h3>
+        <span class="lang">CSS · 168 lines</span>
+      </div>
+      <pre><code>@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&amp;family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&amp;display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&amp;:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-display: var(--app-font-display);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  --background: 0 0% 4%;
+  --foreground: 30 10% 94%;
+  --border: 0 0% 13%;
+
+  --card: 0 0% 7%;
+  --card-foreground: 30 10% 94%;
+  --card-border: 0 0% 15%;
+
+  --sidebar: 0 0% 4%;
+  --sidebar-foreground: 30 10% 94%;
+  --sidebar-border: 0 0% 14%;
+  --sidebar-primary: 348 83% 53%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 348 83% 53%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 348 83% 53%;
+
+  --popover: 0 0% 7%;
+  --popover-foreground: 30 10% 94%;
+  --popover-border: 0 0% 15%;
+
+  --primary: 348 83% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 11%;
+  --secondary-foreground: 30 10% 80%;
+
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 48%;
+
+  --accent: 30 10% 94%;
+  --accent-foreground: 0 0% 6%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --input: 0 0% 15%;
+  --ring: 348 83% 53%;
+  --chart-1: 348 83% 53%;
+  --chart-2: 30 10% 80%;
+  --chart-3: 0 0% 55%;
+  --chart-4: 348 70% 65%;
+  --chart-5: 0 0% 75%;
+
+  --app-font-display: 'Playfair Display', Georgia, serif;
+  --app-font-sans: 'DM Sans', system-ui, sans-serif;
+  --app-font-serif: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: .5rem;
+
+  --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.2);
+  --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,0.3);
+  --shadow-sm: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 1px 2px -1px rgba(0,0,0,0.3);
+  --shadow: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 1px 2px -1px rgba(0,0,0,0.3);
+  --shadow-md: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 2px 4px -1px rgba(0,0,0,0.3);
+  --shadow-lg: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 4px 6px -1px rgba(0,0,0,0.3);
+  --shadow-xl: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 8px 10px -1px rgba(0,0,0,0.3);
+  --shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,0.2);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--app-font-display);
+  }
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-lib-auth-tsx">
+      <div class="file-header">
+        <h3>src/lib/auth.tsx</h3>
+        <span class="lang">TSX · 60 lines</span>
+      </div>
+      <pre><code>import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { api, setToken, getToken } from "./api";
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  username: string | null;
+  login: (username: string, pin: string) =&gt; Promise&lt;void&gt;;
+  logout: () =&gt; void;
+}
+
+const AuthContext = createContext&lt;AuthContextType | null&gt;(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState&lt;string | null&gt;(null);
+
+  useEffect(() =&gt; {
+    const token = getToken();
+    if (token) {
+      api.verify().then(() =&gt; {
+        setIsAuthenticated(true);
+        setUsername(localStorage.getItem("cms_username") || "admin");
+      }).catch(() =&gt; {
+        setToken(null);
+      }).finally(() =&gt; setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const login = async (user: string, pin: string) =&gt; {
+    const res = await api.login(user, pin);
+    setToken(res.token);
+    localStorage.setItem("cms_username", res.username);
+    setUsername(res.username);
+    setIsAuthenticated(true);
+  };
+
+  const logout = () =&gt; {
+    setToken(null);
+    localStorage.removeItem("cms_username");
+    setUsername(null);
+    setIsAuthenticated(false);
+  };
+
+  return (
+    &lt;AuthContext.Provider value={{ isAuthenticated, isLoading, username, login, logout }}&gt;
+      {children}
+    &lt;/AuthContext.Provider&gt;
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-lib-api-ts">
+      <div class="file-header">
+        <h3>src/lib/api.ts</h3>
+        <span class="lang">TS · 87 lines</span>
+      </div>
+      <pre><code>const API_BASE = "/api/cms";
+
+let authToken: string | null = localStorage.getItem("cms_token");
+
+export function setToken(token: string | null) {
+  authToken = token;
+  if (token) localStorage.setItem("cms_token", token);
+  else localStorage.removeItem("cms_token");
+}
+
+export function getToken() {
+  return authToken;
+}
+
+async function request(path: string, options: RequestInit = {}) {
+  const headers: Record&lt;string, string&gt; = {
+    ...(options.headers as Record&lt;string, string&gt; || {}),
+  };
+  if (authToken) headers["x-cms-token"] = authToken;
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  if (res.status === 401) {
+    setToken(null);
+    window.location.href = import.meta.env.BASE_URL;
+    throw new Error("Unauthorized");
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() =&gt; ({ error: "Request failed" }));
+    throw new Error(err.error || "Request failed");
+  }
+
+  return res.json();
+}
+
+export const api = {
+  login: (username: string, pin: string) =&gt;
+    request("/auth/login", { method: "POST", body: JSON.stringify({ username, pin }) }),
+
+  verify: () =&gt; request("/auth/verify", { method: "POST" }),
+
+  getStats: () =&gt; request("/stats"),
+  getTaxonomy: () =&gt; request("/taxonomy"),
+
+  getDebates: (status?: string) =&gt; request(`/debates${status ? `?status=${status}` : ""}`),
+  getDebate: (id: number) =&gt; request(`/debates/${id}`),
+  updateDebate: (id: number, data: Record&lt;string, unknown&gt;) =&gt; request(`/debates/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteDebate: (id: number) =&gt; request(`/debates/${id}`, { method: "DELETE" }),
+
+  getPredictions: (status?: string) =&gt; request(`/predictions${status ? `?status=${status}` : ""}`),
+  getPrediction: (id: number) =&gt; request(`/predictions/${id}`),
+  updatePrediction: (id: number, data: Record&lt;string, unknown&gt;) =&gt; request(`/predictions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePrediction: (id: number) =&gt; request(`/predictions/${id}`, { method: "DELETE" }),
+
+  getVoices: (status?: string) =&gt; request(`/voices${status ? `?status=${status}` : ""}`),
+  getVoice: (id: number) =&gt; request(`/voices/${id}`),
+  updateVoice: (id: number, data: Record&lt;string, unknown&gt;) =&gt; request(`/voices/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteVoice: (id: number) =&gt; request(`/voices/${id}`, { method: "DELETE" }),
+
+  changeStatus: (type: string, id: number, action: string) =&gt;
+    request(`/${type}/${id}/status`, { method: "POST", body: JSON.stringify({ action }) }),
+
+  bulkAction: (type: string, ids: number[], action: string) =&gt;
+    request(`/${type}/bulk-action`, { method: "POST", body: JSON.stringify({ ids, action }) }),
+
+  bulkUpload: (type: string, items: Record&lt;string, unknown&gt;[]) =&gt;
+    request(`/upload/${type}`, { method: "POST", body: JSON.stringify({ items }) }),
+
+  uploadImage: (file: File) =&gt; {
+    const formData = new FormData();
+    formData.append("image", file);
+    return request("/upload-image", { method: "POST", body: formData });
+  },
+
+  getHomepage: () =&gt; request("/homepage"),
+  updateHomepage: (data: Record&lt;string, unknown&gt;) =&gt;
+    request("/homepage", { method: "PUT", body: JSON.stringify(data) }),
+  addBanner: (data: Record&lt;string, unknown&gt;) =&gt;
+    request("/homepage/banners", { method: "POST", body: JSON.stringify(data) }),
+  deleteBanner: (id: string) =&gt;
+    request(`/homepage/banners/${id}`, { method: "DELETE" }),
+};
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-lib-utils-ts">
+      <div class="file-header">
+        <h3>src/lib/utils.ts</h3>
+        <span class="lang">TS · 7 lines</span>
+      </div>
+      <pre><code>import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-layout-tsx">
+      <div class="file-header">
+        <h3>src/components/layout.tsx</h3>
+        <span class="lang">TSX · 54 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { useAuth } from "@/lib/auth";
+import { useLocation, Link } from "wouter";
+import { LayoutDashboard, MessageSquare, TrendingUp, Users, LogOut, Home } from "lucide-react";
+
+const NAV_ITEMS = [
+  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/homepage", label: "Homepage", icon: Home },
+  { path: "/debates", label: "Debates", icon: MessageSquare },
+  { path: "/predictions", label: "Predictions", icon: TrendingUp },
+  { path: "/voices", label: "Voices", icon: Users },
+];
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { logout, username } = useAuth();
+  const [location] = useLocation();
+
+  return (
+    &lt;div className="min-h-screen bg-background flex"&gt;
+      &lt;aside className="w-56 border-r border-border bg-card flex flex-col shrink-0"&gt;
+        &lt;div className="p-4 border-b border-border"&gt;
+          &lt;h1 className="font-serif text-xl font-bold text-primary"&gt;TMH CMS&lt;/h1&gt;
+        &lt;/div&gt;
+        &lt;nav className="flex-1 p-2 space-y-0.5"&gt;
+          {NAV_ITEMS.map(item =&gt; {
+            const isActive = location.startsWith(item.path);
+            return (
+              &lt;Link
+                key={item.path}
+                href={item.path}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              &gt;
+                &lt;item.icon className="w-4 h-4" /&gt;
+                {item.label}
+              &lt;/Link&gt;
+            );
+          })}
+        &lt;/nav&gt;
+        &lt;div className="p-3 border-t border-border"&gt;
+          &lt;div className="flex items-center justify-between"&gt;
+            &lt;span className="text-xs text-muted-foreground"&gt;{username}&lt;/span&gt;
+            &lt;button onClick={logout} className="text-muted-foreground hover:text-foreground transition-colors"&gt;
+              &lt;LogOut className="w-4 h-4" /&gt;
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/aside&gt;
+      &lt;main className="flex-1 p-6 overflow-auto"&gt;{children}&lt;/main&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-content-list-tsx">
+      <div class="file-header">
+        <h3>src/components/content-list.tsx</h3>
+        <span class="lang">TSX · 259 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+import StatusBadge from "./status-badge";
+import { useLocation } from "wouter";
+import { Plus, Upload, Trash2, Check, X, Flag, Eye, Archive, RotateCcw } from "lucide-react";
+import PreviewPanel from "./preview-panel";
+
+const STATUS_TABS = ["all", "draft", "in_review", "approved", "rejected", "flagged", "archived"];
+const STATUS_LABELS: Record&lt;string, string&gt; = {
+  all: "All", draft: "Drafts", in_review: "In Review", approved: "Live",
+  rejected: "Rejected", flagged: "Flagged", archived: "Archived",
+};
+
+interface ContentItem {
+  id: number;
+  editorialStatus: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+interface ContentListProps {
+  type: "debates" | "predictions" | "voices";
+  title: string;
+  getItems: (status?: string) =&gt; Promise&lt;{ items: ContentItem[] }&gt;;
+  getTitle: (item: ContentItem) =&gt; string;
+  getCategory: (item: ContentItem) =&gt; string;
+  editPath: (id: number) =&gt; string;
+}
+
+export default function ContentList({ type, title, getItems, getTitle, getCategory, editPath }: ContentListProps) {
+  const [items, setItems] = useState&lt;ContentItem[]&gt;([]);
+  const [status, setStatus] = useState("all");
+  const [selected, setSelected] = useState&lt;Set&lt;number&gt;&gt;(new Set());
+  const [loading, setLoading] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadJson, setUploadJson] = useState("");
+  const [uploadError, setUploadError] = useState("");
+  const [parsedItems, setParsedItems] = useState&lt;Record&lt;string, unknown&gt;[] | null&gt;(null);
+  const [previewItem, setPreviewItem] = useState&lt;ContentItem | null&gt;(null);
+  const [, navigate] = useLocation();
+
+  const load = useCallback(() =&gt; {
+    setLoading(true);
+    getItems(status === "all" ? undefined : status)
+      .then(res =&gt; { setItems(res.items); setSelected(new Set()); })
+      .catch(console.error)
+      .finally(() =&gt; setLoading(false));
+  }, [status, getItems]);
+
+  useEffect(() =&gt; { load(); }, [load]);
+
+  const toggleSelect = (id: number) =&gt; {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setSelected(next);
+  };
+
+  const toggleAll = () =&gt; {
+    if (selected.size === items.length) setSelected(new Set());
+    else setSelected(new Set(items.map(i =&gt; i.id)));
+  };
+
+  const bulkAction = async (action: string) =&gt; {
+    if (selected.size === 0) return;
+    const confirmMsg = action === "delete" ? `Delete ${selected.size} items?` : `${action} ${selected.size} items?`;
+    if (!confirm(confirmMsg)) return;
+    try {
+      await api.bulkAction(type, Array.from(selected), action);
+      load();
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Action failed"); }
+  };
+
+  const parseJson = () =&gt; {
+    setUploadError("");
+    try {
+      const parsed = JSON.parse(uploadJson);
+      const arr = Array.isArray(parsed) ? parsed : [parsed];
+      if (arr.length === 0) { setUploadError("No items found"); return; }
+      setParsedItems(arr);
+    } catch (e: unknown) {
+      setUploadError(e instanceof Error ? e.message : "Invalid JSON");
+    }
+  };
+
+  const handleUpload = async () =&gt; {
+    if (!parsedItems || parsedItems.length === 0) return;
+    setUploadError("");
+    try {
+      await api.bulkUpload(type, parsedItems);
+      setShowUpload(false);
+      setUploadJson("");
+      setParsedItems(null);
+      load();
+    } catch (e: unknown) {
+      setUploadError(e instanceof Error ? e.message : "Upload failed");
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) =&gt; { setUploadJson(ev.target?.result as string); };
+    reader.readAsText(file);
+  };
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;{title}&lt;/h1&gt;
+        &lt;div className="flex gap-2"&gt;
+          &lt;button onClick={() =&gt; setShowUpload(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80"&gt;
+            &lt;Upload className="w-3.5 h-3.5" /&gt; Upload JSON
+          &lt;/button&gt;
+          &lt;button onClick={() =&gt; navigate(editPath(0).replace("/0/", "/new/"))} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"&gt;
+            &lt;Plus className="w-3.5 h-3.5" /&gt; New
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="flex gap-1 border-b border-border"&gt;
+        {STATUS_TABS.map(tab =&gt; (
+          &lt;button
+            key={tab}
+            onClick={() =&gt; setStatus(tab)}
+            className={`px-3 py-2 text-sm transition-colors border-b-2 -mb-px ${
+              status === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          &gt;
+            {STATUS_LABELS[tab]}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      {selected.size &gt; 0 &amp;&amp; (
+        &lt;div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-md"&gt;
+          &lt;span className="text-sm text-muted-foreground"&gt;{selected.size} selected&lt;/span&gt;
+          &lt;button onClick={() =&gt; bulkAction("approve")} className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"&gt;&lt;Check className="w-3 h-3" /&gt; Approve&lt;/button&gt;
+          &lt;button onClick={() =&gt; bulkAction("reject")} className="flex items-center gap-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"&gt;&lt;X className="w-3 h-3" /&gt; Reject&lt;/button&gt;
+          &lt;button onClick={() =&gt; bulkAction("revision")} className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"&gt;&lt;RotateCcw className="w-3 h-3" /&gt; Revision&lt;/button&gt;
+          &lt;button onClick={() =&gt; bulkAction("flag")} className="flex items-center gap-1 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"&gt;&lt;Flag className="w-3 h-3" /&gt; Flag&lt;/button&gt;
+          &lt;button onClick={() =&gt; bulkAction("archive")} className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"&gt;&lt;Archive className="w-3 h-3" /&gt; Archive&lt;/button&gt;
+          &lt;button onClick={() =&gt; bulkAction("delete")} className="flex items-center gap-1 px-2 py-1 text-xs bg-red-800 text-white rounded hover:bg-red-900"&gt;&lt;Trash2 className="w-3 h-3" /&gt; Delete&lt;/button&gt;
+        &lt;/div&gt;
+      )}
+
+      {loading ? (
+        &lt;div className="text-center py-12 text-muted-foreground"&gt;Loading...&lt;/div&gt;
+      ) : items.length === 0 ? (
+        &lt;div className="text-center py-12 text-muted-foreground"&gt;No items found&lt;/div&gt;
+      ) : (
+        &lt;div className="border border-border rounded-lg overflow-hidden"&gt;
+          &lt;table className="w-full"&gt;
+            &lt;thead&gt;
+              &lt;tr className="border-b border-border bg-card"&gt;
+                &lt;th className="w-10 p-3"&gt;&lt;input type="checkbox" checked={selected.size === items.length &amp;&amp; items.length &gt; 0} onChange={toggleAll} className="accent-primary" /&gt;&lt;/th&gt;
+                &lt;th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase"&gt;Title&lt;/th&gt;
+                &lt;th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase"&gt;Category&lt;/th&gt;
+                &lt;th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase"&gt;Status&lt;/th&gt;
+                &lt;th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase"&gt;Date&lt;/th&gt;
+                &lt;th className="w-20 p-3"&gt;&lt;/th&gt;
+              &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+              {items.map(item =&gt; (
+                &lt;tr key={item.id} className="border-b border-border hover:bg-secondary/30 transition-colors"&gt;
+                  &lt;td className="p-3"&gt;&lt;input type="checkbox" checked={selected.has(item.id)} onChange={() =&gt; toggleSelect(item.id)} className="accent-primary" /&gt;&lt;/td&gt;
+                  &lt;td className="p-3"&gt;
+                    &lt;button onClick={() =&gt; navigate(editPath(item.id))} className="text-sm text-left hover:text-primary transition-colors line-clamp-1"&gt;
+                      {getTitle(item)}
+                    &lt;/button&gt;
+                  &lt;/td&gt;
+                  &lt;td className="p-3 text-sm text-muted-foreground"&gt;{getCategory(item)}&lt;/td&gt;
+                  &lt;td className="p-3"&gt;&lt;StatusBadge status={item.editorialStatus} /&gt;&lt;/td&gt;
+                  &lt;td className="p-3 text-xs text-muted-foreground"&gt;{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}&lt;/td&gt;
+                  &lt;td className="p-3"&gt;
+                    &lt;button onClick={() =&gt; setPreviewItem(item)} className="text-muted-foreground hover:text-primary transition-colors"&gt;
+                      &lt;Eye className="w-4 h-4" /&gt;
+                    &lt;/button&gt;
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+              ))}
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+      )}
+
+      {showUpload &amp;&amp; (
+        &lt;div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"&gt;
+          &lt;div className="bg-card border border-border rounded-lg p-6 w-full max-w-2xl max-h-[80vh] flex flex-col"&gt;
+            &lt;h2 className="font-serif text-lg font-bold mb-4"&gt;Bulk Upload — {title}&lt;/h2&gt;
+
+            {!parsedItems ? (
+              &lt;&gt;
+                &lt;div className="mb-3"&gt;
+                  &lt;label className="block text-sm text-muted-foreground mb-1"&gt;Upload .json file or paste JSON&lt;/label&gt;
+                  &lt;input type="file" accept=".json" onChange={handleFileUpload} className="text-sm file:mr-3 file:py-1 file:px-3 file:border-0 file:bg-secondary file:text-foreground file:rounded file:text-sm file:cursor-pointer" /&gt;
+                &lt;/div&gt;
+                &lt;textarea
+                  value={uploadJson}
+                  onChange={e =&gt; setUploadJson(e.target.value)}
+                  className="flex-1 min-h-[200px] p-3 bg-background border border-border rounded-md text-sm font-mono resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder={getJsonTemplate(type)}
+                /&gt;
+                {uploadError &amp;&amp; &lt;p className="text-sm text-red-500 mt-2"&gt;{uploadError}&lt;/p&gt;}
+                &lt;div className="flex justify-end gap-2 mt-4"&gt;
+                  &lt;button onClick={() =&gt; { setShowUpload(false); setUploadJson(""); setUploadError(""); }} className="px-4 py-2 text-sm bg-secondary rounded-md hover:bg-secondary/80"&gt;Cancel&lt;/button&gt;
+                  &lt;button onClick={parseJson} disabled={!uploadJson.trim()} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"&gt;Preview&lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/&gt;
+            ) : (
+              &lt;&gt;
+                &lt;p className="text-sm text-muted-foreground mb-3"&gt;{parsedItems.length} item{parsedItems.length !== 1 ? "s" : ""} ready to import&lt;/p&gt;
+                &lt;div className="flex-1 overflow-auto border border-border rounded-md"&gt;
+                  &lt;table className="w-full text-sm"&gt;
+                    &lt;thead&gt;
+                      &lt;tr className="border-b border-border bg-secondary/50"&gt;
+                        &lt;th className="text-left p-2 text-xs font-medium text-muted-foreground"&gt;#&lt;/th&gt;
+                        &lt;th className="text-left p-2 text-xs font-medium text-muted-foreground"&gt;Title&lt;/th&gt;
+                        &lt;th className="text-left p-2 text-xs font-medium text-muted-foreground"&gt;Category&lt;/th&gt;
+                      &lt;/tr&gt;
+                    &lt;/thead&gt;
+                    &lt;tbody&gt;
+                      {parsedItems.map((item, i) =&gt; (
+                        &lt;tr key={i} className="border-b border-border last:border-0"&gt;
+                          &lt;td className="p-2 text-muted-foreground"&gt;{i + 1}&lt;/td&gt;
+                          &lt;td className="p-2 truncate max-w-[300px]"&gt;{String(item.question || item.name || "Untitled")}&lt;/td&gt;
+                          &lt;td className="p-2 text-muted-foreground"&gt;{String(item.category || item.sector || "-")}&lt;/td&gt;
+                        &lt;/tr&gt;
+                      ))}
+                    &lt;/tbody&gt;
+                  &lt;/table&gt;
+                &lt;/div&gt;
+                {uploadError &amp;&amp; &lt;p className="text-sm text-red-500 mt-2"&gt;{uploadError}&lt;/p&gt;}
+                &lt;div className="flex justify-end gap-2 mt-4"&gt;
+                  &lt;button onClick={() =&gt; setParsedItems(null)} className="px-4 py-2 text-sm bg-secondary rounded-md hover:bg-secondary/80"&gt;Back&lt;/button&gt;
+                  &lt;button onClick={() =&gt; { setShowUpload(false); setUploadJson(""); setParsedItems(null); setUploadError(""); }} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"&gt;Cancel&lt;/button&gt;
+                  &lt;button onClick={handleUpload} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"&gt;Import {parsedItems.length} Items&lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      {previewItem &amp;&amp; (
+        &lt;PreviewPanel type={type} item={previewItem} onClose={() =&gt; setPreviewItem(null)} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function getJsonTemplate(type: string): string {
+  if (type === "debates") return `[\n  {\n    "question": "Will X happen by 2026?",\n    "context": "Background context...",\n    "category": "Economy",\n    "categorySlug": "economy",\n    "tags": ["finance", "mena"],\n    "pollType": "binary",\n    "options": ["Yes", "No"],\n    "isFeatured": false\n  }\n]`;
+  if (type === "predictions") return `[\n  {\n    "question": "Will X happen?",\n    "category": "Business",\n    "categorySlug": "business",\n    "resolvesAt": "2026-12-31",\n    "yesPercentage": 65,\n    "noPercentage": 35,\n    "momentum": 1.5,\n    "momentumDirection": "up",\n    "trendData": [60, 62, 63, 65],\n    "tags": ["startup"]\n  }\n]`;
+  return `[\n  {\n    "name": "John Doe",\n    "headline": "Building the future...",\n    "role": "Founder &amp; CEO",\n    "company": "Acme Inc",\n    "sector": "Technology",\n    "country": "UAE",\n    "city": "Dubai",\n    "summary": "Short summary...",\n    "story": "Full story...",\n    "lessonsLearned": ["Lesson 1", "Lesson 2"],\n    "quote": "A great quote"\n  }\n]`;
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-preview-panel-tsx">
+      <div class="file-header">
+        <h3>src/components/preview-panel.tsx</h3>
+        <span class="lang">TSX · 320 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { X, TrendingUp, TrendingDown } from "lucide-react";
+
+interface PollOption {
+  text: string;
+  voteCount: number;
+}
+
+interface DebateItem {
+  question: string;
+  context?: string;
+  category: string;
+  tags?: string[];
+  options?: PollOption[];
+}
+
+interface PredictionItem {
+  question: string;
+  category: string;
+  yesPercentage: number;
+  noPercentage: number;
+  momentum: number;
+  momentumDirection: string;
+  resolvesAt?: string;
+  tags?: string[];
+}
+
+interface VoiceItem {
+  name: string;
+  headline: string;
+  role: string;
+  company?: string;
+  sector: string;
+  country: string;
+  city: string;
+  imageUrl?: string;
+  summary: string;
+  story?: string;
+  lessonsLearned?: string[];
+  quote?: string;
+}
+
+interface PreviewPanelProps {
+  type: "debates" | "predictions" | "voices";
+  item: Record&lt;string, unknown&gt;;
+  onClose: () =&gt; void;
+  onUpdate?: (field: string, value: unknown) =&gt; void;
+}
+
+function EditableText({ value, onChange, className, multiline, style }: { value: string; onChange?: (v: string) =&gt; void; className?: string; multiline?: boolean; style?: React.CSSProperties }) {
+  if (!onChange) return multiline ? &lt;p className={className} style={style}&gt;{value}&lt;/p&gt; : &lt;span className={className} style={style}&gt;{value}&lt;/span&gt;;
+  const baseClass = "bg-transparent border-b border-transparent hover:border-[rgba(255,255,255,0.2)] focus:border-[#DC143C] focus:outline-none transition-colors w-full";
+  if (multiline) {
+    return (
+      &lt;textarea
+        value={value}
+        onChange={e =&gt; onChange(e.target.value)}
+        rows={Math.max(2, value.split("\n").length)}
+        className={`${baseClass} resize-none ${className ?? ""}`}
+        style={style}
+      /&gt;
+    );
+  }
+  return (
+    &lt;input
+      type="text"
+      value={value}
+      onChange={e =&gt; onChange(e.target.value)}
+      className={`${baseClass} ${className ?? ""}`}
+      style={style}
+    /&gt;
+  );
+}
+
+export default function PreviewPanel({ type, item, onClose, onUpdate }: PreviewPanelProps) {
+  return (
+    &lt;div className="fixed inset-0 bg-black/70 flex justify-end z-50"&gt;
+      &lt;div className="w-full max-w-lg bg-[#0A0A0A] h-full overflow-auto border-l border-[rgba(255,255,255,0.08)]"&gt;
+        &lt;div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)]"&gt;
+          &lt;span className="text-xs text-[rgba(255,255,255,0.4)] uppercase tracking-wider font-serif"&gt;
+            {onUpdate ? "Live Edit Preview" : "Preview"}
+          &lt;/span&gt;
+          &lt;button onClick={onClose} className="text-[rgba(255,255,255,0.4)] hover:text-white"&gt;&lt;X className="w-4 h-4" /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className="p-6" style={{ fontFamily: "'DM Sans', sans-serif" }}&gt;
+          {type === "debates" &amp;&amp; &lt;DebatePreview item={item as unknown as DebateItem} onUpdate={onUpdate} /&gt;}
+          {type === "predictions" &amp;&amp; &lt;PredictionPreview item={item as unknown as PredictionItem} onUpdate={onUpdate} /&gt;}
+          {type === "voices" &amp;&amp; &lt;VoicePreview item={item as unknown as VoiceItem} onUpdate={onUpdate} /&gt;}
+        &lt;/div&gt;
+        {onUpdate &amp;&amp; (
+          &lt;div className="px-6 pb-4"&gt;
+            &lt;p className="text-[10px] text-[rgba(255,255,255,0.25)] text-center"&gt;Click any text to edit inline&lt;/p&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function DebatePreview({ item, onUpdate }: { item: DebateItem; onUpdate?: (field: string, value: unknown) =&gt; void }) {
+  const totalVotes = item.options?.reduce((s: number, o: PollOption) =&gt; s + (o.voteCount || 0), 0) || 0;
+  return (
+    &lt;div className="space-y-5"&gt;
+      &lt;div&gt;
+        &lt;EditableText
+          value={item.category || "Category"}
+          onChange={onUpdate ? v =&gt; onUpdate("category", v) : undefined}
+          className="text-xs font-semibold uppercase tracking-wider block"
+          style={{ color: "#DC143C", fontFamily: "'Barlow Condensed', sans-serif" }}
+        /&gt;
+        &lt;EditableText
+          value={item.question || "Your question here..."}
+          onChange={onUpdate ? v =&gt; onUpdate("question", v) : undefined}
+          className="text-xl font-bold mt-2 text-white leading-snug block"
+          multiline
+        /&gt;
+      &lt;/div&gt;
+      &lt;EditableText
+        value={item.context || ""}
+        onChange={onUpdate ? v =&gt; onUpdate("context", v) : undefined}
+        className="text-sm text-[rgba(255,255,255,0.6)] leading-relaxed"
+        multiline
+      /&gt;
+      &lt;div className="space-y-2"&gt;
+        {item.options?.map((opt: PollOption, i: number) =&gt; {
+          const pct = totalVotes &gt; 0 ? Math.round((opt.voteCount / totalVotes) * 100) : 0;
+          return (
+            &lt;div key={i} className="relative bg-[rgba(255,255,255,0.04)] rounded-lg overflow-hidden p-3"&gt;
+              &lt;div className="absolute inset-0 rounded-lg" style={{ width: `${pct}%`, background: i === 0 ? "rgba(220,20,60,0.15)" : "rgba(255,255,255,0.04)" }} /&gt;
+              &lt;div className="relative flex justify-between items-center"&gt;
+                {onUpdate ? (
+                  &lt;input
+                    type="text"
+                    value={opt.text}
+                    onChange={e =&gt; {
+                      const next = [...(item.options || [])];
+                      next[i] = { ...next[i], text: e.target.value };
+                      onUpdate("options", next);
+                    }}
+                    className="text-sm text-white bg-transparent border-b border-transparent hover:border-[rgba(255,255,255,0.2)] focus:border-[#DC143C] focus:outline-none flex-1"
+                  /&gt;
+                ) : (
+                  &lt;span className="text-sm text-white"&gt;{opt.text}&lt;/span&gt;
+                )}
+                &lt;span className="text-sm font-semibold text-white ml-2"&gt;{pct}%&lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          );
+        })}
+      &lt;/div&gt;
+      {item.tags &amp;&amp; item.tags.length &gt; 0 &amp;&amp; (
+        &lt;div className="flex flex-wrap gap-1.5"&gt;
+          {item.tags.map((tag: string, i: number) =&gt; (
+            &lt;span key={i} className="text-xs px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)]"&gt;#{tag}&lt;/span&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function PredictionPreview({ item, onUpdate }: { item: PredictionItem; onUpdate?: (field: string, value: unknown) =&gt; void }) {
+  return (
+    &lt;div className="space-y-5"&gt;
+      &lt;div&gt;
+        &lt;EditableText
+          value={item.category || "Category"}
+          onChange={onUpdate ? v =&gt; onUpdate("category", v) : undefined}
+          className="text-xs font-semibold uppercase tracking-wider block"
+        /&gt;
+        &lt;EditableText
+          value={item.question || "Your prediction here..."}
+          onChange={onUpdate ? v =&gt; onUpdate("question", v) : undefined}
+          className="text-xl font-bold mt-2 text-white leading-snug block"
+          multiline
+        /&gt;
+      &lt;/div&gt;
+      &lt;div className="grid grid-cols-2 gap-3"&gt;
+        &lt;div className="bg-[rgba(220,20,60,0.1)] border border-[rgba(220,20,60,0.2)] rounded-lg p-4 text-center"&gt;
+          {onUpdate ? (
+            &lt;input
+              type="number"
+              value={item.yesPercentage}
+              onChange={e =&gt; { const v = Number(e.target.value); onUpdate("yesPercentage", v); onUpdate("noPercentage", 100 - v); }}
+              className="text-3xl font-bold text-white bg-transparent text-center w-full focus:outline-none border-b border-transparent hover:border-[rgba(255,255,255,0.2)] focus:border-[#DC143C]"
+            /&gt;
+          ) : (
+            &lt;p className="text-3xl font-bold text-white"&gt;{item.yesPercentage}%&lt;/p&gt;
+          )}
+          &lt;p className="text-xs text-[rgba(255,255,255,0.5)] mt-1"&gt;YES&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg p-4 text-center"&gt;
+          &lt;p className="text-3xl font-bold text-white"&gt;{item.noPercentage}%&lt;/p&gt;
+          &lt;p className="text-xs text-[rgba(255,255,255,0.5)] mt-1"&gt;NO&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="flex items-center gap-3 text-sm text-[rgba(255,255,255,0.5)]"&gt;
+        &lt;div className="flex items-center gap-1"&gt;
+          {item.momentumDirection === "up" ? &lt;TrendingUp className="w-3.5 h-3.5 text-green-400" /&gt; : &lt;TrendingDown className="w-3.5 h-3.5 text-red-400" /&gt;}
+          &lt;span&gt;{item.momentum}%&lt;/span&gt;
+        &lt;/div&gt;
+        {item.resolvesAt &amp;&amp; &lt;span&gt;Resolves {new Date(item.resolvesAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}&lt;/span&gt;}
+      &lt;/div&gt;
+      {item.tags &amp;&amp; item.tags.length &gt; 0 &amp;&amp; (
+        &lt;div className="flex flex-wrap gap-1.5"&gt;
+          {item.tags.map((tag: string, i: number) =&gt; (
+            &lt;span key={i} className="text-xs px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)]"&gt;#{tag}&lt;/span&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function VoicePreview({ item, onUpdate }: { item: VoiceItem; onUpdate?: (field: string, value: unknown) =&gt; void }) {
+  return (
+    &lt;div className="space-y-5"&gt;
+      &lt;div className="flex items-start gap-4"&gt;
+        {item.imageUrl ? (
+          &lt;img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-full object-cover border-2 border-[rgba(220,20,60,0.3)]" /&gt;
+        ) : (
+          &lt;div className="w-16 h-16 rounded-full bg-[rgba(220,20,60,0.15)] flex items-center justify-center text-xl font-bold text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;
+            {item.name?.charAt(0) || "?"}
+          &lt;/div&gt;
+        )}
+        &lt;div className="flex-1"&gt;
+          &lt;EditableText
+            value={item.name || "Name"}
+            onChange={onUpdate ? v =&gt; onUpdate("name", v) : undefined}
+            className="text-xl font-bold text-white block"
+          /&gt;
+          &lt;div className="flex gap-1 items-center text-sm text-[rgba(255,255,255,0.5)]"&gt;
+            &lt;EditableText
+              value={item.role || "Role"}
+              onChange={onUpdate ? v =&gt; onUpdate("role", v) : undefined}
+              className="text-sm text-[rgba(255,255,255,0.5)]"
+            /&gt;
+            {item.company &amp;&amp; (
+              &lt;&gt;
+                &lt;span className="text-[rgba(255,255,255,0.3)]"&gt;,&lt;/span&gt;
+                &lt;EditableText
+                  value={item.company}
+                  onChange={onUpdate ? v =&gt; onUpdate("company", v) : undefined}
+                  className="text-sm text-[rgba(255,255,255,0.5)]"
+                /&gt;
+              &lt;/&gt;
+            )}
+          &lt;/div&gt;
+          &lt;p className="text-xs text-[rgba(255,255,255,0.4)] mt-0.5"&gt;{item.city || "City"}, {item.country || "Country"} · {item.sector || "Sector"}&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      {(item.headline || onUpdate) &amp;&amp; (
+        &lt;EditableText
+          value={item.headline || ""}
+          onChange={onUpdate ? v =&gt; onUpdate("headline", v) : undefined}
+          className="text-sm text-[rgba(255,255,255,0.5)] leading-relaxed italic"
+          multiline
+        /&gt;
+      )}
+      {(item.summary || onUpdate) &amp;&amp; (
+        &lt;div&gt;
+          &lt;h3 className="text-xs uppercase tracking-wider text-[rgba(255,255,255,0.3)] mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;Summary&lt;/h3&gt;
+          &lt;EditableText
+            value={item.summary || ""}
+            onChange={onUpdate ? v =&gt; onUpdate("summary", v) : undefined}
+            className="text-sm text-[rgba(255,255,255,0.7)] leading-relaxed"
+            multiline
+          /&gt;
+        &lt;/div&gt;
+      )}
+      {item.story &amp;&amp; item.story !== item.summary &amp;&amp; (
+        &lt;div&gt;
+          &lt;h3 className="text-xs uppercase tracking-wider text-[rgba(255,255,255,0.3)] mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;Story&lt;/h3&gt;
+          &lt;EditableText
+            value={item.story}
+            onChange={onUpdate ? v =&gt; onUpdate("story", v) : undefined}
+            className="text-sm text-[rgba(255,255,255,0.7)] leading-relaxed whitespace-pre-wrap"
+            multiline
+          /&gt;
+        &lt;/div&gt;
+      )}
+      {item.lessonsLearned &amp;&amp; item.lessonsLearned.length &gt; 0 &amp;&amp; (
+        &lt;div&gt;
+          &lt;h3 className="text-xs uppercase tracking-wider text-[rgba(255,255,255,0.3)] mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;Lessons Learned&lt;/h3&gt;
+          &lt;ul className="space-y-1.5"&gt;
+            {item.lessonsLearned.map((lesson: string, i: number) =&gt; (
+              &lt;li key={i} className="text-sm text-[rgba(255,255,255,0.7)] flex items-start gap-2"&gt;
+                &lt;span className="text-[#DC143C] mt-0.5"&gt;▸&lt;/span&gt;
+                {onUpdate ? (
+                  &lt;input
+                    type="text"
+                    value={lesson}
+                    onChange={e =&gt; {
+                      const next = [...(item.lessonsLearned || [])];
+                      next[i] = e.target.value;
+                      onUpdate("lessonsLearned", next);
+                    }}
+                    className="flex-1 text-sm text-[rgba(255,255,255,0.7)] bg-transparent border-b border-transparent hover:border-[rgba(255,255,255,0.2)] focus:border-[#DC143C] focus:outline-none"
+                  /&gt;
+                ) : (
+                  lesson
+                )}
+              &lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+        &lt;/div&gt;
+      )}
+      {item.quote &amp;&amp; (
+        &lt;blockquote className="border-l-2 border-[#DC143C] pl-4 py-1"&gt;
+          &lt;EditableText
+            value={item.quote}
+            onChange={onUpdate ? v =&gt; onUpdate("quote", v) : undefined}
+            className="text-sm text-[rgba(255,255,255,0.8)] italic"
+          /&gt;
+        &lt;/blockquote&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-combo-select-tsx">
+      <div class="file-header">
+        <h3>src/components/combo-select.tsx</h3>
+        <span class="lang">TSX · 73 lines</span>
+      </div>
+      <pre><code>import { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
+
+interface ComboSelectProps {
+  value: string;
+  onChange: (value: string) =&gt; void;
+  options: string[];
+  placeholder?: string;
+  allowCustom?: boolean;
+}
+
+export default function ComboSelect({ value, onChange, options, placeholder = "Select or type...", allowCustom = true }: ComboSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef&lt;HTMLDivElement&gt;(null);
+  const inputRef = useRef&lt;HTMLInputElement&gt;(null);
+
+  useEffect(() =&gt; {
+    const handler = (e: MouseEvent) =&gt; {
+      if (ref.current &amp;&amp; !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () =&gt; document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = options.filter(o =&gt;
+    o.toLowerCase().includes((search || value).toLowerCase())
+  );
+
+  const displayValue = search !== "" ? search : value;
+
+  return (
+    &lt;div ref={ref} className="relative"&gt;
+      &lt;div className="flex items-center"&gt;
+        &lt;input
+          ref={inputRef}
+          type="text"
+          value={displayValue}
+          onChange={e =&gt; {
+            setSearch(e.target.value);
+            if (allowCustom) onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() =&gt; setOpen(true)}
+          placeholder={placeholder}
+          className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary pr-8"
+        /&gt;
+        &lt;button
+          type="button"
+          onClick={() =&gt; { setOpen(!open); inputRef.current?.focus(); }}
+          className="absolute right-2 text-muted-foreground hover:text-foreground"
+        &gt;
+          &lt;ChevronDown className="w-3.5 h-3.5" /&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      {open &amp;&amp; filtered.length &gt; 0 &amp;&amp; (
+        &lt;div className="absolute z-20 mt-1 w-full max-h-48 overflow-auto bg-card border border-border rounded-md shadow-lg"&gt;
+          {filtered.map(option =&gt; (
+            &lt;button
+              key={option}
+              type="button"
+              onClick={() =&gt; { onChange(option); setSearch(""); setOpen(false); }}
+              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors ${value === option ? "text-primary font-medium" : "text-foreground"}`}
+            &gt;
+              {option}
+            &lt;/button&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-tag-input-tsx">
+      <div class="file-header">
+        <h3>src/components/tag-input.tsx</h3>
+        <span class="lang">TSX · 90 lines</span>
+      </div>
+      <pre><code>import { useState, useRef, useEffect } from "react";
+import { X, Plus } from "lucide-react";
+
+interface TagInputProps {
+  tags: string[];
+  onChange: (tags: string[]) =&gt; void;
+  suggestions?: string[];
+  placeholder?: string;
+}
+
+export default function TagInput({ tags, onChange, suggestions = [], placeholder = "Add tag..." }: TagInputProps) {
+  const [input, setInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const ref = useRef&lt;HTMLDivElement&gt;(null);
+
+  useEffect(() =&gt; {
+    const handler = (e: MouseEvent) =&gt; {
+      if (ref.current &amp;&amp; !ref.current.contains(e.target as Node)) setShowSuggestions(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () =&gt; document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = suggestions.filter(s =&gt;
+    !tags.includes(s) &amp;&amp; s.toLowerCase().includes(input.toLowerCase())
+  );
+
+  const addTag = (tag: string) =&gt; {
+    const trimmed = tag.trim().toLowerCase().replace(/\s+/g, "-");
+    if (trimmed &amp;&amp; !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+    }
+    setInput("");
+    setShowSuggestions(false);
+  };
+
+  const removeTag = (index: number) =&gt; {
+    onChange(tags.filter((_, i) =&gt; i !== index));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) =&gt; {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      if (input.trim()) addTag(input);
+    } else if (e.key === "Backspace" &amp;&amp; !input &amp;&amp; tags.length &gt; 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    &lt;div ref={ref} className="relative"&gt;
+      &lt;div className="flex flex-wrap gap-1.5 p-2 bg-background border border-border rounded-md min-h-[38px]"&gt;
+        {tags.map((tag, i) =&gt; (
+          &lt;span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-secondary text-secondary-foreground rounded text-xs"&gt;
+            #{tag}
+            &lt;button type="button" onClick={() =&gt; removeTag(i)} className="text-muted-foreground hover:text-red-400"&gt;
+              &lt;X className="w-3 h-3" /&gt;
+            &lt;/button&gt;
+          &lt;/span&gt;
+        ))}
+        &lt;input
+          type="text"
+          value={input}
+          onChange={e =&gt; { setInput(e.target.value); setShowSuggestions(true); }}
+          onFocus={() =&gt; setShowSuggestions(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={tags.length === 0 ? placeholder : ""}
+          className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none"
+        /&gt;
+      &lt;/div&gt;
+      {showSuggestions &amp;&amp; (input || tags.length === 0) &amp;&amp; filtered.length &gt; 0 &amp;&amp; (
+        &lt;div className="absolute z-20 mt-1 w-full max-h-40 overflow-auto bg-card border border-border rounded-md shadow-lg"&gt;
+          {filtered.slice(0, 15).map(suggestion =&gt; (
+            &lt;button
+              key={suggestion}
+              type="button"
+              onClick={() =&gt; addTag(suggestion)}
+              className="w-full text-left px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-1.5"
+            &gt;
+              &lt;Plus className="w-3 h-3 text-muted-foreground" /&gt;
+              &lt;span className="text-muted-foreground"&gt;#&lt;/span&gt;{suggestion}
+            &lt;/button&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+      &lt;p className="text-[10px] text-muted-foreground mt-1"&gt;Press Enter or comma to add. Type to search suggestions or create custom tags.&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-status-badge-tsx">
+      <div class="file-header">
+        <h3>src/components/status-badge.tsx</h3>
+        <span class="lang">TSX · 28 lines</span>
+      </div>
+      <pre><code>const STATUS_STYLES: Record&lt;string, string&gt; = {
+  draft: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
+  in_review: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  approved: "bg-green-500/15 text-green-400 border-green-500/20",
+  rejected: "bg-red-500/15 text-red-400 border-red-500/20",
+  revision: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  flagged: "bg-red-500/15 text-red-400 border-red-500/20",
+  archived: "bg-gray-500/15 text-gray-400 border-gray-500/20",
+};
+
+const STATUS_LABELS: Record&lt;string, string&gt; = {
+  draft: "Draft",
+  in_review: "In Review",
+  approved: "Live",
+  rejected: "Rejected",
+  revision: "Revision",
+  flagged: "Flagged",
+  archived: "Archived",
+};
+
+export default function StatusBadge({ status }: { status: string }) {
+  return (
+    &lt;span className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border ${STATUS_STYLES[status] || "bg-gray-500/15 text-gray-400 border-gray-500/20"}`}&gt;
+      {STATUS_LABELS[status] || status}
+    &lt;/span&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-components-dynamic-list-tsx">
+      <div class="file-header">
+        <h3>src/components/dynamic-list.tsx</h3>
+        <span class="lang">TSX · 54 lines</span>
+      </div>
+      <pre><code>import { Plus, X, GripVertical } from "lucide-react";
+
+interface DynamicListProps {
+  items: string[];
+  onChange: (items: string[]) =&gt; void;
+  placeholder?: string;
+  label?: string;
+}
+
+export default function DynamicList({ items, onChange, placeholder = "Add item...", label }: DynamicListProps) {
+  const addItem = () =&gt; onChange([...items, ""]);
+  const removeItem = (index: number) =&gt; onChange(items.filter((_, i) =&gt; i !== index));
+  const updateItem = (index: number, value: string) =&gt; {
+    const next = [...items];
+    next[index] = value;
+    onChange(next);
+  };
+  const moveItem = (from: number, to: number) =&gt; {
+    if (to &lt; 0 || to &gt;= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
+  };
+
+  return (
+    &lt;div className="space-y-2"&gt;
+      {label &amp;&amp; &lt;label className="block text-sm font-medium"&gt;{label}&lt;/label&gt;}
+      {items.map((item, i) =&gt; (
+        &lt;div key={i} className="flex items-center gap-2"&gt;
+          &lt;button type="button" className="text-muted-foreground cursor-grab" onMouseDown={(e) =&gt; e.preventDefault()}&gt;
+            &lt;GripVertical className="w-3.5 h-3.5" /&gt;
+          &lt;/button&gt;
+          &lt;input
+            type="text"
+            value={item}
+            onChange={e =&gt; updateItem(i, e.target.value)}
+            className="flex-1 px-3 py-1.5 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder={placeholder}
+          /&gt;
+          &lt;div className="flex gap-1"&gt;
+            {i &gt; 0 &amp;&amp; &lt;button type="button" onClick={() =&gt; moveItem(i, i - 1)} className="text-xs text-muted-foreground hover:text-foreground px-1"&gt;↑&lt;/button&gt;}
+            {i &lt; items.length - 1 &amp;&amp; &lt;button type="button" onClick={() =&gt; moveItem(i, i + 1)} className="text-xs text-muted-foreground hover:text-foreground px-1"&gt;↓&lt;/button&gt;}
+          &lt;/div&gt;
+          &lt;button type="button" onClick={() =&gt; removeItem(i)} className="text-muted-foreground hover:text-red-400"&gt;&lt;X className="w-3.5 h-3.5" /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      ))}
+      &lt;button type="button" onClick={addItem} className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"&gt;
+        &lt;Plus className="w-3.5 h-3.5" /&gt; Add
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-login-tsx">
+      <div class="file-header">
+        <h3>src/pages/login.tsx</h3>
+        <span class="lang">TSX · 71 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { useLocation } from "wouter";
+
+export default function LoginPage() {
+  const { login } = useAuth();
+  const [, navigate] = useLocation();
+  const [username, setUsername] = useState("");
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) =&gt; {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await login(username, pin);
+      navigate("/dashboard");
+    } catch {
+      setError("Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    &lt;div className="min-h-screen flex items-center justify-center bg-background"&gt;
+      &lt;div className="w-full max-w-sm p-8"&gt;
+        &lt;div className="text-center mb-8"&gt;
+          &lt;h1 className="font-serif text-3xl font-bold tracking-tight text-primary"&gt;TMH&lt;/h1&gt;
+          &lt;p className="text-muted-foreground mt-1 text-sm"&gt;Content Management System&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;form onSubmit={handleSubmit} className="space-y-4"&gt;
+          &lt;div&gt;
+            &lt;label className="block text-sm font-medium mb-1.5"&gt;Username&lt;/label&gt;
+            &lt;input
+              type="text"
+              value={username}
+              onChange={e =&gt; setUsername(e.target.value)}
+              className="w-full px-3 py-2 bg-card border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="admin"
+              required
+            /&gt;
+          &lt;/div&gt;
+          &lt;div&gt;
+            &lt;label className="block text-sm font-medium mb-1.5"&gt;PIN&lt;/label&gt;
+            &lt;input
+              type="password"
+              value={pin}
+              onChange={e =&gt; setPin(e.target.value)}
+              className="w-full px-3 py-2 bg-card border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="••••"
+              required
+            /&gt;
+          &lt;/div&gt;
+          {error &amp;&amp; &lt;p className="text-sm text-red-500"&gt;{error}&lt;/p&gt;}
+          &lt;button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          &gt;
+            {loading ? "Signing in..." : "Sign In"}
+          &lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-dashboard-tsx">
+      <div class="file-header">
+        <h3>src/pages/dashboard.tsx</h3>
+        <span class="lang">TSX · 98 lines</span>
+      </div>
+      <pre><code>import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { useLocation } from "wouter";
+import { MessageSquare, TrendingUp, Users, Clock, ArrowRight } from "lucide-react";
+
+interface Stats {
+  debates: { total: number; drafts: number; live: number; flagged: number; inReview: number; archived: number };
+  predictions: { total: number; drafts: number; live: number; flagged: number; inReview: number; archived: number };
+  voices: { total: number; drafts: number; live: number; flagged: number; inReview: number; archived: number };
+  recentActivity: Array&lt;{ type: string; id: number; title: string; status: string; updatedAt: string }&gt;;
+}
+
+const STATUS_COLORS: Record&lt;string, string&gt; = {
+  draft: "bg-yellow-500/20 text-yellow-400",
+  in_review: "bg-blue-500/20 text-blue-400",
+  approved: "bg-green-500/20 text-green-400",
+  rejected: "bg-red-500/20 text-red-400",
+  revision: "bg-orange-500/20 text-orange-400",
+  flagged: "bg-red-500/20 text-red-400",
+  archived: "bg-gray-500/20 text-gray-400",
+};
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState&lt;Stats | null&gt;(null);
+  const [, navigate] = useLocation();
+
+  useEffect(() =&gt; {
+    api.getStats().then(setStats).catch(console.error);
+  }, []);
+
+  if (!stats) {
+    return &lt;div className="flex items-center justify-center h-64"&gt;&lt;p className="text-muted-foreground"&gt;Loading...&lt;/p&gt;&lt;/div&gt;;
+  }
+
+  const sections = [
+    { key: "debates", label: "Debates", icon: MessageSquare, stats: stats.debates, path: "/debates" },
+    { key: "predictions", label: "Predictions", icon: TrendingUp, stats: stats.predictions, path: "/predictions" },
+    { key: "voices", label: "Voices", icon: Users, stats: stats.voices, path: "/voices" },
+  ];
+
+  return (
+    &lt;div className="space-y-8"&gt;
+      &lt;div&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;Dashboard&lt;/h1&gt;
+        &lt;p className="text-muted-foreground text-sm mt-1"&gt;Content overview and quick actions&lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;div className="grid grid-cols-1 md:grid-cols-3 gap-4"&gt;
+        {sections.map(s =&gt; (
+          &lt;button
+            key={s.key}
+            onClick={() =&gt; navigate(s.path)}
+            className="bg-card border border-border rounded-lg p-5 text-left hover:border-primary/50 transition-colors group"
+          &gt;
+            &lt;div className="flex items-center justify-between mb-4"&gt;
+              &lt;s.icon className="w-5 h-5 text-primary" /&gt;
+              &lt;ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" /&gt;
+            &lt;/div&gt;
+            &lt;p className="font-serif text-lg font-bold"&gt;{s.label}&lt;/p&gt;
+            &lt;p className="text-3xl font-bold mt-1"&gt;{s.stats.total}&lt;/p&gt;
+            &lt;div className="flex flex-wrap gap-3 mt-3 text-xs"&gt;
+              &lt;span className="text-green-400"&gt;{s.stats.live} live&lt;/span&gt;
+              &lt;span className="text-yellow-400"&gt;{s.stats.drafts} drafts&lt;/span&gt;
+              {s.stats.inReview &gt; 0 &amp;&amp; &lt;span className="text-blue-400"&gt;{s.stats.inReview} in review&lt;/span&gt;}
+              {s.stats.flagged &gt; 0 &amp;&amp; &lt;span className="text-red-400"&gt;{s.stats.flagged} flagged&lt;/span&gt;}
+              {s.stats.archived &gt; 0 &amp;&amp; &lt;span className="text-gray-400"&gt;{s.stats.archived} archived&lt;/span&gt;}
+            &lt;/div&gt;
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      &lt;div className="bg-card border border-border rounded-lg p-5"&gt;
+        &lt;div className="flex items-center gap-2 mb-4"&gt;
+          &lt;Clock className="w-4 h-4 text-muted-foreground" /&gt;
+          &lt;h2 className="font-serif text-lg font-bold"&gt;Recent Activity&lt;/h2&gt;
+        &lt;/div&gt;
+        {stats.recentActivity.length === 0 ? (
+          &lt;p className="text-muted-foreground text-sm"&gt;No recent activity&lt;/p&gt;
+        ) : (
+          &lt;div className="space-y-2"&gt;
+            {stats.recentActivity.map((item, i) =&gt; (
+              &lt;div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0"&gt;
+                &lt;div className="flex items-center gap-3 min-w-0"&gt;
+                  &lt;span className="text-xs text-muted-foreground uppercase w-20 shrink-0"&gt;{item.type}&lt;/span&gt;
+                  &lt;span className="text-sm truncate"&gt;{item.title}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[item.status] || "bg-gray-500/20 text-gray-400"}`}&gt;
+                  {item.status}
+                &lt;/span&gt;
+              &lt;/div&gt;
+            ))}
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-debates-tsx">
+      <div class="file-header">
+        <h3>src/pages/debates.tsx</h3>
+        <span class="lang">TSX · 16 lines</span>
+      </div>
+      <pre><code>import { api } from "@/lib/api";
+import ContentList from "@/components/content-list";
+
+export default function DebatesPage() {
+  return (
+    &lt;ContentList
+      type="debates"
+      title="Debates"
+      getItems={(status) =&gt; api.getDebates(status)}
+      getTitle={(item) =&gt; item.question}
+      getCategory={(item) =&gt; item.category}
+      editPath={(id) =&gt; `/debates/${id}/edit`}
+    /&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-predictions-tsx">
+      <div class="file-header">
+        <h3>src/pages/predictions.tsx</h3>
+        <span class="lang">TSX · 16 lines</span>
+      </div>
+      <pre><code>import { api } from "@/lib/api";
+import ContentList from "@/components/content-list";
+
+export default function PredictionsPage() {
+  return (
+    &lt;ContentList
+      type="predictions"
+      title="Predictions"
+      getItems={(status) =&gt; api.getPredictions(status)}
+      getTitle={(item) =&gt; item.question}
+      getCategory={(item) =&gt; item.category}
+      editPath={(id) =&gt; `/predictions/${id}/edit`}
+    /&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-voices-tsx">
+      <div class="file-header">
+        <h3>src/pages/voices.tsx</h3>
+        <span class="lang">TSX · 16 lines</span>
+      </div>
+      <pre><code>import { api } from "@/lib/api";
+import ContentList from "@/components/content-list";
+
+export default function VoicesPage() {
+  return (
+    &lt;ContentList
+      type="voices"
+      title="Voices"
+      getItems={(status) =&gt; api.getVoices(status)}
+      getTitle={(item) =&gt; item.name}
+      getCategory={(item) =&gt; item.sector}
+      editPath={(id) =&gt; `/voices/${id}/edit`}
+    /&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-edit-debate-tsx">
+      <div class="file-header">
+        <h3>src/pages/edit-debate.tsx</h3>
+        <span class="lang">TSX · 251 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { useState, useEffect } from "react";
+import { useParams, useLocation } from "wouter";
+import { api } from "@/lib/api";
+import TagInput from "@/components/tag-input";
+import ComboSelect from "@/components/combo-select";
+import PreviewPanel from "@/components/preview-panel";
+import { Save, Send, Check, Archive, RotateCcw, Eye } from "lucide-react";
+
+interface VoiceOption {
+  id: number;
+  name: string;
+}
+
+interface Taxonomy {
+  debateCategories: string[];
+  tags: string[];
+}
+
+export default function EditDebatePage() {
+  const params = useParams&lt;{ id: string }&gt;();
+  const [, navigate] = useLocation();
+  const isNew = params.id === "new";
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [voices, setVoices] = useState&lt;VoiceOption[]&gt;([]);
+  const [taxonomy, setTaxonomy] = useState&lt;Taxonomy&gt;({ debateCategories: [], tags: [] });
+  const [form, setForm] = useState({
+    question: "", context: "", category: "", categorySlug: "", tags: [] as string[],
+    pollType: "binary", cardLayout: "standard", isFeatured: false, isEditorsPick: false, editorialStatus: "draft",
+    endsAt: "", relatedProfileIds: [] as number[], options: [{ text: "Yes", voteCount: 0 }, { text: "No", voteCount: 0 }],
+  });
+
+  useEffect(() =&gt; {
+    api.getVoices().then(res =&gt; {
+      setVoices(res.items.map((v: { id: number; name: string }) =&gt; ({ id: v.id, name: v.name })));
+    }).catch(() =&gt; {});
+
+    api.getTaxonomy().then(setTaxonomy).catch(() =&gt; {});
+
+    if (!isNew) {
+      api.getDebate(Number(params.id)).then(data =&gt; {
+        setForm({
+          question: data.question || "", context: data.context || "", category: data.category || "",
+          categorySlug: data.categorySlug || "", tags: data.tags || [], pollType: data.pollType || "binary",
+          cardLayout: data.cardLayout || "standard", isFeatured: data.isFeatured || false, isEditorsPick: data.isEditorsPick || false,
+          editorialStatus: data.editorialStatus || "draft", endsAt: data.endsAt ? data.endsAt.split("T")[0] : "",
+          relatedProfileIds: data.relatedProfileIds || [], options: data.options || [],
+        });
+        setLoading(false);
+      }).catch(() =&gt; navigate("/debates"));
+    }
+  }, [params.id, isNew, navigate]);
+
+  const update = (field: string, value: unknown) =&gt; setForm(f =&gt; ({ ...f, [field]: value }));
+
+  const save = async (status?: string) =&gt; {
+    setSaving(true);
+    try {
+      const data = { ...form, editorialStatus: status || form.editorialStatus, endsAt: form.endsAt || null };
+      if (isNew) {
+        await api.bulkUpload("debates", [{ ...data, options: form.options.map(o =&gt; o.text) }]);
+      } else {
+        await api.updateDebate(Number(params.id), data);
+      }
+      navigate("/debates");
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return &lt;div className="text-center py-12 text-muted-foreground"&gt;Loading...&lt;/div&gt;;
+
+  return (
+    &lt;div className="max-w-2xl space-y-6"&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;{isNew ? "New Debate" : "Edit Debate"}&lt;/h1&gt;
+        &lt;button onClick={() =&gt; setShowPreview(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80"&gt;
+          &lt;Eye className="w-3.5 h-3.5" /&gt; Preview
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div className="space-y-4"&gt;
+        &lt;Field label="Question"&gt;
+          &lt;textarea value={form.question} onChange={e =&gt; update("question", e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;Field label="Context"&gt;
+          &lt;textarea value={form.context} onChange={e =&gt; update("context", e.target.value)} rows={4} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Background context for the debate..." /&gt;
+        &lt;/Field&gt;
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Category"&gt;
+            &lt;ComboSelect
+              value={form.category}
+              onChange={v =&gt; { update("category", v); update("categorySlug", v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }}
+              options={taxonomy.debateCategories}
+              placeholder="Select or type category..."
+            /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Category Slug"&gt;
+            &lt;input type="text" value={form.categorySlug} onChange={e =&gt; update("categorySlug", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;div className="grid grid-cols-3 gap-4"&gt;
+          &lt;Field label="Poll Type"&gt;
+            &lt;select value={form.pollType} onChange={e =&gt; update("pollType", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+              &lt;option value="binary"&gt;Binary (Yes/No)&lt;/option&gt;
+              &lt;option value="multiple"&gt;Multiple Choice&lt;/option&gt;
+              &lt;option value="scale"&gt;Scale&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Card Layout"&gt;
+            &lt;select value={form.cardLayout} onChange={e =&gt; update("cardLayout", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+              &lt;option value="standard"&gt;Standard Card&lt;/option&gt;
+              &lt;option value="featured"&gt;Featured (Hero Split)&lt;/option&gt;
+              &lt;option value="compact"&gt;Compact&lt;/option&gt;
+              &lt;option value="sidebar"&gt;Sidebar / List&lt;/option&gt;
+              &lt;option value="full-width"&gt;Full Width&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Ends At"&gt;
+            &lt;input type="date" value={form.endsAt} onChange={e =&gt; update("endsAt", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        {form.cardLayout &amp;&amp; (
+          &lt;div className="rounded-md border border-border bg-secondary/20 p-3"&gt;
+            &lt;p className="text-xs text-muted-foreground mb-1 font-medium"&gt;Layout Preview&lt;/p&gt;
+            &lt;CardLayoutPreview type="debate" layout={form.cardLayout} /&gt;
+          &lt;/div&gt;
+        )}
+
+        &lt;Field label="Tags"&gt;
+          &lt;TagInput tags={form.tags} onChange={v =&gt; update("tags", v)} suggestions={taxonomy.tags} placeholder="Add tag..." /&gt;
+        &lt;/Field&gt;
+
+        &lt;Field label="Related Voices"&gt;
+          &lt;div className="border border-border rounded-md p-2 max-h-40 overflow-y-auto space-y-1"&gt;
+            {voices.length === 0 ? (
+              &lt;p className="text-xs text-muted-foreground"&gt;Loading voices...&lt;/p&gt;
+            ) : (
+              voices.map(v =&gt; (
+                &lt;label key={v.id} className="flex items-center gap-2 text-sm px-1 py-0.5 hover:bg-secondary/30 rounded cursor-pointer"&gt;
+                  &lt;input
+                    type="checkbox"
+                    checked={form.relatedProfileIds.includes(v.id)}
+                    onChange={e =&gt; {
+                      if (e.target.checked) {
+                        update("relatedProfileIds", [...form.relatedProfileIds, v.id]);
+                      } else {
+                        update("relatedProfileIds", form.relatedProfileIds.filter((id: number) =&gt; id !== v.id));
+                      }
+                    }}
+                    className="accent-primary"
+                  /&gt;
+                  {v.name}
+                &lt;/label&gt;
+              ))
+            )}
+          &lt;/div&gt;
+          {form.relatedProfileIds.length &gt; 0 &amp;&amp; (
+            &lt;p className="text-xs text-muted-foreground mt-1"&gt;{form.relatedProfileIds.length} voice{form.relatedProfileIds.length !== 1 ? "s" : ""} selected&lt;/p&gt;
+          )}
+        &lt;/Field&gt;
+
+        &lt;Field label="Poll Options"&gt;
+          &lt;div className="space-y-2"&gt;
+            {form.options.map((opt, i) =&gt; (
+              &lt;div key={i} className="flex items-center gap-2"&gt;
+                &lt;input type="text" value={opt.text} onChange={e =&gt; {
+                  const next = [...form.options]; next[i] = { ...next[i], text: e.target.value }; update("options", next);
+                }} className="flex-1 px-3 py-1.5 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                {form.options.length &gt; 2 &amp;&amp; (
+                  &lt;button type="button" onClick={() =&gt; update("options", form.options.filter((_, j) =&gt; j !== i))} className="text-muted-foreground hover:text-red-400 text-sm"&gt;×&lt;/button&gt;
+                )}
+              &lt;/div&gt;
+            ))}
+            &lt;button type="button" onClick={() =&gt; update("options", [...form.options, { text: "", voteCount: 0 }])} className="text-sm text-primary hover:text-primary/80"&gt;+ Add Option&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/Field&gt;
+
+        &lt;div className="flex gap-6"&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;&lt;input type="checkbox" checked={form.isFeatured} onChange={e =&gt; update("isFeatured", e.target.checked)} className="accent-primary" /&gt; Featured&lt;/label&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;&lt;input type="checkbox" checked={form.isEditorsPick} onChange={e =&gt; update("isEditorsPick", e.target.checked)} className="accent-primary" /&gt; Editor's Pick&lt;/label&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="flex flex-wrap gap-2 pt-4 border-t border-border"&gt;
+        &lt;button onClick={() =&gt; save()} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 disabled:opacity-50"&gt;
+          &lt;Save className="w-3.5 h-3.5" /&gt; Save Draft
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; save("in_review")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"&gt;
+          &lt;Send className="w-3.5 h-3.5" /&gt; Submit for Review
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; save("approved")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:opacity-50"&gt;
+          &lt;Check className="w-3.5 h-3.5" /&gt; Approve
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; save("revision")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"&gt;
+          &lt;RotateCcw className="w-3.5 h-3.5" /&gt; Revision
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; save("archived")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 disabled:opacity-50"&gt;
+          &lt;Archive className="w-3.5 h-3.5" /&gt; Archive
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; navigate("/debates")} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+
+      {showPreview &amp;&amp; (
+        &lt;PreviewPanel type="debates" item={form} onClose={() =&gt; setShowPreview(false)} onUpdate={update} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    &lt;div&gt;
+      &lt;label className="block text-sm font-medium mb-1.5"&gt;{label}&lt;/label&gt;
+      {children}
+    &lt;/div&gt;
+  );
+}
+
+const LAYOUT_DESCRIPTIONS: Record&lt;string, Record&lt;string, { desc: string; visual: React.ReactNode }&gt;&gt; = {
+  debate: {
+    standard: { desc: "Default vertical card in grids. Question + vote options + results.", visual: &lt;div className="flex gap-2"&gt;&lt;div className="flex-1 h-16 border border-border rounded bg-secondary/30" /&gt;&lt;div className="flex-1 h-16 border border-border rounded bg-secondary/30" /&gt;&lt;/div&gt; },
+    featured: { desc: "Large horizontal hero card. Split-screen with question left, voting right.", visual: &lt;div className="h-12 border border-primary/40 rounded bg-primary/5 flex items-center justify-center text-[10px] text-primary font-bold"&gt;HERO SPLIT LAYOUT&lt;/div&gt; },
+    compact: { desc: "Minimal card. Question + percentage bars only, no context.", visual: &lt;div className="space-y-1"&gt;&lt;div className="h-3 w-3/4 bg-secondary rounded" /&gt;&lt;div className="h-2 w-1/2 bg-primary/20 rounded" /&gt;&lt;/div&gt; },
+    sidebar: { desc: "Text-only list item. Category, headline, vote count. Used in sidebars.", visual: &lt;div className="space-y-1 border-l-2 border-primary pl-2"&gt;&lt;div className="h-2 w-10 bg-primary/30 rounded" /&gt;&lt;div className="h-2 w-full bg-secondary rounded" /&gt;&lt;div className="h-2 w-8 bg-secondary/50 rounded" /&gt;&lt;/div&gt; },
+    "full-width": { desc: "Full-width banner card spanning the entire content area.", visual: &lt;div className="h-10 border border-border rounded bg-secondary/20 flex items-center justify-center text-[10px] text-muted-foreground"&gt;FULL WIDTH&lt;/div&gt; },
+  },
+  prediction: {
+    featured: { desc: "Large 2-column card with confidence chart and tipping point.", visual: &lt;div className="h-12 border border-primary/40 rounded bg-primary/5 grid grid-cols-2 gap-1 p-1"&gt;&lt;div className="bg-secondary/30 rounded" /&gt;&lt;div className="bg-secondary/30 rounded" /&gt;&lt;/div&gt; },
+    grid: { desc: "Compact card with sparkline, resolve date, and confidence bars.", visual: &lt;div className="flex gap-2"&gt;&lt;div className="flex-1 h-14 border border-border rounded bg-secondary/30" /&gt;&lt;div className="flex-1 h-14 border border-border rounded bg-secondary/30" /&gt;&lt;/div&gt; },
+    compact: { desc: "Minimal prediction with yes/no bars only.", visual: &lt;div className="space-y-1"&gt;&lt;div className="h-3 w-2/3 bg-secondary rounded" /&gt;&lt;div className="h-2 w-1/2 bg-primary/20 rounded" /&gt;&lt;div className="h-2 w-1/3 bg-secondary/40 rounded" /&gt;&lt;/div&gt; },
+    ticker: { desc: "Scrolling ticker item showing label + percentage + delta.", visual: &lt;div className="h-6 bg-[#0D0D0D] rounded flex items-center px-2 gap-2"&gt;&lt;span className="text-[8px] text-white/50"&gt;LABEL&lt;/span&gt;&lt;span className="text-[9px] text-white font-bold"&gt;71%&lt;/span&gt;&lt;span className="text-[8px] text-green-400"&gt;+2.1&lt;/span&gt;&lt;/div&gt; },
+  },
+};
+
+function CardLayoutPreview({ type, layout }: { type: string; layout: string }) {
+  const info = LAYOUT_DESCRIPTIONS[type]?.[layout];
+  if (!info) return null;
+  return (
+    &lt;div className="space-y-2"&gt;
+      &lt;p className="text-[11px] text-muted-foreground"&gt;{info.desc}&lt;/p&gt;
+      &lt;div className="max-w-[200px]"&gt;{info.visual}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-edit-prediction-tsx">
+      <div class="file-header">
+        <h3>src/pages/edit-prediction.tsx</h3>
+        <span class="lang">TSX · 182 lines</span>
+      </div>
+      <pre><code>import { useState, useEffect } from "react";
+import { useParams, useLocation } from "wouter";
+import { api } from "@/lib/api";
+import TagInput from "@/components/tag-input";
+import ComboSelect from "@/components/combo-select";
+import PreviewPanel from "@/components/preview-panel";
+import type React from "react";
+import { Save, Send, Check, Archive, RotateCcw, Eye } from "lucide-react";
+
+interface Taxonomy {
+  predictionCategories: string[];
+  tags: string[];
+}
+
+export default function EditPredictionPage() {
+  const params = useParams&lt;{ id: string }&gt;();
+  const [, navigate] = useLocation();
+  const isNew = params.id === "new";
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [taxonomy, setTaxonomy] = useState&lt;Taxonomy&gt;({ predictionCategories: [], tags: [] });
+  const [form, setForm] = useState({
+    question: "", category: "", categorySlug: "", resolvesAt: "",
+    yesPercentage: 50, noPercentage: 50, totalCount: 0, momentum: 0,
+    momentumDirection: "up", trendData: [] as number[], cardLayout: "grid",
+    editorialStatus: "draft", isFeatured: false, tags: [] as string[],
+  });
+
+  useEffect(() =&gt; {
+    api.getTaxonomy().then(setTaxonomy).catch(() =&gt; {});
+
+    if (!isNew) {
+      api.getPrediction(Number(params.id)).then(data =&gt; {
+        setForm({
+          question: data.question || "", category: data.category || "", categorySlug: data.categorySlug || "",
+          resolvesAt: data.resolvesAt ? data.resolvesAt.split("T")[0] : "",
+          yesPercentage: data.yesPercentage ?? 50, noPercentage: data.noPercentage ?? 50,
+          totalCount: data.totalCount ?? 0, momentum: data.momentum ?? 0,
+          momentumDirection: data.momentumDirection || "up", trendData: data.trendData || [],
+          cardLayout: data.cardLayout || "grid",
+          editorialStatus: data.editorialStatus || "draft", isFeatured: data.isFeatured || false,
+          tags: data.tags || [],
+        });
+        setLoading(false);
+      }).catch(() =&gt; navigate("/predictions"));
+    }
+  }, [params.id, isNew, navigate]);
+
+  const update = (field: string, value: unknown) =&gt; setForm(f =&gt; ({ ...f, [field]: value }));
+
+  const save = async (status?: string) =&gt; {
+    setSaving(true);
+    try {
+      const data = { ...form, editorialStatus: status || form.editorialStatus, resolvesAt: form.resolvesAt || null };
+      if (isNew) {
+        await api.bulkUpload("predictions", [data]);
+      } else {
+        await api.updatePrediction(Number(params.id), data);
+      }
+      navigate("/predictions");
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return &lt;div className="text-center py-12 text-muted-foreground"&gt;Loading...&lt;/div&gt;;
+
+  return (
+    &lt;div className="max-w-2xl space-y-6"&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;{isNew ? "New Prediction" : "Edit Prediction"}&lt;/h1&gt;
+        &lt;button onClick={() =&gt; setShowPreview(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80"&gt;
+          &lt;Eye className="w-3.5 h-3.5" /&gt; Preview
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div className="space-y-4"&gt;
+        &lt;Field label="Question"&gt;
+          &lt;textarea value={form.question} onChange={e =&gt; update("question", e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Category"&gt;
+            &lt;ComboSelect
+              value={form.category}
+              onChange={v =&gt; { update("category", v); update("categorySlug", v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }}
+              options={taxonomy.predictionCategories}
+              placeholder="Select or type category..."
+            /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Category Slug"&gt;
+            &lt;input type="text" value={form.categorySlug} onChange={e =&gt; update("categorySlug", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Resolves At"&gt;
+            &lt;input type="date" value={form.resolvesAt} onChange={e =&gt; update("resolvesAt", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Card Layout"&gt;
+            &lt;select value={form.cardLayout} onChange={e =&gt; update("cardLayout", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+              &lt;option value="featured"&gt;Featured (Chart + Details)&lt;/option&gt;
+              &lt;option value="grid"&gt;Grid Card (Sparkline)&lt;/option&gt;
+              &lt;option value="compact"&gt;Compact&lt;/option&gt;
+              &lt;option value="ticker"&gt;Ticker Item&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        {form.cardLayout &amp;&amp; (
+          &lt;div className="rounded-md border border-border bg-secondary/20 p-3"&gt;
+            &lt;p className="text-xs text-muted-foreground mb-1 font-medium"&gt;Layout Preview&lt;/p&gt;
+            &lt;CardLayoutPreview layout={form.cardLayout} /&gt;
+          &lt;/div&gt;
+        )}
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Yes %"&gt;
+            &lt;input type="number" min={0} max={100} value={form.yesPercentage} onChange={e =&gt; { const v = Number(e.target.value); update("yesPercentage", v); update("noPercentage", 100 - v); }} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="No %"&gt;
+            &lt;input type="number" min={0} max={100} value={form.noPercentage} readOnly className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm opacity-50" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Momentum"&gt;
+            &lt;input type="number" step="0.1" value={form.momentum} onChange={e =&gt; update("momentum", Number(e.target.value))} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Direction"&gt;
+            &lt;select value={form.momentumDirection} onChange={e =&gt; update("momentumDirection", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+              &lt;option value="up"&gt;Up&lt;/option&gt;
+              &lt;option value="down"&gt;Down&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;Field label="Tags"&gt;
+          &lt;TagInput tags={form.tags} onChange={v =&gt; update("tags", v)} suggestions={taxonomy.tags} placeholder="Add tag..." /&gt;
+        &lt;/Field&gt;
+
+        &lt;label className="flex items-center gap-2 text-sm"&gt;&lt;input type="checkbox" checked={form.isFeatured} onChange={e =&gt; update("isFeatured", e.target.checked)} className="accent-primary" /&gt; Featured&lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;div className="flex gap-2 pt-4 border-t border-border"&gt;
+        &lt;button onClick={() =&gt; save()} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 disabled:opacity-50"&gt;&lt;Save className="w-3.5 h-3.5" /&gt; Save Draft&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("in_review")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"&gt;&lt;Send className="w-3.5 h-3.5" /&gt; Submit for Review&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("approved")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:opacity-50"&gt;&lt;Check className="w-3.5 h-3.5" /&gt; Approve&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("revision")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"&gt;&lt;RotateCcw className="w-3.5 h-3.5" /&gt; Revision&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("archived")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 disabled:opacity-50"&gt;&lt;Archive className="w-3.5 h-3.5" /&gt; Archive&lt;/button&gt;
+        &lt;button onClick={() =&gt; navigate("/predictions")} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+
+      {showPreview &amp;&amp; (
+        &lt;PreviewPanel type="predictions" item={form} onClose={() =&gt; setShowPreview(false)} onUpdate={update} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return &lt;div&gt;&lt;label className="block text-sm font-medium mb-1.5"&gt;{label}&lt;/label&gt;{children}&lt;/div&gt;;
+}
+
+const PRED_LAYOUTS: Record&lt;string, { desc: string; visual: React.ReactNode }&gt; = {
+  featured: { desc: "Large 2-column card with confidence chart, tipping point line, and detailed breakdown.", visual: &lt;div className="h-12 border border-primary/40 rounded bg-primary/5 grid grid-cols-2 gap-1 p-1"&gt;&lt;div className="bg-secondary/30 rounded" /&gt;&lt;div className="bg-secondary/30 rounded" /&gt;&lt;/div&gt; },
+  grid: { desc: "Compact card with sparkline at top, resolve date badge, and simplified confidence bars.", visual: &lt;div className="flex gap-2"&gt;&lt;div className="flex-1 h-14 border border-border rounded bg-secondary/30" /&gt;&lt;div className="flex-1 h-14 border border-border rounded bg-secondary/30" /&gt;&lt;/div&gt; },
+  compact: { desc: "Minimal prediction with yes/no percentage bars only.", visual: &lt;div className="space-y-1"&gt;&lt;div className="h-3 w-2/3 bg-secondary rounded" /&gt;&lt;div className="h-2 w-1/2 bg-primary/20 rounded" /&gt;&lt;div className="h-2 w-1/3 bg-secondary/40 rounded" /&gt;&lt;/div&gt; },
+  ticker: { desc: "Scrolling ticker item showing label, percentage, and delta change.", visual: &lt;div className="h-6 bg-[#0D0D0D] rounded flex items-center px-2 gap-2"&gt;&lt;span className="text-[8px] text-white/50"&gt;LABEL&lt;/span&gt;&lt;span className="text-[9px] text-white font-bold"&gt;71%&lt;/span&gt;&lt;span className="text-[8px] text-green-400"&gt;+2.1&lt;/span&gt;&lt;/div&gt; },
+};
+
+function CardLayoutPreview({ layout }: { layout: string }) {
+  const info = PRED_LAYOUTS[layout];
+  if (!info) return null;
+  return (
+    &lt;div className="space-y-2"&gt;
+      &lt;p className="text-[11px] text-muted-foreground"&gt;{info.desc}&lt;/p&gt;
+      &lt;div className="max-w-[200px]"&gt;{info.visual}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-edit-voice-tsx">
+      <div class="file-header">
+        <h3>src/pages/edit-voice.tsx</h3>
+        <span class="lang">TSX · 170 lines</span>
+      </div>
+      <pre><code>import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useLocation } from "wouter";
+import { api } from "@/lib/api";
+import DynamicList from "@/components/dynamic-list";
+import ComboSelect from "@/components/combo-select";
+import PreviewPanel from "@/components/preview-panel";
+import { Save, Send, Check, Upload, Archive, RotateCcw, Eye } from "lucide-react";
+
+interface Taxonomy {
+  sectors: string[];
+  countries: string[];
+  cities: string[];
+}
+
+export default function EditVoicePage() {
+  const params = useParams&lt;{ id: string }&gt;();
+  const [, navigate] = useLocation();
+  const isNew = params.id === "new";
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [taxonomy, setTaxonomy] = useState&lt;Taxonomy&gt;({ sectors: [], countries: [], cities: [] });
+  const fileRef = useRef&lt;HTMLInputElement&gt;(null);
+  const [form, setForm] = useState({
+    name: "", headline: "", role: "", company: "", companyUrl: "", sector: "",
+    country: "", city: "", imageUrl: "", summary: "", story: "",
+    lessonsLearned: [] as string[], quote: "", isFeatured: false, isVerified: false,
+    editorialStatus: "draft",
+  });
+
+  useEffect(() =&gt; {
+    api.getTaxonomy().then(setTaxonomy).catch(() =&gt; {});
+
+    if (!isNew) {
+      api.getVoice(Number(params.id)).then(data =&gt; {
+        setForm({
+          name: data.name || "", headline: data.headline || "", role: data.role || "",
+          company: data.company || "", companyUrl: data.companyUrl || "", sector: data.sector || "",
+          country: data.country || "", city: data.city || "", imageUrl: data.imageUrl || "",
+          summary: data.summary || "", story: data.story || "",
+          lessonsLearned: data.lessonsLearned || [], quote: data.quote || "",
+          isFeatured: data.isFeatured || false, isVerified: data.isVerified || false,
+          editorialStatus: data.editorialStatus || "draft",
+        });
+        setLoading(false);
+      }).catch(() =&gt; navigate("/voices"));
+    }
+  }, [params.id, isNew, navigate]);
+
+  const update = (field: string, value: unknown) =&gt; setForm(f =&gt; ({ ...f, [field]: value }));
+
+  const handleImageUpload = async (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await api.uploadImage(file);
+      update("imageUrl", res.url);
+    } catch (err: unknown) { alert(err instanceof Error ? err.message : "Upload failed"); }
+  };
+
+  const save = async (status?: string) =&gt; {
+    setSaving(true);
+    try {
+      const data = { ...form, editorialStatus: status || form.editorialStatus };
+      if (isNew) {
+        await api.bulkUpload("voices", [data]);
+      } else {
+        await api.updateVoice(Number(params.id), data);
+      }
+      navigate("/voices");
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return &lt;div className="text-center py-12 text-muted-foreground"&gt;Loading...&lt;/div&gt;;
+
+  return (
+    &lt;div className="max-w-2xl space-y-6"&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;{isNew ? "New Voice" : "Edit Voice"}&lt;/h1&gt;
+        &lt;button onClick={() =&gt; setShowPreview(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80"&gt;
+          &lt;Eye className="w-3.5 h-3.5" /&gt; Preview
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div className="space-y-4"&gt;
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Name"&gt;
+            &lt;input type="text" value={form.name} onChange={e =&gt; update("name", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Role"&gt;
+            &lt;input type="text" value={form.role} onChange={e =&gt; update("role", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;Field label="Headline"&gt;
+          &lt;textarea value={form.headline} onChange={e =&gt; update("headline", e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;div className="grid grid-cols-2 gap-4"&gt;
+          &lt;Field label="Company"&gt;
+            &lt;input type="text" value={form.company} onChange={e =&gt; update("company", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Company URL"&gt;
+            &lt;input type="text" value={form.companyUrl} onChange={e =&gt; update("companyUrl", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;div className="grid grid-cols-3 gap-4"&gt;
+          &lt;Field label="Sector"&gt;
+            &lt;ComboSelect value={form.sector} onChange={v =&gt; update("sector", v)} options={taxonomy.sectors} placeholder="Select or type sector..." /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Country"&gt;
+            &lt;ComboSelect value={form.country} onChange={v =&gt; update("country", v)} options={taxonomy.countries} placeholder="Select or type country..." /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="City"&gt;
+            &lt;ComboSelect value={form.city} onChange={v =&gt; update("city", v)} options={taxonomy.cities} placeholder="Select or type city..." /&gt;
+          &lt;/Field&gt;
+        &lt;/div&gt;
+
+        &lt;Field label="Profile Image"&gt;
+          &lt;div className="flex items-center gap-3"&gt;
+            {form.imageUrl &amp;&amp; &lt;img src={form.imageUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-border" /&gt;}
+            &lt;input type="text" value={form.imageUrl} onChange={e =&gt; update("imageUrl", e.target.value)} className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Image URL or upload" /&gt;
+            &lt;input type="file" ref={fileRef} accept="image/*" onChange={handleImageUpload} className="hidden" /&gt;
+            &lt;button type="button" onClick={() =&gt; fileRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-secondary rounded-md text-sm hover:bg-secondary/80"&gt;&lt;Upload className="w-3.5 h-3.5" /&gt; Upload&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/Field&gt;
+
+        &lt;Field label="Summary"&gt;
+          &lt;textarea value={form.summary} onChange={e =&gt; update("summary", e.target.value)} rows={3} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;Field label="Story"&gt;
+          &lt;textarea value={form.story} onChange={e =&gt; update("story", e.target.value)} rows={6} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-y focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;DynamicList items={form.lessonsLearned} onChange={v =&gt; update("lessonsLearned", v)} placeholder="Add lesson..." label="Lessons Learned" /&gt;
+
+        &lt;Field label="Quote"&gt;
+          &lt;textarea value={form.quote} onChange={e =&gt; update("quote", e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+        &lt;/Field&gt;
+
+        &lt;div className="flex gap-6"&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;&lt;input type="checkbox" checked={form.isFeatured} onChange={e =&gt; update("isFeatured", e.target.checked)} className="accent-primary" /&gt; Featured&lt;/label&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;&lt;input type="checkbox" checked={form.isVerified} onChange={e =&gt; update("isVerified", e.target.checked)} className="accent-primary" /&gt; Verified&lt;/label&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="flex gap-2 pt-4 border-t border-border"&gt;
+        &lt;button onClick={() =&gt; save()} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 disabled:opacity-50"&gt;&lt;Save className="w-3.5 h-3.5" /&gt; Save Draft&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("in_review")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"&gt;&lt;Send className="w-3.5 h-3.5" /&gt; Submit for Review&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("approved")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:opacity-50"&gt;&lt;Check className="w-3.5 h-3.5" /&gt; Approve&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("revision")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"&gt;&lt;RotateCcw className="w-3.5 h-3.5" /&gt; Revision&lt;/button&gt;
+        &lt;button onClick={() =&gt; save("archived")} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 disabled:opacity-50"&gt;&lt;Archive className="w-3.5 h-3.5" /&gt; Archive&lt;/button&gt;
+        &lt;button onClick={() =&gt; navigate("/voices")} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+
+      {showPreview &amp;&amp; (
+        &lt;PreviewPanel type="voices" item={form} onClose={() =&gt; setShowPreview(false)} onUpdate={update} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return &lt;div&gt;&lt;label className="block text-sm font-medium mb-1.5"&gt;{label}&lt;/label&gt;{children}&lt;/div&gt;;
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-homepage-tsx">
+      <div class="file-header">
+        <h3>src/pages/homepage.tsx</h3>
+        <span class="lang">TSX · 677 lines</span>
+      </div>
+      <pre><code>import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { Save, Plus, Trash2, GripVertical, Eye, EyeOff, ChevronDown, ChevronUp, X, Monitor } from "lucide-react";
+
+interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  ctaText: string;
+  ctaLink: string;
+  bgColor: string;
+  textColor: string;
+  enabled: boolean;
+  position: string;
+}
+
+interface Section {
+  id: string;
+  type: string;
+  title: string;
+  enabled: boolean;
+  order: number;
+  config: Record&lt;string, unknown&gt;;
+}
+
+interface HomepageData {
+  masthead: { title: string; subtitle: string; showPopulationCounter: boolean; issueLabel: string };
+  ticker: { enabled: boolean; speed: string; items: { topic: string; votes: string }[] };
+  sections: Section[];
+  banners: Banner[];
+  newsletter: { heading: string; subheading: string; buttonText: string; enabled: boolean };
+}
+
+const SECTION_TYPE_LABELS: Record&lt;string, string&gt; = {
+  lead_debate: "Lead Debate + Sidebar",
+  debate_grid: "Debate Grid",
+  predictions: "Predictions",
+  voices: "Featured Voices",
+  explore_topics: "Explore Topics",
+  live_activity: "Live Activity Feed",
+  newsletter_cta: "Newsletter CTA",
+};
+
+export default function HomepagePage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState&lt;"sections" | "banners" | "masthead" | "newsletter"&gt;("sections");
+  const [data, setData] = useState&lt;HomepageData | null&gt;(null);
+  const [expandedSection, setExpandedSection] = useState&lt;string | null&gt;(null);
+  const [expandedBanner, setExpandedBanner] = useState&lt;string | null&gt;(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewSectionId, setPreviewSectionId] = useState&lt;string | null&gt;(null);
+  const [previewBannerId, setPreviewBannerId] = useState&lt;string | null&gt;(null);
+
+  useEffect(() =&gt; {
+    api.getHomepage().then(d =&gt; { setData(d); setLoading(false); }).catch(() =&gt; setLoading(false));
+  }, []);
+
+  const save = async () =&gt; {
+    if (!data) return;
+    setSaving(true);
+    try {
+      await api.updateHomepage(data as unknown as Record&lt;string, unknown&gt;);
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSaving(false); }
+  };
+
+  const addBanner = async () =&gt; {
+    try {
+      const res = await api.addBanner({ title: "New Banner", subtitle: "", ctaText: "Learn More", ctaLink: "/", bgColor: "#DC143C", textColor: "#FFFFFF", enabled: false, position: "top" });
+      if (data) setData({ ...data, banners: [...data.banners, res.banner] });
+      setExpandedBanner(res.banner.id);
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Failed"); }
+  };
+
+  const removeBanner = async (id: string) =&gt; {
+    try {
+      await api.deleteBanner(id);
+      if (data) setData({ ...data, banners: data.banners.filter(b =&gt; b.id !== id) });
+      if (previewBannerId === id) setPreviewBannerId(null);
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : "Failed"); }
+  };
+
+  const updateBanner = (id: string, field: string, value: unknown) =&gt; {
+    if (!data) return;
+    setData({ ...data, banners: data.banners.map(b =&gt; b.id === id ? { ...b, [field]: value } : b) });
+  };
+
+  const updateSection = (id: string, field: string, value: unknown) =&gt; {
+    if (!data) return;
+    setData({ ...data, sections: data.sections.map(s =&gt; s.id === id ? { ...s, [field]: value } : s) });
+  };
+
+  const updateSectionConfig = (id: string, key: string, value: unknown) =&gt; {
+    if (!data) return;
+    setData({
+      ...data,
+      sections: data.sections.map(s =&gt; s.id === id ? { ...s, config: { ...s.config, [key]: value } } : s),
+    });
+  };
+
+  const moveSection = (id: string, direction: "up" | "down") =&gt; {
+    if (!data) return;
+    const sorted = [...data.sections].sort((a, b) =&gt; a.order - b.order);
+    const idx = sorted.findIndex(s =&gt; s.id === id);
+    if (direction === "up" &amp;&amp; idx &gt; 0) {
+      const prev = sorted[idx - 1].order;
+      sorted[idx - 1].order = sorted[idx].order;
+      sorted[idx].order = prev;
+    } else if (direction === "down" &amp;&amp; idx &lt; sorted.length - 1) {
+      const next = sorted[idx + 1].order;
+      sorted[idx + 1].order = sorted[idx].order;
+      sorted[idx].order = next;
+    }
+    setData({ ...data, sections: sorted });
+  };
+
+  const openSectionPreview = (id: string) =&gt; { setPreviewSectionId(id); setPreviewBannerId(null); setShowPreview(false); };
+  const openBannerPreview = (id: string) =&gt; { setPreviewBannerId(id); setPreviewSectionId(null); setShowPreview(false); };
+  const openFullPreview = () =&gt; { setShowPreview(true); setPreviewSectionId(null); setPreviewBannerId(null); };
+
+  const previewSection = previewSectionId ? data?.sections.find(s =&gt; s.id === previewSectionId) ?? null : null;
+  const previewBanner = previewBannerId ? data?.banners.find(b =&gt; b.id === previewBannerId) ?? null : null;
+
+  if (loading || !data) return &lt;div className="text-center py-12 text-muted-foreground"&gt;Loading...&lt;/div&gt;;
+
+  return (
+    &lt;div className="max-w-3xl space-y-6"&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;h1 className="font-serif text-2xl font-bold"&gt;Homepage Manager&lt;/h1&gt;
+        &lt;div className="flex items-center gap-2"&gt;
+          &lt;button onClick={openFullPreview} className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border text-foreground rounded-md text-sm hover:bg-accent"&gt;
+            &lt;Monitor className="w-3.5 h-3.5" /&gt; Preview
+          &lt;/button&gt;
+          &lt;button onClick={save} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"&gt;
+            &lt;Save className="w-3.5 h-3.5" /&gt; {saving ? "Saving..." : "Save All Changes"}
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {showPreview &amp;&amp; data &amp;&amp; &lt;HomepagePreview data={data} onClose={() =&gt; setShowPreview(false)} /&gt;}
+
+      {previewSection &amp;&amp; (
+        &lt;div className="fixed inset-0 bg-black/70 flex justify-end z-50"&gt;
+          &lt;div className="w-full max-w-lg bg-[#0A0A0A] h-full overflow-auto border-l border-[rgba(255,255,255,0.08)]"&gt;
+            &lt;div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)] sticky top-0 bg-[#0A0A0A] z-10"&gt;
+              &lt;div&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.4)] uppercase tracking-wider font-serif"&gt;Section Preview&lt;/span&gt;
+                &lt;p className="text-sm text-white mt-0.5"&gt;{previewSection.title}&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;button onClick={() =&gt; setPreviewSectionId(null)} className="text-[rgba(255,255,255,0.4)] hover:text-white"&gt;&lt;X className="w-4 h-4" /&gt;&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div className="p-4" style={{ fontFamily: "'DM Sans', sans-serif" }}&gt;
+              &lt;div className="mb-3 flex items-center gap-2"&gt;
+                &lt;span className={`inline-block w-2 h-2 rounded-full ${previewSection.enabled ? "bg-green-500" : "bg-red-500"}`} /&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.4)]"&gt;{previewSection.enabled ? "Visible on homepage" : "Hidden"}&lt;/span&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.3)] ml-auto"&gt;Order: {previewSection.order}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;SectionPreview section={previewSection} /&gt;
+              &lt;div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)] space-y-2"&gt;
+                &lt;p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)] font-serif"&gt;Configuration&lt;/p&gt;
+                &lt;div className="text-xs text-[rgba(255,255,255,0.5)] space-y-1"&gt;
+                  &lt;p&gt;Type: &lt;span className="text-white"&gt;{SECTION_TYPE_LABELS[previewSection.type] || previewSection.type}&lt;/span&gt;&lt;/p&gt;
+                  {previewSection.config.layout &amp;&amp; &lt;p&gt;Layout: &lt;span className="text-white"&gt;{String(previewSection.config.layout)}&lt;/span&gt;&lt;/p&gt;}
+                  {previewSection.config.maxItems &amp;&amp; &lt;p&gt;Max Items: &lt;span className="text-white"&gt;{String(previewSection.config.maxItems)}&lt;/span&gt;&lt;/p&gt;}
+                  {previewSection.config.firstSpanFull &amp;&amp; &lt;p&gt;First item full width: &lt;span className="text-white"&gt;Yes&lt;/span&gt;&lt;/p&gt;}
+                  {previewSection.config.showSidebar !== undefined &amp;&amp; &lt;p&gt;Sidebar: &lt;span className="text-white"&gt;{previewSection.config.showSidebar ? "Yes" : "No"}&lt;/span&gt;&lt;/p&gt;}
+                  {previewSection.config.showOpinionBubbles !== undefined &amp;&amp; &lt;p&gt;Opinion bubbles: &lt;span className="text-white"&gt;{previewSection.config.showOpinionBubbles ? "Yes" : "No"}&lt;/span&gt;&lt;/p&gt;}
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      {previewBanner &amp;&amp; (
+        &lt;div className="fixed inset-0 bg-black/70 flex justify-end z-50"&gt;
+          &lt;div className="w-full max-w-lg bg-[#0A0A0A] h-full overflow-auto border-l border-[rgba(255,255,255,0.08)]"&gt;
+            &lt;div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)] sticky top-0 bg-[#0A0A0A] z-10"&gt;
+              &lt;div&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.4)] uppercase tracking-wider font-serif"&gt;Banner Preview&lt;/span&gt;
+                &lt;p className="text-sm text-white mt-0.5"&gt;{previewBanner.title}&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;button onClick={() =&gt; setPreviewBannerId(null)} className="text-[rgba(255,255,255,0.4)] hover:text-white"&gt;&lt;X className="w-4 h-4" /&gt;&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div className="p-4" style={{ fontFamily: "'DM Sans', sans-serif" }}&gt;
+              &lt;div className="mb-3 flex items-center gap-2"&gt;
+                &lt;span className={`inline-block w-2 h-2 rounded-full ${previewBanner.enabled ? "bg-green-500" : "bg-red-500"}`} /&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.4)]"&gt;{previewBanner.enabled ? "Active" : "Disabled"}&lt;/span&gt;
+                &lt;span className="text-xs text-[rgba(255,255,255,0.3)] ml-auto capitalize"&gt;Position: {previewBanner.position}&lt;/span&gt;
+              &lt;/div&gt;
+
+              &lt;p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)] font-serif mb-2"&gt;Desktop View&lt;/p&gt;
+              &lt;div className="rounded-lg overflow-hidden" style={{ background: previewBanner.bgColor, color: previewBanner.textColor }}&gt;
+                &lt;div className="px-6 py-4 flex items-center justify-between"&gt;
+                  &lt;div&gt;
+                    &lt;p className="font-bold text-base"&gt;{previewBanner.title}&lt;/p&gt;
+                    {previewBanner.subtitle &amp;&amp; &lt;p className="text-sm opacity-80 mt-0.5"&gt;{previewBanner.subtitle}&lt;/p&gt;}
+                  &lt;/div&gt;
+                  &lt;span className="text-xs font-bold uppercase tracking-wider border px-4 py-1.5 rounded" style={{ borderColor: previewBanner.textColor }}&gt;{previewBanner.ctaText}&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)] font-serif mb-2 mt-6"&gt;Mobile View&lt;/p&gt;
+              &lt;div className="rounded-lg overflow-hidden max-w-[280px]" style={{ background: previewBanner.bgColor, color: previewBanner.textColor }}&gt;
+                &lt;div className="px-4 py-3 text-center"&gt;
+                  &lt;p className="font-bold text-sm"&gt;{previewBanner.title}&lt;/p&gt;
+                  {previewBanner.subtitle &amp;&amp; &lt;p className="text-xs opacity-80 mt-0.5"&gt;{previewBanner.subtitle}&lt;/p&gt;}
+                  &lt;span className="inline-block text-[10px] font-bold uppercase tracking-wider border px-3 py-1 rounded mt-2" style={{ borderColor: previewBanner.textColor }}&gt;{previewBanner.ctaText}&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.06)] space-y-2"&gt;
+                &lt;p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)] font-serif"&gt;Details&lt;/p&gt;
+                &lt;div className="text-xs text-[rgba(255,255,255,0.5)] space-y-1"&gt;
+                  &lt;p&gt;CTA Link: &lt;span className="text-white"&gt;{previewBanner.ctaLink}&lt;/span&gt;&lt;/p&gt;
+                  &lt;p&gt;Background: &lt;span className="text-white inline-flex items-center gap-1"&gt;&lt;span className="inline-block w-3 h-3 rounded" style={{ background: previewBanner.bgColor, border: "1px solid rgba(255,255,255,0.2)" }} /&gt;{previewBanner.bgColor}&lt;/span&gt;&lt;/p&gt;
+                  &lt;p&gt;Text Color: &lt;span className="text-white inline-flex items-center gap-1"&gt;&lt;span className="inline-block w-3 h-3 rounded" style={{ background: previewBanner.textColor, border: "1px solid rgba(255,255,255,0.2)" }} /&gt;{previewBanner.textColor}&lt;/span&gt;&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      &lt;div className="flex gap-1 border-b border-border"&gt;
+        {(["sections", "banners", "masthead", "newsletter"] as const).map(tab =&gt; (
+          &lt;button
+            key={tab}
+            onClick={() =&gt; setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
+          &gt;
+            {tab}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      {activeTab === "sections" &amp;&amp; (
+        &lt;div className="space-y-2"&gt;
+          &lt;p className="text-sm text-muted-foreground"&gt;Drag to reorder sections. Toggle visibility to show/hide them on the homepage.&lt;/p&gt;
+          {[...data.sections].sort((a, b) =&gt; a.order - b.order).map(section =&gt; (
+            &lt;div key={section.id} className="border border-border rounded-md bg-card"&gt;
+              &lt;div className="flex items-center gap-3 px-4 py-3"&gt;
+                &lt;GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" /&gt;
+                &lt;div className="flex-1 min-w-0"&gt;
+                  &lt;p className="text-sm font-medium truncate"&gt;{section.title}&lt;/p&gt;
+                  &lt;p className="text-xs text-muted-foreground"&gt;{SECTION_TYPE_LABELS[section.type] || section.type}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div className="flex items-center gap-1"&gt;
+                  &lt;button onClick={() =&gt; moveSection(section.id, "up")} className="p-1 text-muted-foreground hover:text-foreground"&gt;&lt;ChevronUp className="w-4 h-4" /&gt;&lt;/button&gt;
+                  &lt;button onClick={() =&gt; moveSection(section.id, "down")} className="p-1 text-muted-foreground hover:text-foreground"&gt;&lt;ChevronDown className="w-4 h-4" /&gt;&lt;/button&gt;
+                  &lt;button onClick={() =&gt; updateSection(section.id, "enabled", !section.enabled)} className={`p-1.5 rounded ${section.enabled ? "text-green-500" : "text-muted-foreground"}`}&gt;
+                    {section.enabled ? &lt;Eye className="w-4 h-4" /&gt; : &lt;EyeOff className="w-4 h-4" /&gt;}
+                  &lt;/button&gt;
+                  &lt;button onClick={() =&gt; openSectionPreview(section.id)} className="p-1.5 text-muted-foreground hover:text-primary transition-colors" title="Preview section"&gt;
+                    &lt;Monitor className="w-4 h-4" /&gt;
+                  &lt;/button&gt;
+                  &lt;button onClick={() =&gt; setExpandedSection(expandedSection === section.id ? null : section.id)} className="p-1 text-muted-foreground hover:text-foreground text-xs"&gt;
+                    {expandedSection === section.id ? "Close" : "Edit"}
+                  &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              {expandedSection === section.id &amp;&amp; (
+                &lt;div className="px-4 pb-4 pt-1 border-t border-border space-y-3"&gt;
+                  &lt;Field label="Section Title"&gt;
+                    &lt;input type="text" value={section.title} onChange={e =&gt; updateSection(section.id, "title", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                  &lt;/Field&gt;
+                  {(section.type === "debate_grid" || section.type === "predictions" || section.type === "voices") &amp;&amp; (
+                    &lt;div className="grid grid-cols-2 gap-3"&gt;
+                      &lt;Field label="Max Items"&gt;
+                        &lt;input type="number" min={1} max={20} value={(section.config.maxItems as number) || 4} onChange={e =&gt; updateSectionConfig(section.id, "maxItems", Number(e.target.value))} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                      &lt;/Field&gt;
+                      &lt;Field label="Layout"&gt;
+                        &lt;select value={(section.config.layout as string) || "grid-2col"} onChange={e =&gt; updateSectionConfig(section.id, "layout", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+                          &lt;option value="grid-2col"&gt;2 Columns&lt;/option&gt;
+                          &lt;option value="grid-3col"&gt;3 Columns&lt;/option&gt;
+                          &lt;option value="grid-4col"&gt;4 Columns&lt;/option&gt;
+                          &lt;option value="list"&gt;List&lt;/option&gt;
+                          &lt;option value="carousel"&gt;Carousel&lt;/option&gt;
+                        &lt;/select&gt;
+                      &lt;/Field&gt;
+                    &lt;/div&gt;
+                  )}
+                  {section.type === "debate_grid" &amp;&amp; (
+                    &lt;label className="flex items-center gap-2 text-sm"&gt;
+                      &lt;input type="checkbox" checked={(section.config.firstSpanFull as boolean) || false} onChange={e =&gt; updateSectionConfig(section.id, "firstSpanFull", e.target.checked)} className="accent-primary" /&gt;
+                      First item spans full width
+                    &lt;/label&gt;
+                  )}
+                  {section.type === "lead_debate" &amp;&amp; (
+                    &lt;div className="space-y-2"&gt;
+                      &lt;label className="flex items-center gap-2 text-sm"&gt;
+                        &lt;input type="checkbox" checked={(section.config.showSidebar as boolean) ?? true} onChange={e =&gt; updateSectionConfig(section.id, "showSidebar", e.target.checked)} className="accent-primary" /&gt;
+                        Show sidebar with latest debates
+                      &lt;/label&gt;
+                      &lt;label className="flex items-center gap-2 text-sm"&gt;
+                        &lt;input type="checkbox" checked={(section.config.showOpinionBubbles as boolean) ?? true} onChange={e =&gt; updateSectionConfig(section.id, "showOpinionBubbles", e.target.checked)} className="accent-primary" /&gt;
+                        Show opinion bubbles (desktop)
+                      &lt;/label&gt;
+                    &lt;/div&gt;
+                  )}
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+
+      {activeTab === "banners" &amp;&amp; (
+        &lt;div className="space-y-4"&gt;
+          &lt;div className="flex items-center justify-between"&gt;
+            &lt;p className="text-sm text-muted-foreground"&gt;Promotional banners displayed across the homepage.&lt;/p&gt;
+            &lt;button onClick={addBanner} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"&gt;
+              &lt;Plus className="w-3.5 h-3.5" /&gt; Add Banner
+            &lt;/button&gt;
+          &lt;/div&gt;
+          {data.banners.map(banner =&gt; (
+            &lt;div key={banner.id} className="border border-border rounded-md bg-card"&gt;
+              &lt;div className="flex items-center gap-3 px-4 py-3"&gt;
+                &lt;div className="w-6 h-6 rounded border border-border flex-shrink-0" style={{ background: banner.bgColor }} /&gt;
+                &lt;div className="flex-1 min-w-0"&gt;
+                  &lt;p className="text-sm font-medium truncate"&gt;{banner.title}&lt;/p&gt;
+                  &lt;p className="text-xs text-muted-foreground capitalize"&gt;{banner.position} · {banner.enabled ? "Active" : "Disabled"}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div className="flex items-center gap-1"&gt;
+                  &lt;button onClick={() =&gt; updateBanner(banner.id, "enabled", !banner.enabled)} className={`p-1.5 rounded ${banner.enabled ? "text-green-500" : "text-muted-foreground"}`}&gt;
+                    {banner.enabled ? &lt;Eye className="w-4 h-4" /&gt; : &lt;EyeOff className="w-4 h-4" /&gt;}
+                  &lt;/button&gt;
+                  &lt;button onClick={() =&gt; openBannerPreview(banner.id)} className="p-1.5 text-muted-foreground hover:text-primary transition-colors" title="Preview banner"&gt;
+                    &lt;Monitor className="w-4 h-4" /&gt;
+                  &lt;/button&gt;
+                  &lt;button onClick={() =&gt; setExpandedBanner(expandedBanner === banner.id ? null : banner.id)} className="p-1 text-muted-foreground hover:text-foreground text-xs"&gt;
+                    {expandedBanner === banner.id ? "Close" : "Edit"}
+                  &lt;/button&gt;
+                  &lt;button onClick={() =&gt; removeBanner(banner.id)} className="p-1 text-red-400 hover:text-red-300"&gt;&lt;Trash2 className="w-4 h-4" /&gt;&lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              {expandedBanner === banner.id &amp;&amp; (
+                &lt;div className="px-4 pb-4 pt-1 border-t border-border space-y-3"&gt;
+                  &lt;Field label="Title"&gt;
+                    &lt;input type="text" value={banner.title} onChange={e =&gt; updateBanner(banner.id, "title", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                  &lt;/Field&gt;
+                  &lt;Field label="Subtitle"&gt;
+                    &lt;textarea value={banner.subtitle} onChange={e =&gt; updateBanner(banner.id, "subtitle", e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                  &lt;/Field&gt;
+                  &lt;div className="grid grid-cols-2 gap-3"&gt;
+                    &lt;Field label="CTA Text"&gt;
+                      &lt;input type="text" value={banner.ctaText} onChange={e =&gt; updateBanner(banner.id, "ctaText", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                    &lt;/Field&gt;
+                    &lt;Field label="CTA Link"&gt;
+                      &lt;input type="text" value={banner.ctaLink} onChange={e =&gt; updateBanner(banner.id, "ctaLink", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                    &lt;/Field&gt;
+                  &lt;/div&gt;
+                  &lt;div className="grid grid-cols-3 gap-3"&gt;
+                    &lt;Field label="Background Color"&gt;
+                      &lt;div className="flex items-center gap-2"&gt;
+                        &lt;input type="color" value={banner.bgColor} onChange={e =&gt; updateBanner(banner.id, "bgColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer border border-border" /&gt;
+                        &lt;input type="text" value={banner.bgColor} onChange={e =&gt; updateBanner(banner.id, "bgColor", e.target.value)} className="flex-1 px-2 py-1.5 bg-background border border-border rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                      &lt;/div&gt;
+                    &lt;/Field&gt;
+                    &lt;Field label="Text Color"&gt;
+                      &lt;div className="flex items-center gap-2"&gt;
+                        &lt;input type="color" value={banner.textColor} onChange={e =&gt; updateBanner(banner.id, "textColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer border border-border" /&gt;
+                        &lt;input type="text" value={banner.textColor} onChange={e =&gt; updateBanner(banner.id, "textColor", e.target.value)} className="flex-1 px-2 py-1.5 bg-background border border-border rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+                      &lt;/div&gt;
+                    &lt;/Field&gt;
+                    &lt;Field label="Position"&gt;
+                      &lt;select value={banner.position} onChange={e =&gt; updateBanner(banner.id, "position", e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+                        &lt;option value="top"&gt;Top&lt;/option&gt;
+                        &lt;option value="middle"&gt;Middle (between sections)&lt;/option&gt;
+                        &lt;option value="bottom"&gt;Bottom&lt;/option&gt;
+                      &lt;/select&gt;
+                    &lt;/Field&gt;
+                  &lt;/div&gt;
+                  &lt;div className="mt-3 rounded-md overflow-hidden" style={{ background: banner.bgColor, color: banner.textColor }}&gt;
+                    &lt;div className="px-6 py-4 flex items-center justify-between"&gt;
+                      &lt;div&gt;
+                        &lt;p className="font-bold text-sm"&gt;{banner.title}&lt;/p&gt;
+                        &lt;p className="text-xs opacity-80 mt-0.5"&gt;{banner.subtitle}&lt;/p&gt;
+                      &lt;/div&gt;
+                      &lt;span className="text-xs font-bold uppercase tracking-wider border px-3 py-1 rounded" style={{ borderColor: banner.textColor }}&gt;
+                        {banner.ctaText}
+                      &lt;/span&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+
+      {activeTab === "masthead" &amp;&amp; (
+        &lt;div className="space-y-4"&gt;
+          &lt;p className="text-sm text-muted-foreground"&gt;Configure the masthead (hero area) at the top of the homepage.&lt;/p&gt;
+          &lt;Field label="Main Title"&gt;
+            &lt;input type="text" value={data.masthead.title} onChange={e =&gt; setData({ ...data, masthead: { ...data.masthead, title: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Subtitle"&gt;
+            &lt;input type="text" value={data.masthead.subtitle} onChange={e =&gt; setData({ ...data, masthead: { ...data.masthead, subtitle: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Issue Label"&gt;
+            &lt;input type="text" value={data.masthead.issueLabel} onChange={e =&gt; setData({ ...data, masthead: { ...data.masthead, issueLabel: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;
+            &lt;input type="checkbox" checked={data.masthead.showPopulationCounter} onChange={e =&gt; setData({ ...data, masthead: { ...data.masthead, showPopulationCounter: e.target.checked } })} className="accent-primary" /&gt;
+            Show live MENA population counter
+          &lt;/label&gt;
+
+          &lt;div className="border-t border-border pt-4 mt-4"&gt;
+            &lt;h3 className="text-sm font-medium mb-3"&gt;News Ticker&lt;/h3&gt;
+            &lt;label className="flex items-center gap-2 text-sm mb-3"&gt;
+              &lt;input type="checkbox" checked={data.ticker.enabled} onChange={e =&gt; setData({ ...data, ticker: { ...data.ticker, enabled: e.target.checked } })} className="accent-primary" /&gt;
+              Enable scrolling news ticker
+            &lt;/label&gt;
+            &lt;Field label="Speed"&gt;
+              &lt;select value={data.ticker.speed} onChange={e =&gt; setData({ ...data, ticker: { ...data.ticker, speed: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"&gt;
+                &lt;option value="slow"&gt;Slow&lt;/option&gt;
+                &lt;option value="normal"&gt;Normal&lt;/option&gt;
+                &lt;option value="fast"&gt;Fast&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/Field&gt;
+          &lt;/div&gt;
+
+          &lt;div className="rounded-md overflow-hidden border border-border mt-4" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(220,20,60,0.07) 0%, transparent 65%)" }}&gt;
+            &lt;div className="text-center py-6 px-4"&gt;
+              &lt;p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground font-serif"&gt;{data.masthead.issueLabel}&lt;/p&gt;
+              &lt;h2 className="font-display font-black text-3xl uppercase tracking-tight mt-2"&gt;{data.masthead.title}&lt;/h2&gt;
+              &lt;p className="text-[10px] font-serif tracking-[0.25em] uppercase text-muted-foreground mt-1"&gt;{data.masthead.subtitle}&lt;/p&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      {activeTab === "newsletter" &amp;&amp; (
+        &lt;div className="space-y-4"&gt;
+          &lt;p className="text-sm text-muted-foreground"&gt;Configure the newsletter call-to-action section.&lt;/p&gt;
+          &lt;label className="flex items-center gap-2 text-sm"&gt;
+            &lt;input type="checkbox" checked={data.newsletter.enabled} onChange={e =&gt; setData({ ...data, newsletter: { ...data.newsletter, enabled: e.target.checked } })} className="accent-primary" /&gt;
+            Enable newsletter section
+          &lt;/label&gt;
+          &lt;Field label="Heading"&gt;
+            &lt;input type="text" value={data.newsletter.heading} onChange={e =&gt; setData({ ...data, newsletter: { ...data.newsletter, heading: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Subheading"&gt;
+            &lt;textarea value={data.newsletter.subheading} onChange={e =&gt; setData({ ...data, newsletter: { ...data.newsletter, subheading: e.target.value } })} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+          &lt;Field label="Button Text"&gt;
+            &lt;input type="text" value={data.newsletter.buttonText} onChange={e =&gt; setData({ ...data, newsletter: { ...data.newsletter, buttonText: e.target.value } })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" /&gt;
+          &lt;/Field&gt;
+
+          &lt;div className="rounded-md overflow-hidden mt-4" style={{ background: "var(--foreground)", color: "var(--background)" }}&gt;
+            &lt;div className="px-6 py-8 text-center"&gt;
+              &lt;h3 className="font-display font-black text-2xl uppercase tracking-tight"&gt;{data.newsletter.heading}&lt;/h3&gt;
+              &lt;p className="text-sm opacity-75 mt-2"&gt;{data.newsletter.subheading}&lt;/p&gt;
+              &lt;div className="mt-4 flex gap-2 justify-center max-w-sm mx-auto"&gt;
+                &lt;div className="flex-1 h-10 bg-background/10 rounded" /&gt;
+                &lt;button className="px-4 py-2 bg-primary text-white font-bold uppercase tracking-widest text-xs font-serif rounded"&gt;
+                  {data.newsletter.buttonText}
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function HomepagePreview({ data, onClose }: { data: HomepageData; onClose: () =&gt; void }) {
+  const sortedSections = [...data.sections].sort((a, b) =&gt; a.order - b.order);
+  const enabledSections = sortedSections.filter(s =&gt; s.enabled);
+  const topBanners = data.banners.filter(b =&gt; b.enabled &amp;&amp; b.position === "top");
+  const middleBanners = data.banners.filter(b =&gt; b.enabled &amp;&amp; b.position === "middle");
+  const bottomBanners = data.banners.filter(b =&gt; b.enabled &amp;&amp; b.position === "bottom");
+
+  const midpoint = Math.floor(enabledSections.length / 2);
+
+  return (
+    &lt;div className="fixed inset-0 bg-black/70 flex justify-end z-50"&gt;
+      &lt;div className="w-full max-w-2xl bg-[#0A0A0A] h-full overflow-auto border-l border-[rgba(255,255,255,0.08)]"&gt;
+        &lt;div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)] sticky top-0 bg-[#0A0A0A] z-10"&gt;
+          &lt;span className="text-xs text-[rgba(255,255,255,0.4)] uppercase tracking-wider font-serif"&gt;Homepage Preview&lt;/span&gt;
+          &lt;button onClick={onClose} className="text-[rgba(255,255,255,0.4)] hover:text-white"&gt;&lt;X className="w-4 h-4" /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div style={{ fontFamily: "'DM Sans', sans-serif" }}&gt;
+          {topBanners.map(b =&gt; &lt;BannerPreview key={b.id} banner={b} /&gt;)}
+
+          &lt;div className="text-center py-8 px-4" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(220,20,60,0.07) 0%, transparent 65%)" }}&gt;
+            &lt;p className="text-[9px] uppercase tracking-[0.18em] text-[rgba(255,255,255,0.4)]" style={{ fontFamily: "'Playfair Display', serif" }}&gt;{data.masthead.issueLabel}&lt;/p&gt;
+            &lt;h2 className="font-black text-3xl uppercase tracking-tight mt-2 text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;{data.masthead.title}&lt;/h2&gt;
+            &lt;p className="text-[10px] tracking-[0.25em] uppercase text-[rgba(255,255,255,0.4)] mt-1" style={{ fontFamily: "'Playfair Display', serif" }}&gt;{data.masthead.subtitle}&lt;/p&gt;
+            {data.masthead.showPopulationCounter &amp;&amp; (
+              &lt;div className="mt-3 text-xs text-[rgba(255,255,255,0.3)]"&gt;▲ Population counter active&lt;/div&gt;
+            )}
+          &lt;/div&gt;
+
+          {data.ticker.enabled &amp;&amp; (
+            &lt;div className="bg-[rgba(220,20,60,0.08)] border-y border-[rgba(220,20,60,0.15)] py-2 px-4 overflow-hidden"&gt;
+              &lt;div className="flex gap-8 text-xs text-[rgba(255,255,255,0.6)] whitespace-nowrap animate-pulse"&gt;
+                {data.ticker.items.map((item, i) =&gt; (
+                  &lt;span key={i}&gt;&lt;span className="text-[#DC143C] font-semibold"&gt;{item.topic}&lt;/span&gt; · {item.votes}&lt;/span&gt;
+                ))}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+
+          {enabledSections.slice(0, midpoint).map(section =&gt; (
+            &lt;SectionPreview key={section.id} section={section} /&gt;
+          ))}
+
+          {middleBanners.map(b =&gt; &lt;BannerPreview key={b.id} banner={b} /&gt;)}
+
+          {enabledSections.slice(midpoint).map(section =&gt; (
+            &lt;SectionPreview key={section.id} section={section} /&gt;
+          ))}
+
+          {data.newsletter.enabled &amp;&amp; (
+            &lt;div className="px-6 py-10 text-center" style={{ background: "rgba(255,255,255,0.03)" }}&gt;
+              &lt;h3 className="font-black text-xl uppercase tracking-tight text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;{data.newsletter.heading}&lt;/h3&gt;
+              &lt;p className="text-xs text-[rgba(255,255,255,0.5)] mt-2 max-w-sm mx-auto"&gt;{data.newsletter.subheading}&lt;/p&gt;
+              &lt;div className="mt-4 flex gap-2 justify-center max-w-xs mx-auto"&gt;
+                &lt;div className="flex-1 h-9 bg-[rgba(255,255,255,0.06)] rounded border border-[rgba(255,255,255,0.1)]" /&gt;
+                &lt;button className="px-4 py-2 bg-[#DC143C] text-white text-xs font-bold uppercase tracking-wider rounded"&gt;{data.newsletter.buttonText}&lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+
+          {bottomBanners.map(b =&gt; &lt;BannerPreview key={b.id} banner={b} /&gt;)}
+
+          &lt;div className="py-6 text-center border-t border-[rgba(255,255,255,0.06)]"&gt;
+            &lt;p className="text-[10px] text-[rgba(255,255,255,0.2)] uppercase tracking-wider"&gt;Footer&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function BannerPreview({ banner }: { banner: Banner }) {
+  return (
+    &lt;div style={{ background: banner.bgColor, color: banner.textColor }}&gt;
+      &lt;div className="px-6 py-3 flex items-center justify-between"&gt;
+        &lt;div&gt;
+          &lt;p className="font-bold text-sm"&gt;{banner.title}&lt;/p&gt;
+          {banner.subtitle &amp;&amp; &lt;p className="text-xs opacity-80 mt-0.5"&gt;{banner.subtitle}&lt;/p&gt;}
+        &lt;/div&gt;
+        &lt;span className="text-xs font-bold uppercase tracking-wider border px-3 py-1 rounded" style={{ borderColor: banner.textColor }}&gt;{banner.ctaText}&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function SectionPreview({ section }: { section: Section }) {
+  const layout = (section.config.layout as string) || "grid-2col";
+  const maxItems = (section.config.maxItems as number) || 4;
+  const cols = layout === "grid-3col" ? 3 : layout === "grid-4col" ? 4 : layout === "list" ? 1 : 2;
+
+  if (section.type === "lead_debate") {
+    return (
+      &lt;div className="px-4 py-6 border-b border-[rgba(255,255,255,0.06)]"&gt;
+        &lt;div className="flex gap-4"&gt;
+          &lt;div className="flex-1"&gt;
+            &lt;p className="text-[9px] uppercase tracking-wider text-[#DC143C] mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;FEATURED DEBATE&lt;/p&gt;
+            &lt;div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg p-4"&gt;
+              &lt;div className="h-3 w-3/4 bg-[rgba(255,255,255,0.12)] rounded mb-2" /&gt;
+              &lt;div className="h-2 w-full bg-[rgba(255,255,255,0.06)] rounded mb-3" /&gt;
+              &lt;div className="space-y-1.5"&gt;
+                &lt;div className="h-7 bg-[rgba(220,20,60,0.1)] rounded" /&gt;
+                &lt;div className="h-7 bg-[rgba(255,255,255,0.04)] rounded" /&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          {(section.config.showSidebar as boolean) !== false &amp;&amp; (
+            &lt;div className="w-36 space-y-2"&gt;
+              &lt;p className="text-[9px] uppercase tracking-wider text-[rgba(255,255,255,0.3)]"&gt;Latest&lt;/p&gt;
+              {[1, 2, 3].map(i =&gt; (
+                &lt;div key={i} className="bg-[rgba(255,255,255,0.03)] rounded p-2"&gt;
+                  &lt;div className="h-2 w-full bg-[rgba(255,255,255,0.08)] rounded mb-1" /&gt;
+                  &lt;div className="h-1.5 w-2/3 bg-[rgba(255,255,255,0.05)] rounded" /&gt;
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (section.type === "live_activity") {
+    return (
+      &lt;div className="px-4 py-6 border-b border-[rgba(255,255,255,0.06)]"&gt;
+        &lt;p className="text-[9px] uppercase tracking-wider text-[#DC143C] mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;{section.title}&lt;/p&gt;
+        &lt;div className="space-y-1.5"&gt;
+          {[1, 2, 3, 4].map(i =&gt; (
+            &lt;div key={i} className="flex items-center gap-2 py-1.5"&gt;
+              &lt;div className="w-1.5 h-1.5 rounded-full bg-green-500" /&gt;
+              &lt;div className="h-2 flex-1 bg-[rgba(255,255,255,0.06)] rounded" /&gt;
+              &lt;div className="h-2 w-10 bg-[rgba(255,255,255,0.04)] rounded" /&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (section.type === "explore_topics") {
+    return (
+      &lt;div className="px-4 py-6 border-b border-[rgba(255,255,255,0.06)]"&gt;
+        &lt;p className="text-[9px] uppercase tracking-wider text-[#DC143C] mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;{section.title}&lt;/p&gt;
+        &lt;div className="flex flex-wrap gap-2"&gt;
+          {["Politics", "Economy", "Tech", "Culture", "Energy", "Diplomacy"].map(t =&gt; (
+            &lt;span key={t} className="px-3 py-1.5 text-xs rounded-full bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.5)] border border-[rgba(255,255,255,0.08)]"&gt;{t}&lt;/span&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (section.type === "newsletter_cta") {
+    return (
+      &lt;div className="px-4 py-6 border-b border-[rgba(255,255,255,0.06)]"&gt;
+        &lt;div className="bg-[rgba(255,255,255,0.03)] rounded-lg p-4 text-center"&gt;
+          &lt;p className="text-xs font-bold text-white uppercase tracking-wider"&gt;{section.title}&lt;/p&gt;
+          &lt;div className="mt-2 flex gap-2 justify-center max-w-[200px] mx-auto"&gt;
+            &lt;div className="flex-1 h-7 bg-[rgba(255,255,255,0.06)] rounded" /&gt;
+            &lt;div className="h-7 w-16 bg-[#DC143C] rounded" /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  const sectionIcon = section.type === "predictions" ? "📊" : section.type === "voices" ? "🎙" : "💬";
+
+  return (
+    &lt;div className="px-4 py-6 border-b border-[rgba(255,255,255,0.06)]"&gt;
+      &lt;p className="text-[9px] uppercase tracking-wider text-[#DC143C] mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}&gt;{section.title}&lt;/p&gt;
+      {layout === "carousel" ? (
+        &lt;div className="flex gap-3 overflow-hidden"&gt;
+          {Array.from({ length: Math.min(maxItems, 4) }).map((_, i) =&gt; (
+            &lt;div key={i} className="flex-shrink-0 w-40 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg p-3"&gt;
+              &lt;div className="text-xs mb-2"&gt;{sectionIcon}&lt;/div&gt;
+              &lt;div className="h-2 w-full bg-[rgba(255,255,255,0.1)] rounded mb-1.5" /&gt;
+              &lt;div className="h-1.5 w-2/3 bg-[rgba(255,255,255,0.06)] rounded" /&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      ) : (
+        &lt;div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}&gt;
+          {Array.from({ length: maxItems }).map((_, i) =&gt; {
+            const spanFull = i === 0 &amp;&amp; section.type === "debate_grid" &amp;&amp; (section.config.firstSpanFull as boolean);
+            return (
+              &lt;div key={i} className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg p-3" style={spanFull ? { gridColumn: `1 / -1` } : undefined}&gt;
+                &lt;div className="text-xs mb-2"&gt;{sectionIcon}&lt;/div&gt;
+                &lt;div className={`h-2 bg-[rgba(255,255,255,0.1)] rounded mb-1.5 ${spanFull ? "w-1/2" : "w-full"}`} /&gt;
+                &lt;div className="h-1.5 w-2/3 bg-[rgba(255,255,255,0.06)] rounded" /&gt;
+                {section.type === "predictions" &amp;&amp; (
+                  &lt;div className="mt-2 flex gap-1"&gt;
+                    &lt;div className="h-4 flex-1 bg-[rgba(220,20,60,0.12)] rounded" /&gt;
+                    &lt;div className="h-4 flex-1 bg-[rgba(255,255,255,0.04)] rounded" /&gt;
+                  &lt;/div&gt;
+                )}
+              &lt;/div&gt;
+            );
+          })}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return &lt;div&gt;&lt;label className="block text-sm font-medium mb-1.5"&gt;{label}&lt;/label&gt;{children}&lt;/div&gt;;
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-pages-not-found-tsx">
+      <div class="file-header">
+        <h3>src/pages/not-found.tsx</h3>
+        <span class="lang">TSX · 22 lines</span>
+      </div>
+      <pre><code>import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+
+export default function NotFound() {
+  return (
+    &lt;div className="min-h-screen w-full flex items-center justify-center bg-gray-50"&gt;
+      &lt;Card className="w-full max-w-md mx-4"&gt;
+        &lt;CardContent className="pt-6"&gt;
+          &lt;div className="flex mb-4 gap-2"&gt;
+            &lt;AlertCircle className="h-8 w-8 text-red-500" /&gt;
+            &lt;h1 className="text-2xl font-bold text-gray-900"&gt;404 Page Not Found&lt;/h1&gt;
+          &lt;/div&gt;
+
+          &lt;p className="mt-4 text-sm text-gray-600"&gt;
+            Did you forget to add the page to the router?
+          &lt;/p&gt;
+        &lt;/CardContent&gt;
+      &lt;/Card&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-hooks-use-mobile-tsx">
+      <div class="file-header">
+        <h3>src/hooks/use-mobile.tsx</h3>
+        <span class="lang">TSX · 20 lines</span>
+      </div>
+      <pre><code>import * as React from "react"
+
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState&lt;boolean | undefined&gt;(undefined)
+
+  React.useEffect(() =&gt; {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const onChange = () =&gt; {
+      setIsMobile(window.innerWidth &lt; MOBILE_BREAKPOINT)
+    }
+    mql.addEventListener("change", onChange)
+    setIsMobile(window.innerWidth &lt; MOBILE_BREAKPOINT)
+    return () =&gt; mql.removeEventListener("change", onChange)
+  }, [])
+
+  return !!isMobile
+}
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+  <div class="file-section" id="artifacts-cms-src-hooks-use-toast-ts">
+      <div class="file-header">
+        <h3>src/hooks/use-toast.ts</h3>
+        <span class="lang">TS · 192 lines</span>
+      </div>
+      <pre><code>import * as React from "react"
+
+import type {
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = ToastProps &amp; {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
+
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType["ADD_TOAST"]
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"]
+      toast: Partial&lt;ToasterToast&gt;
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map&lt;string, ReturnType&lt;typeof setTimeout&gt;&gt;()
+
+const addToRemoveQueue = (toastId: string) =&gt; {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() =&gt; {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: "REMOVE_TOAST",
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+export const reducer = (state: State, action: Action): State =&gt; {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =&gt;
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      }
+
+    case "DISMISS_TOAST": {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) =&gt; {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =&gt;
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t
+        ),
+      }
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) =&gt; t.id !== action.toastId),
+      }
+  }
+}
+
+const listeners: Array&lt;(state: State) =&gt; void&gt; = []
+
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) =&gt; {
+    listener(memoryState)
+  })
+}
+
+type Toast = Omit&lt;ToasterToast, "id"&gt;
+
+function toast({ ...props }: Toast) {
+  const id = genId()
+
+  const update = (props: ToasterToast) =&gt;
+    dispatch({
+      type: "UPDATE_TOAST",
+      toast: { ...props, id },
+    })
+  const dismiss = () =&gt; dispatch({ type: "DISMISS_TOAST", toastId: id })
+
+  dispatch({
+    type: "ADD_TOAST",
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) =&gt; {
+        if (!open) dismiss()
+      },
+    },
+  })
+
+  return {
+    id: id,
+    dismiss,
+    update,
+  }
+}
+
+function useToast() {
+  const [state, setState] = React.useState&lt;State&gt;(memoryState)
+
+  React.useEffect(() =&gt; {
+    listeners.push(setState)
+    return () =&gt; {
+      const index = listeners.indexOf(setState)
+      if (index &gt; -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) =&gt; dispatch({ type: "DISMISS_TOAST", toastId }),
+  }
+}
+
+export { useToast, toast }
+</code></pre>
+      <div class="back-top"><a href="#top">↑ Back to top</a></div>
+    </div>
+
+</body>
+</html>

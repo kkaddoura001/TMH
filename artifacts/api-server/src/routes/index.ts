@@ -7,6 +7,7 @@ import categoriesRouter from "./categories";
 import applyRouter from "./apply";
 import newsletterRouter from "./newsletter";
 import adminRouter from "./admin";
+import cmsRouter from "./cms";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(categoriesRouter);
 router.use(applyRouter);
 router.use(newsletterRouter);
 router.use(adminRouter);
+router.use(cmsRouter);
 
 export default router;

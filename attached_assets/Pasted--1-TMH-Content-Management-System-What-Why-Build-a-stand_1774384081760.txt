@@ -1,0 +1,74 @@
+#1 - TMH Content Management System
+What & Why
+Build a standalone CMS application at /cms for managing all content on The Middle East Hustle platform — Debates (polls), Predictions, and Voices (profiles). Currently content is hardcoded in seed scripts or frontend code. The CMS gives the product manager a proper interface to bulk-upload content (generated via Claude as JSON), review/edit/approve each post individually, and manage the full editorial lifecycle before anything goes live. This is a prototype/internal tool — it will never ship to production.
+
+STRICT RULE: Do NOT modify any files in artifacts/tmh-platform/. The existing frontend must remain completely untouched.
+
+Done looks like
+A new artifact at artifacts/cms accessible at /cms with its own Express backend + React frontend
+Login screen with single username/PIN authentication (hardcoded or env-var based, scalable for future multi-user)
+Dashboard showing stats: total posts by type, drafts pending review, recently approved, flagged/archived
+Three content management sections: Debates, Predictions, Voices — each with:
+Bulk JSON upload: Upload a structured JSON file, see all parsed items in a review list
+List view: See all items of that type with status indicators (Draft, In Review, Approved, Live, Rejected, Revision, Flagged, Archived). Supports bulk actions: approve multiple, reject multiple, flag multiple, delete multiple
+Individual edit form: Edit every field for that content type with a simple text editor (optional bold/italic/heading formatting). Dynamic list editor for array fields (lessons learned, tags, poll options)
+Preview panel: See a styled preview of how the post will look, matching the main site's design language, before approving
+Editorial workflow per post: Draft → In Review → Approved (Live) / Rejected → Revision → back to In Review. Plus Flag and Archive actions on live posts
+New predictions database table in lib/db to bring predictions from hardcoded frontend data into the database
+Image upload via local file upload (placeholder system — stored locally for now, designed to swap to S3/Supabase later)
+Design matches the main site: DM Sans body font, Barlow Condensed headings, Playfair Display for display text, charcoal/crimson dark theme (#0A0A0A background, #DC143C crimson accent)
+Out of scope
+Modifying the existing frontend (artifacts/tmh-platform) in any way
+Search and filtering in list views (future enhancement)
+Post scheduling (publish at future date)
+Multi-user accounts and role-based access (architecture should support it later)
+S3/Supabase integration for image storage (use local uploads for now)
+Newsletter subscriber management
+Hustler application review (existing flow stays as-is)
+Tasks
+Project scaffolding — Create the artifacts/cms artifact as a new React + Vite frontend with Express backend, registered at /cms. Set up the pnpm workspace entry, Tailwind CSS with the same design tokens (fonts, crimson/charcoal palette, dark theme) from the main site's index.css. Install shadcn/ui components for the CMS UI.
+
+Predictions database table — Add a new predictions table to lib/db/src/schema/ with fields: id, question, category, categorySlug, resolvesAt (date), yesPercentage, noPercentage, totalCount, momentum, momentumDirection (up/down), trendData (jsonb array of numbers), editorialStatus, isFeatured, tags (jsonb), createdAt, updatedAt. Run migration via Drizzle. Export types and insert schemas.
+
+Authentication — Simple PIN-based login: a login page that accepts a username and PIN (stored as env vars CMS_USERNAME and CMS_PIN, with sensible defaults for dev). On success, store a session token. All CMS routes require this token. Design the auth middleware to be swappable for a proper auth system later.
+
+CMS API layer — Build Express REST API routes within the CMS backend for all three content types (CRUD operations), using the shared lib/db package:
+
+POST /api/cms/upload/:type — Accept JSON file upload, parse and validate, insert all items as "draft" status, return created items
+GET/PUT/DELETE /api/cms/debates/:id, GET /api/cms/debates — Full CRUD for debates (polls + poll_options)
+GET/PUT/DELETE /api/cms/predictions/:id, GET /api/cms/predictions — Full CRUD for predictions
+GET/PUT/DELETE /api/cms/voices/:id, GET /api/cms/voices — Full CRUD for voices (profiles)
+POST /api/cms/:type/:id/status — Change editorial status (approve, reject, send-to-revision, flag, archive, unpublish)
+POST /api/cms/:type/bulk-action — Bulk status changes (approve/reject/flag/delete multiple by IDs)
+POST /api/cms/upload-image — Accept image file upload, store locally in a public assets directory, return the URL
+GET /api/cms/stats — Dashboard statistics (counts by type and status)
+Dashboard page — Landing page after login showing: total Debates/Predictions/Voices counts, breakdown by status (draft, live, flagged), recent activity (last 10 status changes), and quick-action buttons to navigate to each content section.
+
+Bulk JSON upload flow — For each content type, a page/modal where user can:
+
+Upload a .json file (structured array of objects matching the content type schema)
+See a parsed preview table of all items about to be imported
+Confirm to bulk-insert all as "draft" status
+Provide a JSON template/example for each type so the user knows the expected format when generating content with Claude
+List view for each content type — Table/card list showing all items with: title/question, category, status badge, created date. Checkbox selection for bulk actions (approve, reject, flag, delete). Status filter tabs (All, Drafts, Live, Flagged, Archived).
+
+Edit form for each content type — Full edit forms with all fields:
+
+Debates: question, context (with simple text formatting — bold, italic, headings), category, categorySlug, tags (dynamic add/remove chips), pollType dropdown, poll options (dynamic list — add/remove/reorder), isFeatured toggle, isEditorsPick toggle, endsAt date picker, relatedProfileIds (multi-select from existing profiles)
+Predictions: question, category, categorySlug, resolvesAt date, initial yes/no percentages, momentum, tags, isFeatured toggle
+Voices: name, headline, role, company, companyUrl, sector, country, city, imageUrl (with upload button), summary, story (with simple text formatting), lessonsLearned (dynamic list — add/remove/reorder items), quote, isFeatured toggle, isVerified toggle
+Each form has: Save as Draft, Submit for Review, and (if authorized) Approve buttons
+Preview panel — A side panel or dedicated preview page for each content type that renders the post in a style matching the main site's visual language (dark theme, crimson accents, DM Sans/Barlow fonts). Shows exactly how the content will appear. Available from both list view (click to preview) and edit form (live preview toggle).
+
+Editorial status workflow — Implement the full state machine: Draft → In Review → Approved/Rejected. Rejected items can be sent to "Revision" state, which returns them to editable draft. Approved items become "Live." Live items can be Flagged (hidden but not deleted) or Archived (soft delete). All status transitions update an updatedAt timestamp. Add editorialStatus column to the profiles table if not present (polls table already has it), and to the new predictions table.
+
+Relevant files
+lib/db/src/schema/polls.ts
+lib/db/src/schema/profiles.ts
+lib/db/src/schema/index.ts
+lib/db/drizzle.config.ts
+artifacts/tmh-platform/src/index.css
+artifacts/tmh-platform/src/pages/predictions.tsx:17-77
+scripts/src/seed.ts:1-50
+pnpm-workspace.yaml
+artifacts/api-server/src/routes/admin.ts
