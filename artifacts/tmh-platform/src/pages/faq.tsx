@@ -87,7 +87,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: "How do I become a Voice?",
-        a: "Apply through the Apply to Be a Voice page. The bar is intentionally high. You need: real, verifiable impact (not just a job title), an active MENA connection, a unique story (pivots, failures, non-linear paths), something you've built or founded, and a LinkedIn profile we can verify. Applications are reviewed and you'll be contacted if you pass.",
+        a: "Apply through the Join The Voices page. The bar is intentionally high. You need: real, verifiable impact (not just a job title), an active MENA connection, a unique story (pivots, failures, non-linear paths), something you've built or founded, and a LinkedIn profile we can verify. Applications are reviewed and you'll be contacted if you pass.",
       },
       {
         q: "How are Voices organized?",

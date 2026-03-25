@@ -16,7 +16,7 @@ export function Footer() {
     { label: t("Debates"), href: "/polls" },
     { label: t("Predictions"), href: "/predictions" },
     { label: t("Voices"), href: "/profiles" },
-    { label: t("Apply to Be a Voice"), href: "/apply" },
+    { label: t("Join The Voices"), href: "/apply" },
   ]
 
   return (

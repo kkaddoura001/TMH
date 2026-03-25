@@ -1057,7 +1057,7 @@ export default function Home() {
                     type="submit"
                     className="bg-primary text-white font-bold uppercase tracking-widest px-6 py-3 text-xs hover:bg-primary/90 transition-colors font-serif"
                   >
-                    {t("Apply to Be a Voice")}
+                    {t("Join The Hustle")}
                   </button>
                   <p className="text-[9px] text-background/60 font-sans">{t("No spam. Unsubscribe anytime.")}</p>
                 </form>
