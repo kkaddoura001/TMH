@@ -355,71 +355,96 @@ export default function Home() {
             <div className="lg:pr-8 lg:border-r lg:border-border pb-8 lg:pb-0">
               <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#3B82F6] mb-5 flex items-center gap-2 font-serif">
                 <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
-                {t("TODAY'S FEATURED PREDICTION")}
+                {t("FEATURED PREDICTION")}
               </div>
               {(() => {
                 const featured = PREDICTIONS[0]
+                const noData = featured.data.map(v => 100 - v)
+                const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+                const chartW = 280
+                const chartH = 120
+                const padL = 28
+                const padR = 4
+                const padT = 8
+                const padB = 20
+                const plotW = chartW - padL - padR
+                const plotH = chartH - padT - padB
+                const toX = (i: number) => padL + (i / (featured.data.length - 1)) * plotW
+                const toY = (v: number) => padT + plotH - (v / 100) * plotH
+                const yesPoints = featured.data.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
+                const noPoints = noData.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
+                const yesArea = `M${featured.data.map((v, i) => `${toX(i)},${toY(v)}`).join(" L")} L${toX(featured.data.length - 1)},${padT + plotH} L${padL},${padT + plotH} Z`
                 return (
                   <Link href="/predictions" className="block">
-                    <div className="bg-card border border-border p-6 rounded-[4px] flex flex-col gap-4 group hover:-translate-y-0.5 transition-all" style={{ borderWidth: "1.5px" }}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 bg-foreground text-background text-[9px] font-bold uppercase tracking-[0.2em] font-serif">
-                          {featured.category}
-                        </span>
-                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}>
-                          Resolves: {featured.resolves}
-                        </span>
-                      </div>
-                      <p className="font-serif font-black uppercase text-lg leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>
-                        {featured.question}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-serif">{featured.count} predictions locked in</p>
-
-                      {/* Sparkline Chart */}
-                      <div className="relative h-20 w-full mt-1">
-                        <svg viewBox="0 0 200 60" className="w-full h-full" preserveAspectRatio="none">
+                    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 group hover:-translate-y-0.5 transition-all overflow-hidden" style={{ borderWidth: "1.5px" }}>
+                      <div className="flex-1 p-5">
+                        <p className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground font-serif mb-2">
+                          Confidence Over Time — Yes %
+                        </p>
+                        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full" style={{ maxHeight: 160 }}>
                           <defs>
-                            <linearGradient id="predGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                            <linearGradient id="homeYesGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                              <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
                             </linearGradient>
                           </defs>
-                          <path d={`M${featured.data.map((v, i) => `${(i / (featured.data.length - 1)) * 200},${60 - (v / 100) * 55}`).join(" L")} L200,60 L0,60 Z`} fill="url(#predGrad)" />
-                          <polyline points={featured.data.map((v, i) => `${(i / (featured.data.length - 1)) * 200},${60 - (v / 100) * 55}`).join(" ")} fill="none" stroke="#3B82F6" strokeWidth="2" />
-                          <circle cx="200" cy={60 - (featured.data[featured.data.length - 1] / 100) * 55} r="3" fill="#3B82F6" />
+                          {[0, 25, 50, 75, 100].map(v => (
+                            <g key={v}>
+                              <line x1={padL} x2={chartW - padR} y1={toY(v)} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                              <text x={padL - 4} y={toY(v) + 3} fill="rgba(255,255,255,0.25)" fontSize="6" textAnchor="end" fontFamily="'Barlow Condensed', sans-serif">{v}</text>
+                            </g>
+                          ))}
+                          {featured.data.map((_, i) => {
+                            if (i % 3 !== 0 && i !== featured.data.length - 1) return null
+                            const mi = i < months.length ? i : i % months.length
+                            return <text key={i} x={toX(i)} y={chartH - 4} fill="rgba(255,255,255,0.3)" fontSize="5.5" textAnchor="middle" fontFamily="'Barlow Condensed', sans-serif">{months[mi]}</text>
+                          })}
+                          <line x1={padL} x2={chartW - padR} y1={toY(50)} y2={toY(50)} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" strokeDasharray="3,2" />
+                          <path d={yesArea} fill="url(#homeYesGrad)" />
+                          <polyline points={yesPoints} fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinejoin="round" />
+                          <polyline points={noPoints} fill="none" stroke="#DC143C" strokeWidth="1.2" strokeLinejoin="round" opacity="0.7" />
+                          <circle cx={toX(featured.data.length - 1)} cy={toY(featured.data[featured.data.length - 1])} r="2.5" fill="#10B981" />
+                          <circle cx={toX(featured.data.length - 1)} cy={toY(noData[noData.length - 1])} r="2" fill="#DC143C" />
+                          <text x={toX(featured.data.length - 1) + 1} y={toY(featured.data[featured.data.length - 1]) - 4} fill="#10B981" fontSize="6" fontWeight="700" fontFamily="'Barlow Condensed', sans-serif">{featured.data[featured.data.length - 1]}%</text>
                         </svg>
-                        <div className="absolute top-0 right-0 flex items-center gap-1">
-                          <span className={cn("text-[9px] font-bold font-serif", featured.up ? "text-[#10B981]" : "text-[#DC143C]")}>
-                            {featured.up ? "▲" : "▼"} {featured.momentum}%
-                          </span>
-                        </div>
+                        <p className="text-[9px] font-serif mt-2" style={{ color: "#10B981" }}>
+                          {featured.up ? "▲" : "▼"} Confidence moved {featured.up ? "+" : "-"}{featured.momentum}% in the last 30 days
+                        </p>
                       </div>
-
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                            Yes {featured.yes}%
-                          </p>
-                          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                            <div className="h-full rounded-full" style={{ width: `${featured.yes}%`, background: "#10B981" }} />
+                      <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-border flex flex-col justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap mb-2">
+                            <span className="px-2 py-0.5 bg-foreground text-background text-[8px] font-bold uppercase tracking-[0.2em] font-serif">{featured.category}</span>
+                            <span className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}>Resolves: {featured.resolves}</span>
+                          </div>
+                          <p className="font-serif font-black uppercase text-[15px] leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>{featured.question}</p>
+                          <p className="text-[10px] text-muted-foreground font-serif mt-2">{featured.count} predictions locked in</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#10B981" }}>Yes</span>
+                              <span className="text-[10px] font-bold font-serif" style={{ color: "#10B981" }}>{featured.yes}%</span>
+                            </div>
+                            <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              <div className="h-full rounded-sm" style={{ width: `${featured.yes}%`, background: "#10B981" }} />
+                            </div>
+                            <p className="text-[8px] text-muted-foreground font-serif mt-0.5">{featured.up ? "▲" : "▼"} Up {featured.momentum}% this week</p>
+                          </div>
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#DC143C" }}>No</span>
+                              <span className="text-[10px] font-bold font-serif" style={{ color: "#DC143C" }}>{featured.no}%</span>
+                            </div>
+                            <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              <div className="h-full rounded-sm" style={{ width: `${featured.no}%`, background: "#DC143C" }} />
+                            </div>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif text-foreground mb-1">
-                            No {featured.no}%
-                          </p>
-                          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                            <div className="h-full rounded-full" style={{ width: `${featured.no}%`, background: "#DC143C" }} />
-                          </div>
+                        <div className="flex gap-2">
+                          <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#10B981] hover:text-white hover:border-[#10B981]" style={{ borderColor: "#10B981", color: "#10B981" }}>Yes</button>
+                          <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C]" style={{ borderColor: "#DC143C", color: "#DC143C" }}>No</button>
                         </div>
-                      </div>
-                      <div className="flex gap-2 mt-1">
-                        <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#10B981] hover:text-white hover:border-[#10B981]" style={{ borderColor: "#10B981", color: "#10B981" }}>
-                          Yes
-                        </button>
-                        <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C]" style={{ borderColor: "#DC143C", color: "#DC143C" }}>
-                          No
-                        </button>
                       </div>
                     </div>
                   </Link>
@@ -439,7 +464,7 @@ export default function Home() {
               </div>
 
               <div>
-                {PREDICTIONS.slice(1, 7).map((pred) => (
+                {PREDICTIONS.slice(1, 6).map((pred) => (
                   <Link key={pred.id} href="/predictions">
                     <div className="py-3 border-b border-border group cursor-pointer">
                       <div className="flex items-center justify-between gap-2">
@@ -451,12 +476,8 @@ export default function Home() {
                         </div>
                         <div className="flex-shrink-0 w-16 h-8">
                           <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
-                            <polyline
-                              points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - (v / 100) * 20}`).join(" ")}
-                              fill="none"
-                              stroke={pred.up ? "#10B981" : "#DC143C"}
-                              strokeWidth="1.5"
-                            />
+                            <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - (v / 100) * 20}`).join(" ")} fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinejoin="round" />
+                            <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - ((100 - v) / 100) * 20}`).join(" ")} fill="none" stroke="#DC143C" strokeWidth="1" opacity="0.6" strokeLinejoin="round" />
                           </svg>
                         </div>
                       </div>
@@ -470,6 +491,144 @@ export default function Home() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── THE PULSE ── */}
+      <section id="pulse" className="py-8 bg-background border-b border-border section-fadein relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
+
+            {/* LEFT: Today's Featured Pulse */}
+            <div className="lg:pr-8 lg:border-r lg:border-border pb-8 lg:pb-0">
+              <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#10B981] mb-5 flex items-center gap-2 font-serif">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                {t("TODAY'S PULSE")}
+              </div>
+              {(() => {
+                const topic = {
+                  tag: "MONEY", tagColor: "#F59E0B",
+                  title: "Sovereign Wealth Power",
+                  stat: "$4.1 Trillion", delta: "+18%", deltaUp: true,
+                  blurb: "Gulf sovereign wealth funds now control $4.1T — more than the GDP of Germany. ADIA, PIF, QIA, Mubadala, and KIA are buying everything: Newcastle FC, Lucid Motors, Jio, AI labs. The Gulf is becoming the world's landlord.",
+                  source: "SWF Institute / PIF Annual Report 2026",
+                  sparkData: [2.8, 2.9, 3.0, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.1],
+                }
+                const chartW = 280, chartH = 100, padL = 28, padR = 4, padT = 8, padB = 20
+                const plotW = chartW - padL - padR, plotH = chartH - padT - padB
+                const maxV = Math.max(...topic.sparkData)
+                const minV = Math.min(...topic.sparkData)
+                const range = maxV - minV || 1
+                const toX = (i: number) => padL + (i / (topic.sparkData.length - 1)) * plotW
+                const toY = (v: number) => padT + plotH - ((v - minV) / range) * plotH
+                const pts = topic.sparkData.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
+                const area = `M${topic.sparkData.map((v, i) => `${toX(i)},${toY(v)}`).join(" L")} L${toX(topic.sparkData.length - 1)},${padT + plotH} L${padL},${padT + plotH} Z`
+                const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+                return (
+                  <Link href="/mena-pulse" className="block">
+                    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 group hover:-translate-y-0.5 transition-all overflow-hidden" style={{ borderWidth: "1.5px" }}>
+                      <div className="flex-1 p-5">
+                        <p className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground font-serif mb-2">
+                          Trend Over 12 Months
+                        </p>
+                        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full" style={{ maxHeight: 140 }}>
+                          <defs>
+                            <linearGradient id="homePulseGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={topic.tagColor} stopOpacity="0.25" />
+                              <stop offset="100%" stopColor={topic.tagColor} stopOpacity="0.02" />
+                            </linearGradient>
+                          </defs>
+                          {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
+                            const v = minV + pct * range
+                            return (
+                              <g key={idx}>
+                                <line x1={padL} x2={chartW - padR} y1={toY(v)} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                                <text x={padL - 4} y={toY(v) + 3} fill="rgba(255,255,255,0.25)" fontSize="5.5" textAnchor="end" fontFamily="'Barlow Condensed', sans-serif">${v.toFixed(1)}T</text>
+                              </g>
+                            )
+                          })}
+                          {topic.sparkData.map((_, i) => {
+                            if (i % 3 !== 0 && i !== topic.sparkData.length - 1) return null
+                            return <text key={i} x={toX(i)} y={chartH - 4} fill="rgba(255,255,255,0.3)" fontSize="5.5" textAnchor="middle" fontFamily="'Barlow Condensed', sans-serif">{months[i]}</text>
+                          })}
+                          <path d={area} fill="url(#homePulseGrad)" />
+                          <polyline points={pts} fill="none" stroke={topic.tagColor} strokeWidth="1.8" strokeLinejoin="round" />
+                          <circle cx={toX(topic.sparkData.length - 1)} cy={toY(topic.sparkData[topic.sparkData.length - 1])} r="2.5" fill={topic.tagColor} />
+                        </svg>
+                        <p className="text-[9px] font-serif mt-2" style={{ color: topic.tagColor }}>
+                          {topic.deltaUp ? "▲" : "▼"} {topic.delta} year-over-year
+                        </p>
+                      </div>
+                      <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-border flex flex-col justify-center gap-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.2em] font-serif" style={{ background: `${topic.tagColor}20`, border: `1px solid ${topic.tagColor}40`, color: topic.tagColor }}>{topic.tag}</span>
+                        </div>
+                        <p className="font-serif font-black uppercase text-[15px] leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>{topic.title}</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-display font-black text-2xl" style={{ color: topic.tagColor }}>{topic.stat}</span>
+                          <span className={cn("text-[10px] font-bold font-serif", topic.deltaUp ? "text-[#10B981]" : "text-[#DC143C]")}>{topic.deltaUp ? "▲" : "▼"} {topic.delta}</span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">{topic.blurb}</p>
+                        <p className="text-[8px] text-muted-foreground/60 font-serif uppercase tracking-widest">Source: {topic.source}</p>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })()}
+            </div>
+
+            {/* RIGHT: Latest Pulse Sidebar */}
+            <div className="lg:pl-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-border">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground font-serif">
+                  {t("Latest Trends")}
+                </p>
+                <Link href="/mena-pulse" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif transition-colors">
+                  {t("View All")}
+                </Link>
+              </div>
+
+              <div>
+                {[
+                  { tag: "POWER", tagColor: "#EF4444", title: "Press Freedom Collapse", stat: "17 of 19", delta: "Not Free", deltaUp: false, sparkData: [14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 17] },
+                  { tag: "MONEY", tagColor: "#F59E0B", title: "Crypto Trading Volume", stat: "$338B", delta: "+74%", deltaUp: true, sparkData: [89, 110, 125, 145, 160, 180, 210, 240, 268, 295, 318, 338] },
+                  { tag: "SOCIETY", tagColor: "#EC4899", title: "Women in the Workforce", stat: "33.4%", delta: "+9.2pp", deltaUp: true, sparkData: [17, 19, 21, 23, 25, 26, 28, 29, 30, 31, 32, 33.4] },
+                  { tag: "TECH", tagColor: "#3B82F6", title: "Surveillance Tech Spending", stat: "$4.8B", delta: "+62%", deltaUp: true, sparkData: [1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5, 4.7, 4.8] },
+                  { tag: "MONEY", tagColor: "#F59E0B", title: "Cost of Living Crisis", stat: "38% inflation", delta: "Egypt peak", deltaUp: false, sparkData: [12, 15, 19, 24, 29, 33, 38, 36, 34, 32, 30, 28] },
+                ].map((t2, idx) => {
+                  const max = Math.max(...t2.sparkData)
+                  const min = Math.min(...t2.sparkData)
+                  const rng = max - min || 1
+                  return (
+                    <Link key={idx} href="/mena-pulse">
+                      <div className="py-3 border-b border-border group cursor-pointer">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] uppercase tracking-widest font-serif font-bold" style={{ color: t2.tagColor }}>{t2.tag}</p>
+                            <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1 group-hover:text-[#10B981] transition-colors">
+                              {t2.title}
+                            </p>
+                          </div>
+                          <div className="flex-shrink-0 w-16 h-8">
+                            <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
+                              <polyline points={t2.sparkData.map((v, i) => `${(i / (t2.sparkData.length - 1)) * 60},${24 - ((v - min) / rng) * 20}`).join(" ")} fill="none" stroke={t2.tagColor} strokeWidth="1.5" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[9px] font-bold font-serif" style={{ color: t2.tagColor }}>{t2.stat}</span>
+                          <span className={cn("text-[8px] font-bold font-serif ml-auto", t2.deltaUp ? "text-[#10B981]" : "text-[#DC143C]")}>
+                            {t2.deltaUp ? "▲" : "▼"} {t2.delta}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
             </div>
 
