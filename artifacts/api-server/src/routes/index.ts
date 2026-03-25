@@ -8,6 +8,7 @@ import newsletterRouter from "./newsletter";
 import adminRouter from "./admin";
 import cmsRouter from "./cms";
 import majlisRouter from "./majlis";
+import ideationRouter from "./ideation";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(newsletterRouter);
 router.use(adminRouter);
 router.use(cmsRouter);
 router.use(majlisRouter);
+router.use(ideationRouter);
 
 export default router;

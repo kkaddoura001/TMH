@@ -1,16 +1,30 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { Save, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Save, Plus, Trash2, ChevronDown, ChevronUp, Database } from "lucide-react";
 
-interface TopicCard {
-  id: string;
+interface DesignToken {
+  id: number;
+  name: string;
+  label: string;
+  value: string;
+  tokenType: string;
+  category: string | null;
+}
+
+interface PulseTopic {
+  id: number;
+  topicId: string;
   tag: string;
+  tagColor: string;
   title: string;
   stat: string;
   delta: string;
   deltaUp: boolean;
   blurb: string;
   source: string;
+  sparkData: number[];
+  liveConfig: { baseValue: number; annualGrowth: number } | null;
+  editorialStatus: string;
 }
 
 interface PulseCategory {
@@ -19,25 +33,57 @@ interface PulseCategory {
   color: string;
 }
 
-interface PulseConfig {
+interface PulsePageConfig {
   hero: { title: string; subtitle: string };
   categories: PulseCategory[];
-  topicCards: TopicCard[];
+}
+
+const TAG_OPTIONS = ["POWER", "MONEY", "SOCIETY", "TECHNOLOGY", "SURVIVAL", "MIGRATION", "CULTURE", "HEALTH"];
+
+function TokenColorPicker({ value, onChange, tokens }: { value: string; onChange: (v: string) => void; tokens: DesignToken[] }) {
+  const brandTokens = tokens.filter(t => t.tokenType === "color");
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex gap-1.5 flex-wrap">
+        {brandTokens.map(token => (
+          <button
+            key={token.id}
+            onClick={() => onChange(token.value)}
+            className={`w-7 h-7 rounded-sm border-2 transition-all ${token.value === value ? "border-primary scale-110" : "border-border/50 hover:border-border"}`}
+            style={{ backgroundColor: token.value }}
+            title={`${token.label} (${token.value})`}
+          />
+        ))}
+      </div>
+      <span className="text-[0.55rem] text-muted-foreground">Selected: {brandTokens.find(t => t.value === value)?.label ?? value}</span>
+    </div>
+  );
 }
 
 export default function PagePulse() {
-  const [config, setConfig] = useState<PulseConfig | null>(null);
+  const [config, setConfig] = useState<PulsePageConfig | null>(null);
+  const [topics, setTopics] = useState<PulseTopic[]>([]);
+  const [tokens, setTokens] = useState<DesignToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [filterCat, setFilterCat] = useState("ALL");
 
   useEffect(() => {
-    api.getPage("pulse").then(setConfig).catch(console.error).finally(() => setLoading(false));
+    Promise.all([
+      api.getPage("pulse").catch(() => ({ hero: { title: "MENA PULSE", subtitle: "" }, categories: [] })),
+      api.getPulseTopics().then((d: { items: PulseTopic[] }) => d.items).catch(() => []),
+      api.getDesignTokens().then((d: { items: DesignToken[] }) => d.items).catch(() => []),
+    ]).then(([cfg, items, designTokens]) => {
+      setConfig(cfg as PulsePageConfig);
+      setTopics(items);
+      setTokens(designTokens);
+    }).finally(() => setLoading(false));
   }, []);
 
-  const save = async () => {
+  const saveConfig = async () => {
     if (!config) return;
     setSaving(true);
     try {
@@ -48,44 +94,56 @@ export default function PagePulse() {
     finally { setSaving(false); }
   };
 
+  const updateTopic = async (id: number, updates: Partial<PulseTopic>) => {
+    try {
+      await api.updatePulseTopic(id, updates as Record<string, unknown>);
+      setTopics(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    } catch (e) { alert(e instanceof Error ? e.message : "Update failed"); }
+  };
+
+  const addTopic = async () => {
+    try {
+      const res = await api.createPulseTopic({
+        topicId: `topic-${Date.now()}`,
+        tag: "POWER",
+        tagColor: "#EF4444",
+        title: "New Topic",
+        stat: "0",
+        delta: "0%",
+        deltaUp: true,
+        blurb: "",
+        source: "",
+        sparkData: [],
+        editorialStatus: "draft",
+      });
+      if (res.item) {
+        setTopics(prev => [...prev, res.item]);
+        setExpandedCard(res.item.id);
+      }
+    } catch (e) { alert(e instanceof Error ? e.message : "Create failed"); }
+  };
+
+  const deleteTopic = async (id: number) => {
+    if (!confirm("Delete this pulse topic?")) return;
+    try {
+      await api.deletePulseTopic(id);
+      setTopics(prev => prev.filter(t => t.id !== id));
+    } catch (e) { alert(e instanceof Error ? e.message : "Delete failed"); }
+  };
+
   if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
   if (!config) return <div className="text-center py-12 text-red-500">Failed to load Pulse config</div>;
 
-  const filteredCards = filterCat === "ALL" ? config.topicCards : config.topicCards.filter(c => c.tag === filterCat);
-
-  const addCard = () => {
-    const newCard: TopicCard = {
-      id: `card-${Date.now()}`,
-      tag: "POWER",
-      title: "New Topic Card",
-      stat: "0",
-      delta: "0%",
-      deltaUp: true,
-      blurb: "",
-      source: "",
-    };
-    setConfig({ ...config, topicCards: [...config.topicCards, newCard] });
-    setExpandedCard(newCard.id);
-  };
-
-  const updateCard = (id: string, updates: Partial<TopicCard>) => {
-    setConfig({
-      ...config,
-      topicCards: config.topicCards.map(c => c.id === id ? { ...c, ...updates } : c),
-    });
-  };
-
-  const deleteCard = (id: string) => {
-    if (!confirm("Delete this topic card?")) return;
-    setConfig({ ...config, topicCards: config.topicCards.filter(c => c.id !== id) });
-  };
+  const filteredTopics = filterCat === "ALL" ? topics : topics.filter(t => t.tag === filterCat);
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide">Pulse Page<span className="text-primary">.</span></h1>
-        <button onClick={save} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-sm text-sm hover:bg-primary/90 disabled:opacity-50">
-          <Save className="w-4 h-4" /> {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
+        <h1 className="font-serif text-2xl font-bold uppercase tracking-wide flex items-center gap-2">
+          <Database className="w-5 h-5 text-primary" /> Pulse Page<span className="text-primary">.</span>
+        </h1>
+        <button onClick={saveConfig} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-sm text-sm hover:bg-primary/90 disabled:opacity-50">
+          <Save className="w-4 h-4" /> {saving ? "Saving..." : saved ? "Saved!" : "Save Config"}
         </button>
       </div>
 
@@ -105,7 +163,11 @@ export default function PagePulse() {
         <div className="grid grid-cols-3 gap-2">
           {config.categories.map((cat, i) => (
             <div key={cat.key} className="flex items-center gap-2 p-2 border border-border/50 rounded-sm bg-card">
-              <input type="color" value={cat.color} onChange={e => { const cats = [...config.categories]; cats[i] = { ...cat, color: e.target.value }; setConfig({ ...config, categories: cats }); }} className="w-6 h-6 border-0 cursor-pointer" />
+              <TokenColorPicker
+                value={cat.color}
+                onChange={color => { const cats = [...config.categories]; cats[i] = { ...cat, color }; setConfig({ ...config, categories: cats }); }}
+                tokens={tokens}
+              />
               <input value={cat.label} onChange={e => { const cats = [...config.categories]; cats[i] = { ...cat, label: e.target.value }; setConfig({ ...config, categories: cats }); }} className="flex-1 px-2 py-1 bg-background border border-border rounded-sm text-xs focus:outline-none focus:ring-1 focus:ring-primary" />
               {cat.key !== "ALL" && (
                 <button onClick={() => setConfig({ ...config, categories: config.categories.filter((_, j) => j !== i) })} className="text-muted-foreground hover:text-red-500">
@@ -119,56 +181,75 @@ export default function PagePulse() {
 
       <section className="border border-border rounded-sm p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-lg font-bold uppercase tracking-wide">Topic Cards ({config.topicCards.length})</h2>
-          <button onClick={addCard} className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-primary-foreground rounded-sm hover:bg-primary/90">
-            <Plus className="w-3 h-3" /> Add Card
+          <h2 className="font-serif text-lg font-bold uppercase tracking-wide">Topics ({topics.length})</h2>
+          <button onClick={addTopic} className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-primary-foreground rounded-sm hover:bg-primary/90">
+            <Plus className="w-3 h-3" /> Add Topic
           </button>
         </div>
 
         <div className="flex gap-1 flex-wrap">
           <button onClick={() => setFilterCat("ALL")} className={`px-2 py-1 text-xs rounded-sm ${filterCat === "ALL" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>All</button>
-          {config.categories.filter(c => c.key !== "ALL").map(cat => (
-            <button key={cat.key} onClick={() => setFilterCat(cat.key)} className={`px-2 py-1 text-xs rounded-sm ${filterCat === cat.key ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
-              {cat.label}
+          {TAG_OPTIONS.map(tag => (
+            <button key={tag} onClick={() => setFilterCat(tag)} className={`px-2 py-1 text-xs rounded-sm ${filterCat === tag ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
+              {tag}
             </button>
           ))}
         </div>
 
         <div className="space-y-2">
-          {filteredCards.map(card => (
-            <div key={card.id} className="border border-border/50 rounded-sm bg-card">
-              <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={() => setExpandedCard(expandedCard === card.id ? null : card.id)}>
-                <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-sm bg-secondary text-secondary-foreground uppercase">{card.tag}</span>
-                <span className="text-sm font-medium flex-1">{card.title}</span>
-                <span className="text-xs text-muted-foreground">{card.stat}</span>
-                {expandedCard === card.id ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          {filteredTopics.map(topic => (
+            <div key={topic.id} className="border border-border/50 rounded-sm bg-card">
+              <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={() => setExpandedCard(expandedCard === topic.id ? null : topic.id)}>
+                <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-sm uppercase" style={{ backgroundColor: topic.tagColor + "22", color: topic.tagColor }}>{topic.tag}</span>
+                <span className="text-sm font-medium flex-1">{topic.title}</span>
+                <span className={`text-[0.6rem] px-1.5 py-0.5 rounded-sm ${topic.editorialStatus === "approved" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"}`}>{topic.editorialStatus}</span>
+                <span className="text-xs text-muted-foreground">{topic.stat}</span>
+                {expandedCard === topic.id ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
               </div>
-              {expandedCard === card.id && (
+              {expandedCard === topic.id && (
                 <div className="px-3 pb-3 space-y-2 border-t border-border/50 pt-2">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Title</label>
-                      <input value={card.title} onChange={e => updateCard(card.id, { title: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                      <input value={topic.title} onChange={e => updateTopic(topic.id, { title: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Category Tag</label>
-                      <select value={card.tag} onChange={e => updateCard(card.id, { tag: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary">
-                        {config.categories.filter(c => c.key !== "ALL").map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                      <select value={topic.tag} onChange={e => updateTopic(topic.id, { tag: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                        {TAG_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Tag Color (from Design Tokens)</label>
+                      <TokenColorPicker
+                        value={topic.tagColor}
+                        onChange={color => updateTopic(topic.id, { tagColor: color })}
+                        tokens={tokens}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Status</label>
+                      <select value={topic.editorialStatus} onChange={e => updateTopic(topic.id, { editorialStatus: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="draft">Draft</option>
+                        <option value="approved">Approved</option>
+                        <option value="archived">Archived</option>
                       </select>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Stat</label>
-                      <input value={card.stat} onChange={e => updateCard(card.id, { stat: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                      <input value={topic.stat} onChange={e => updateTopic(topic.id, { stat: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Delta</label>
-                      <input value={card.delta} onChange={e => updateCard(card.id, { delta: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                      <input value={topic.delta} onChange={e => updateTopic(topic.id, { delta: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Direction</label>
-                      <select value={card.deltaUp ? "up" : "down"} onChange={e => updateCard(card.id, { deltaUp: e.target.value === "up" })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                      <select value={topic.deltaUp ? "up" : "down"} onChange={e => updateTopic(topic.id, { deltaUp: e.target.value === "up" })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary">
                         <option value="up">Up</option>
                         <option value="down">Down</option>
                       </select>
@@ -176,14 +257,63 @@ export default function PagePulse() {
                   </div>
                   <div>
                     <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Blurb</label>
-                    <textarea value={card.blurb} onChange={e => updateCard(card.id, { blurb: e.target.value })} rows={3} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+                    <textarea value={topic.blurb} onChange={e => updateTopic(topic.id, { blurb: e.target.value })} rows={3} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
                   </div>
                   <div>
                     <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Source</label>
-                    <input value={card.source} onChange={e => updateCard(card.id, { source: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input value={topic.source} onChange={e => updateTopic(topic.id, { source: e.target.value })} className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                   </div>
-                  <button onClick={() => deleteCard(card.id)} className="flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:bg-red-500/10 rounded-sm">
-                    <Trash2 className="w-3 h-3" /> Delete Card
+                  <div>
+                    <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Spark Data (comma-separated numbers)</label>
+                    <input
+                      value={topic.sparkData.join(", ")}
+                      onChange={e => updateTopic(topic.id, { sparkData: e.target.value.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n)) })}
+                      className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="border border-border/30 rounded-sm p-3 space-y-2 bg-background/50">
+                    <label className="block text-[0.6rem] text-muted-foreground uppercase font-bold">Live Counter Config</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Base Value</label>
+                        <input
+                          type="number"
+                          value={topic.liveConfig?.baseValue ?? ""}
+                          onChange={e => {
+                            const baseValue = parseFloat(e.target.value);
+                            if (isNaN(baseValue)) {
+                              updateTopic(topic.id, { liveConfig: null });
+                            } else {
+                              updateTopic(topic.id, { liveConfig: { baseValue, annualGrowth: topic.liveConfig?.annualGrowth ?? 0 } });
+                            }
+                          }}
+                          placeholder="e.g. 442000000"
+                          className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[0.6rem] text-muted-foreground uppercase mb-0.5">Annual Growth Rate</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={topic.liveConfig?.annualGrowth ?? ""}
+                          onChange={e => {
+                            const annualGrowth = parseFloat(e.target.value);
+                            if (isNaN(annualGrowth)) {
+                              updateTopic(topic.id, { liveConfig: null });
+                            } else {
+                              updateTopic(topic.id, { liveConfig: { baseValue: topic.liveConfig?.baseValue ?? 0, annualGrowth } });
+                            }
+                          }}
+                          placeholder="e.g. 0.017"
+                          className="w-full px-2 py-1.5 bg-background border border-border rounded-sm text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[0.55rem] text-muted-foreground">Set both values to enable a live ticking counter on the frontend. Leave empty to disable.</p>
+                  </div>
+                  <button onClick={() => deleteTopic(topic.id)} className="flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:bg-red-500/10 rounded-sm">
+                    <Trash2 className="w-3 h-3" /> Delete Topic
                   </button>
                 </div>
               )}

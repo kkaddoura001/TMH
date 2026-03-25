@@ -25,15 +25,19 @@ Design aligned with main site: "THE TRIBUNAL." branding with crimson period, Pla
 
 Sidebar sections:
 - **Overview**: Dashboard (content stats + recent activity), Analytics (vote analytics, top polls, votes by category/country, daily activity), Homepage Manager (masthead, ticker, sections, banners, newsletter CTA)
-- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Pulse (topic cards, categories, hero — MENA trend data), Voices (CRUD + full profile editor)
-- **Pages**: About (hero, pillars, beliefs editor), FAQ (sections + Q&A editor), Terms (sections editor with last-updated date), Contact (emails, social links, office location)
+- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Pulse (DB-backed topics with CRUD, spark data, editorial status), Voices (CRUD + full profile editor)
+- **Pages**: About (hero, pillars, beliefs editor), FAQ (sections + Q&A editor), Terms (sections editor with last-updated date), Contact (emails, social links, office location), Debates Page (hero, ticker, sort labels, empty state), Predictions Page (hero, ticker, categories, featured IDs), Voices Page (hero, impact statements, stats bar, filter labels)
+- **Design**: Design Tokens (brand colors, UI colors, typography — all DB-backed)
 - **Audience**: Subscribers (newsletter list from DB, search, CSV export), Applications ("Join The Voices" submissions from DB, review/approve/reject/shortlist)
 
 All CMS content endpoints are backed by real PostgreSQL queries via Drizzle ORM:
 - **Debates** (`/api/cms/debates`): Queries `pollsTable` + `pollOptionsTable` — 422 polls with full CRUD, status transitions, and vote counts
 - **Voices** (`/api/cms/voices`): Queries `profilesTable` — 103 profiles with full CRUD (no editorial_status column in DB; all treated as "approved")
-- **Predictions** (`/api/cms/predictions`): Still uses in-memory mock data (no predictions table in DB yet)
-- **Stats** (`/api/cms/stats`): Real DB counts for debates/voices; mock counts for predictions
+- **Predictions** (`/api/cms/predictions`): Queries `predictionsTable` — 230 predictions with full CRUD, editorial status, momentum tracking
+- **Pulse Topics** (`/api/cms/pulse-topics`): Queries `pulseTopicsTable` — 56 topics with full CRUD, spark data, editorial status
+- **Design Tokens** (`/api/cms/design-tokens`): Queries `designTokensTable` — 13 tokens with full CRUD (brand colors, UI colors, typography)
+- **Page Configs** (`/api/cms/pages/:page`): Queries `cmsConfigsTable` — about, pulse, faq, terms, contact, debates_page, predictions_page, voices_page
+- **Stats** (`/api/cms/stats`): Real DB counts for debates/voices/predictions
 - **Taxonomy** (`/api/cms/taxonomy`): Categories, tags, sectors, countries, cities all derived from real DB data
 - **Subscribers** (`/api/cms/subscribers`, `/export`): Real DB queries on `newsletterSubscribersTable`
 - **Applications** (`/api/cms/applications`): Real DB queries on `hustlerApplicationsTable`
@@ -103,6 +107,10 @@ artifacts-monorepo/
 - `poll_options` — Answer options with vote counts
 - `votes` — Vote records keyed by voterToken (localStorage UUID)
 - `profiles` — Curated regional voices with full editorial profiles
+- `predictions` — MENA prediction market items with category, resolution dates, momentum, editorial status
+- `pulse_topics` — Trend topics with spark data, live config, editorial status
+- `cms_configs` — Key-value config store (homepage, page configs)
+- `design_tokens` — Design system tokens (colors, typography, UI values)
 - `majlis_users` — Authenticated Majlis chat users (FK to profiles, email + hashed password, ban/mute flags)
 - `majlis_messages` — Chat messages with reply threading, edit/delete tracking
 
@@ -116,6 +124,20 @@ artifacts-monorepo/
 - `GET /api/rankings` — Get rankings (type: profiles/founders/women_leaders/sectors/cities/topics)
 - `GET /api/categories` — List all categories with poll counts
 - `GET /api/weekly-pulse` — Weekly editorial digest
+
+### Public Content API (no auth required)
+Canonical public endpoints for frontend consumption:
+- `GET /api/predictions` — All approved predictions (alias: `/api/public/predictions`)
+- `GET /api/predictions/:id` — Single approved prediction
+- `GET /api/pulse-topics` — All approved pulse topics (alias: `/api/public/pulse-topics`)
+- `GET /api/homepage` — Homepage config (alias: `/api/public/homepage`)
+- `GET /api/page-config/:page` — Page config by key (alias: `/api/public/page-config/:page`)
+  - Keys: `about`, `pulse`, `faq`, `terms`, `contact`, `debates_page`, `predictions_page`, `voices_page`
+- `GET /api/design-tokens` — All design tokens (alias: `/api/public/design-tokens`)
+
+CMS admin endpoints (`/api/cms/*`) require `x-cms-token` header for mutations.
+
+**Seeding**: CMS seed data runs idempotently on API server startup via `seedCmsData()`. It populates predictions, pulse topics, design tokens, homepage config, and page configs only if the respective tables are empty. Requires DB schema to be pushed first (`pnpm --filter @workspace/db run push`).
 
 ### Majlis API Endpoints
 - `POST /api/majlis/auth/register` — Register (requires valid profileId)
@@ -143,7 +165,7 @@ artifacts-monorepo/
 - **77 votes** recorded
 - **15 categories**: Arts & Expression, Business, Cities & Lifestyle, Consumer Trends, Culture & Society, Economy & Finance, Education & Learning, Future of the Region, Leadership, Media & Influence, Sports & Events, Startups & Venture, Technology & AI, Women & Equality, Work & Careers
 - Profile photos use CamelCase filenames in `/profiles/` public dir
-- Predictions still use in-memory mock data (no predictions table in DB)
+- All content persisted in PostgreSQL (predictions, pulse topics, page configs, design tokens)
 
 **⚠️ WARNING:** Running `pnpm --filter @workspace/scripts run seed` will WIPE all DB data (polls, options, profiles). seed.ts needs updating to include the 28 new profiles and 84 roast polls before safe re-seeding.
 

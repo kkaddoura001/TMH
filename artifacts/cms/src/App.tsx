@@ -19,6 +19,11 @@ import PagePulse from "@/pages/page-pulse";
 import PageFaq from "@/pages/page-faq";
 import PageTerms from "@/pages/page-terms";
 import PageContact from "@/pages/page-contact";
+import PageDebates from "@/pages/page-debates";
+import PagePredictions from "@/pages/page-predictions";
+import PageVoices from "@/pages/page-voices";
+import DesignTokensPage from "@/pages/design-tokens";
+import IdeationPage from "@/pages/ideation";
 import MajlisPage from "@/pages/majlis";
 
 const queryClient = new QueryClient();
@@ -49,10 +54,15 @@ function ProtectedRoutes() {
         <Route path="/pulse" component={PagePulse} />
         <Route path="/voices" component={VoicesPage} />
         <Route path="/voices/:id/edit" component={EditVoicePage} />
+        <Route path="/design-tokens" component={DesignTokensPage} />
+        <Route path="/ideation" component={IdeationPage} />
         <Route path="/pages/about" component={PageAbout} />
         <Route path="/pages/faq" component={PageFaq} />
         <Route path="/pages/terms" component={PageTerms} />
         <Route path="/pages/contact" component={PageContact} />
+        <Route path="/pages/debates" component={PageDebates} />
+        <Route path="/pages/predictions" component={PagePredictions} />
+        <Route path="/pages/voices" component={PageVoices} />
         <Route path="/subscribers" component={SubscribersPage} />
         <Route path="/applications" component={ApplicationsPage} />
         <Route path="/majlis" component={MajlisPage} />

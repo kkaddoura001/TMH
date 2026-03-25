@@ -1,0 +1,580 @@
+import { db } from "./index";
+import { predictionsTable, pulseTopicsTable, cmsConfigsTable, designTokensTable } from "./schema";
+import { eq, count } from "drizzle-orm";
+
+function spark(base: number, trend: "up" | "down" | "flat", volatility = 2): number[] {
+  const seed = base * 137 + (trend === "up" ? 31 : trend === "down" ? 59 : 17) + volatility * 7;
+  const len = 12;
+  const pts: number[] = [];
+  const startOffset = trend === "up" ? -(volatility * 4) : trend === "down" ? (volatility * 4) : 0;
+  pts.push(Math.round(Math.max(8, Math.min(92, base + startOffset))));
+  for (let i = 1; i < len; i++) {
+    const progress = i / (len - 1);
+    const trendPull = trend === "up" ? volatility * 1.5 * progress : trend === "down" ? -volatility * 1.5 * progress : 0;
+    const noise = Math.sin(seed * (i + 1) * 0.7931 + i * 2.1) * volatility * 2.5;
+    const wobble = Math.cos(seed * i * 1.31 + i * 3.7) * volatility * 1.2;
+    const target = base + trendPull * (len - 1) + noise + wobble;
+    const prev = pts[i - 1];
+    const jump = (target - prev) * 0.6;
+    pts.push(Math.round(Math.max(8, Math.min(92, prev + jump))));
+  }
+  return pts;
+}
+
+const PREDICTIONS_SEED = [
+  { id: 1, category: "Economy & Finance", resolves: "Dec 2026", question: "Saudi Arabia's non-oil GDP will exceed 50% of total GDP by end of 2026", count: "18,203", yes: 62, no: 38, momentum: 1.8, up: true, data: spark(58, "up") },
+  { id: 2, category: "Economy & Finance", resolves: "Mar 2029", question: "UAE will introduce some form of personal income tax within 3 years", count: "15,603", yes: 38, no: 62, momentum: 0.8, up: true, data: spark(35, "up", 1) },
+  { id: 3, category: "Economy & Finance", resolves: "Dec 2027", question: "Egypt's pound will stabilize below 50 EGP/$ by 2027", count: "11,402", yes: 41, no: 59, momentum: 2.3, up: false, data: spark(45, "down") },
+  { id: 4, category: "Economy & Finance", resolves: "Jun 2027", question: "At least 3 MENA countries will launch a central bank digital currency (CBDC)", count: "9,804", yes: 55, no: 45, momentum: 1.1, up: true, data: spark(51, "up") },
+  { id: 5, category: "Economy & Finance", resolves: "Dec 2026", question: "Kuwait's debt law will finally pass before end of 2026", count: "7,291", yes: 47, no: 53, momentum: 0.6, up: false, data: spark(49, "flat") },
+  { id: 6, category: "Economy & Finance", resolves: "Dec 2028", question: "Bahrain will need another GCC bailout package before 2029", count: "6,312", yes: 64, no: 36, momentum: 1.4, up: true, data: spark(60, "up") },
+  { id: 7, category: "Economy & Finance", resolves: "Jun 2027", question: "Riyadh's stock exchange (Tadawul) will surpass $4 trillion market cap", count: "8,734", yes: 51, no: 49, momentum: 0.9, up: true, data: spark(48, "up") },
+  { id: 8, category: "Economy & Finance", resolves: "Dec 2027", question: "Iraq's total GDP will exceed $300 billion", count: "5,901", yes: 43, no: 57, momentum: 0.4, up: false, data: spark(45, "down", 1) },
+  { id: 9, category: "Economy & Finance", resolves: "Mar 2027", question: "Jordan will reach a new IMF loan agreement by Q1 2027", count: "4,823", yes: 72, no: 28, momentum: 1.2, up: true, data: spark(68, "up") },
+  { id: 10, category: "Economy & Finance", resolves: "Dec 2026", question: "Qatar's LNG revenue will hit a new annual record in 2026", count: "10,445", yes: 78, no: 22, momentum: 0.5, up: true, data: spark(76, "up", 1) },
+  { id: 11, category: "Technology & AI", resolves: "Dec 2026", question: "UAE will deploy AI in at least 50% of government services by end of 2026", count: "13,892", yes: 68, no: 32, momentum: 2.4, up: true, data: spark(62, "up") },
+  { id: 12, category: "Technology & AI", resolves: "Jun 2027", question: "Saudi Arabia will launch a homegrown large language model (Arabic-first)", count: "11,204", yes: 74, no: 26, momentum: 1.9, up: true, data: spark(70, "up") },
+  { id: 13, category: "Technology & AI", resolves: "Dec 2027", question: "MENA will have 5+ unicorn AI companies by end of 2027", count: "8,903", yes: 42, no: 58, momentum: 1.1, up: true, data: spark(38, "up") },
+  { id: 14, category: "Technology & AI", resolves: "Sep 2026", question: "Autonomous delivery robots will operate commercially in at least 2 GCC cities", count: "7,421", yes: 56, no: 44, momentum: 0.7, up: true, data: spark(53, "up", 1) },
+  { id: 15, category: "Technology & AI", resolves: "Dec 2028", question: "A MENA-based company will build a top-50 global data center", count: "6,892", yes: 71, no: 29, momentum: 1.6, up: true, data: spark(67, "up") },
+  { id: 16, category: "Technology & AI", resolves: "Mar 2027", question: "5G coverage will exceed 90% in UAE, Saudi Arabia, and Qatar combined", count: "9,123", yes: 82, no: 18, momentum: 0.4, up: true, data: spark(80, "up", 1) },
+  { id: 17, category: "Technology & AI", resolves: "Dec 2026", question: "At least one MENA country will regulate cryptocurrency as legal tender", count: "10,302", yes: 31, no: 69, momentum: 1.3, up: false, data: spark(34, "down") },
+  { id: 18, category: "Technology & AI", resolves: "Jun 2028", question: "Deepfake detection will become mandatory for MENA social media platforms", count: "5,671", yes: 48, no: 52, momentum: 0.9, up: true, data: spark(44, "up") },
+  { id: 19, category: "Technology & AI", resolves: "Dec 2027", question: "MENA's cybersecurity market will exceed $10 billion annually", count: "7,834", yes: 65, no: 35, momentum: 1.2, up: true, data: spark(61, "up") },
+  { id: 20, category: "Technology & AI", resolves: "Sep 2027", question: "An Arabic AI chatbot will reach 50 million monthly active users", count: "8,456", yes: 39, no: 61, momentum: 2.1, up: true, data: spark(33, "up") },
+  { id: 21, category: "Energy & Climate", resolves: "Dec 2030", question: "Saudi Arabia will generate 50% of electricity from renewables by 2030", count: "14,672", yes: 34, no: 66, momentum: 0.8, up: false, data: spark(37, "down", 1) },
+  { id: 22, category: "Energy & Climate", resolves: "Dec 2027", question: "UAE's Barakah nuclear plant will reach full 4-unit capacity", count: "9,301", yes: 71, no: 29, momentum: 0.6, up: true, data: spark(69, "up", 1) },
+  { id: 23, category: "Energy & Climate", resolves: "Jun 2028", question: "At least 2 GCC countries will ban single-use plastics nationwide", count: "7,823", yes: 44, no: 56, momentum: 1.5, up: true, data: spark(39, "up") },
+  { id: 24, category: "Energy & Climate", resolves: "Dec 2026", question: "Oil will average above $85/barrel for all of 2026", count: "12,901", yes: 52, no: 48, momentum: 2.8, up: false, data: spark(58, "down") },
+  { id: 25, category: "Energy & Climate", resolves: "Dec 2028", question: "NEOM's green hydrogen project will begin commercial production", count: "8,234", yes: 38, no: 62, momentum: 0.9, up: false, data: spark(41, "down", 1) },
+  { id: 26, category: "Energy & Climate", resolves: "Jun 2027", question: "Morocco will become Africa's largest solar energy exporter", count: "6,901", yes: 57, no: 43, momentum: 1.3, up: true, data: spark(53, "up") },
+  { id: 27, category: "Energy & Climate", resolves: "Dec 2029", question: "Water desalination costs in the Gulf will drop below $0.30/cubic meter", count: "5,412", yes: 63, no: 37, momentum: 0.7, up: true, data: spark(60, "up", 1) },
+  { id: 28, category: "Energy & Climate", resolves: "Sep 2027", question: "Dubai will have 5,000+ electric vehicle charging stations", count: "7,123", yes: 69, no: 31, momentum: 1.1, up: true, data: spark(65, "up") },
+  { id: 29, category: "Energy & Climate", resolves: "Dec 2028", question: "At least one Gulf city will hit 55°C (131°F) during summer", count: "11,234", yes: 45, no: 55, momentum: 1.8, up: true, data: spark(40, "up") },
+  { id: 30, category: "Energy & Climate", resolves: "Jun 2030", question: "Oman's green hydrogen exports will exceed $1 billion annually", count: "4,892", yes: 41, no: 59, momentum: 0.5, up: true, data: spark(38, "up", 1) },
+  { id: 31, category: "Culture & Society", resolves: "Dec 2026", question: "Saudi Arabia will have a fully operating cinema in every major city by end of 2026", count: "12,847", yes: 71, no: 29, momentum: 2.1, up: true, data: spark(66, "up") },
+  { id: 32, category: "Culture & Society", resolves: "Jun 2027", question: "Alcohol will be legally sold in Saudi Arabia in some form by mid-2027", count: "14,302", yes: 28, no: 72, momentum: 1.4, up: true, data: spark(23, "up") },
+  { id: 33, category: "Culture & Society", resolves: "Dec 2027", question: "A MENA film will win or be nominated for an Oscar (main categories)", count: "8,923", yes: 52, no: 48, momentum: 0.8, up: true, data: spark(49, "up") },
+  { id: 34, category: "Culture & Society", resolves: "Sep 2026", question: "Female labor force participation in Saudi Arabia will exceed 35%", count: "10,102", yes: 76, no: 24, momentum: 0.6, up: true, data: spark(74, "up", 1) },
+  { id: 35, category: "Culture & Society", resolves: "Dec 2027", question: "MENA region will have 500+ million social media users", count: "7,234", yes: 81, no: 19, momentum: 0.3, up: true, data: spark(79, "up", 1) },
+  { id: 36, category: "Culture & Society", resolves: "Jun 2028", question: "At least 2 Arab countries will legalize cannabis for medical use", count: "6,891", yes: 35, no: 65, momentum: 1.7, up: true, data: spark(29, "up") },
+  { id: 37, category: "Culture & Society", resolves: "Dec 2026", question: "Riyadh Season 2026 will attract more than 20 million visitors", count: "11,456", yes: 67, no: 33, momentum: 1.2, up: true, data: spark(63, "up") },
+  { id: 38, category: "Culture & Society", resolves: "Mar 2028", question: "An Arab creator will surpass 100 million YouTube subscribers", count: "9,012", yes: 44, no: 56, momentum: 2.3, up: true, data: spark(38, "up") },
+  { id: 39, category: "Culture & Society", resolves: "Dec 2027", question: "Divorce rates in the GCC will exceed 40% of all marriages", count: "5,678", yes: 58, no: 42, momentum: 0.9, up: true, data: spark(55, "up") },
+  { id: 40, category: "Culture & Society", resolves: "Jun 2027", question: "Expat populations in Qatar and UAE combined will exceed 12 million", count: "7,892", yes: 73, no: 27, momentum: 0.4, up: true, data: spark(71, "up", 1) },
+  { id: 41, category: "Business & Startups", resolves: "Dec 2026", question: "A MENA-founded startup will reach $10B valuation in 2026", count: "9,231", yes: 44, no: 56, momentum: 1.3, up: false, data: spark(47, "down") },
+  { id: 42, category: "Business & Startups", resolves: "Jun 2027", question: "Riyadh will overtake Dubai in total VC funding deployed in a single year", count: "8,456", yes: 39, no: 61, momentum: 2.1, up: true, data: spark(33, "up") },
+  { id: 43, category: "Business & Startups", resolves: "Dec 2027", question: "MENA fintech companies will process over $100B in annual transactions", count: "7,312", yes: 61, no: 39, momentum: 1.5, up: true, data: spark(56, "up") },
+  { id: 44, category: "Business & Startups", resolves: "Sep 2026", question: "At least 10 MENA startups will IPO on regional exchanges in 2026", count: "6,789", yes: 52, no: 48, momentum: 0.8, up: true, data: spark(49, "up") },
+  { id: 45, category: "Business & Startups", resolves: "Dec 2028", question: "A Gulf sovereign wealth fund will acquire a top-10 global tech company", count: "5,901", yes: 33, no: 67, momentum: 0.7, up: false, data: spark(35, "down", 1) },
+  { id: 46, category: "Business & Startups", resolves: "Jun 2027", question: "MENA e-commerce market will exceed $50 billion in annual GMV", count: "8,234", yes: 68, no: 32, momentum: 1.1, up: true, data: spark(64, "up") },
+  { id: 47, category: "Business & Startups", resolves: "Dec 2026", question: "Saudi Arabia's PIF will complete at least 3 major international acquisitions in 2026", count: "9,102", yes: 74, no: 26, momentum: 0.5, up: true, data: spark(72, "up", 1) },
+  { id: 48, category: "Business & Startups", resolves: "Mar 2028", question: "A MENA-based super app will reach 50M+ monthly active users", count: "6,412", yes: 46, no: 54, momentum: 1.9, up: true, data: spark(40, "up") },
+  { id: 49, category: "Business & Startups", resolves: "Dec 2027", question: "Total MENA venture capital funding will exceed $8 billion in a single year", count: "7,823", yes: 38, no: 62, momentum: 0.6, up: false, data: spark(41, "down", 1) },
+  { id: 50, category: "Business & Startups", resolves: "Jun 2027", question: "Amazon/Noon will launch same-day grocery delivery in 5+ MENA cities", count: "5,123", yes: 71, no: 29, momentum: 0.9, up: true, data: spark(68, "up") },
+  { id: 51, category: "Geopolitics & Governance", resolves: "Dec 2026", question: "Saudi Arabia and Iran will establish full diplomatic embassies in each other's capitals", count: "11,234", yes: 62, no: 38, momentum: 1.3, up: true, data: spark(58, "up") },
+  { id: 52, category: "Geopolitics & Governance", resolves: "Jun 2027", question: "Yemen's civil war will reach a formal ceasefire agreement", count: "9,823", yes: 41, no: 59, momentum: 0.8, up: false, data: spark(43, "down", 1) },
+  { id: 53, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "At least 2 more Arab states will normalize relations with Israel", count: "8,102", yes: 34, no: 66, momentum: 1.7, up: false, data: spark(39, "down") },
+  { id: 54, category: "Geopolitics & Governance", resolves: "Mar 2028", question: "Turkey will fully resolve its currency crisis (lira below 30/$)", count: "7,456", yes: 29, no: 71, momentum: 0.5, up: false, data: spark(32, "down", 1) },
+  { id: 55, category: "Geopolitics & Governance", resolves: "Dec 2026", question: "Lebanon will elect a new president and form a stable government in 2026", count: "10,789", yes: 55, no: 45, momentum: 2.4, up: true, data: spark(48, "up") },
+  { id: 56, category: "Geopolitics & Governance", resolves: "Jun 2028", question: "Iraq will hold provincial elections without major security incidents", count: "5,234", yes: 38, no: 62, momentum: 0.6, up: false, data: spark(40, "flat") },
+  { id: 57, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "GCC countries will introduce a unified tourist visa", count: "8,567", yes: 48, no: 52, momentum: 1.4, up: true, data: spark(43, "up") },
+  { id: 58, category: "Geopolitics & Governance", resolves: "Sep 2027", question: "Tunisia's democratic backslide will continue — no free elections before 2028", count: "6,012", yes: 67, no: 33, momentum: 0.7, up: true, data: spark(64, "up", 1) },
+  { id: 59, category: "Geopolitics & Governance", resolves: "Dec 2026", question: "Libya will hold its first national election in over a decade", count: "7,891", yes: 22, no: 78, momentum: 0.3, up: false, data: spark(24, "down", 1) },
+  { id: 60, category: "Geopolitics & Governance", resolves: "Jun 2027", question: "Sudan's conflict will displace more than 10 million people total", count: "9,345", yes: 79, no: 21, momentum: 1.1, up: true, data: spark(75, "up") },
+  { id: 61, category: "Education & Workforce", resolves: "Sep 2027", question: "Arabic will become mandatory in all Dubai private schools within 2 years", count: "8,094", yes: 58, no: 42, momentum: 1.4, up: true, data: spark(54, "up") },
+  { id: 62, category: "Education & Workforce", resolves: "Dec 2027", question: "MENA youth unemployment will drop below 25% region-wide", count: "7,234", yes: 32, no: 68, momentum: 0.9, up: false, data: spark(35, "down") },
+  { id: 63, category: "Education & Workforce", resolves: "Jun 2027", question: "At least 5 top-50 global universities will have MENA branch campuses", count: "8,901", yes: 72, no: 28, momentum: 0.6, up: true, data: spark(70, "up", 1) },
+  { id: 64, category: "Education & Workforce", resolves: "Dec 2026", question: "Saudi Saudization quotas will reach 50% in retail by end of 2026", count: "6,567", yes: 61, no: 39, momentum: 1.2, up: true, data: spark(57, "up") },
+  { id: 65, category: "Education & Workforce", resolves: "Mar 2028", question: "MENA EdTech market will exceed $5 billion in annual revenue", count: "5,123", yes: 54, no: 46, momentum: 1.8, up: true, data: spark(48, "up") },
+  { id: 66, category: "Education & Workforce", resolves: "Dec 2027", question: "Remote work will be formally adopted by 30%+ of Gulf employers", count: "7,890", yes: 43, no: 57, momentum: 1.3, up: true, data: spark(38, "up") },
+  { id: 67, category: "Education & Workforce", resolves: "Sep 2026", question: "UAE will launch a dedicated ministry or authority for AI education", count: "6,234", yes: 67, no: 33, momentum: 0.8, up: true, data: spark(64, "up", 1) },
+  { id: 68, category: "Education & Workforce", resolves: "Jun 2028", question: "Gig economy workers in MENA will exceed 25 million", count: "5,678", yes: 71, no: 29, momentum: 0.5, up: true, data: spark(69, "up", 1) },
+  { id: 69, category: "Education & Workforce", resolves: "Dec 2027", question: "A MENA country will rank in the top 10 of PISA education scores", count: "4,567", yes: 18, no: 82, momentum: 0.4, up: false, data: spark(20, "flat", 1) },
+  { id: 70, category: "Education & Workforce", resolves: "Mar 2027", question: "Coding bootcamps will produce more MENA tech workers than universities", count: "6,789", yes: 45, no: 55, momentum: 2.2, up: true, data: spark(39, "up") },
+  { id: 71, category: "Infrastructure & Cities", resolves: "Dec 2030", question: "NEOM's The Line will have its first residents living in it by 2030", count: "16,234", yes: 36, no: 64, momentum: 1.8, up: false, data: spark(40, "down") },
+  { id: 72, category: "Infrastructure & Cities", resolves: "Jun 2027", question: "Riyadh Metro will be fully operational across all 6 lines", count: "11,456", yes: 64, no: 36, momentum: 1.1, up: true, data: spark(60, "up") },
+  { id: 73, category: "Infrastructure & Cities", resolves: "Dec 2027", question: "Dubai will surpass 20 million annual international tourists", count: "9,823", yes: 73, no: 27, momentum: 0.7, up: true, data: spark(71, "up", 1) },
+  { id: 74, category: "Infrastructure & Cities", resolves: "Sep 2028", question: "Egypt's new administrative capital will be fully functioning as the seat of government", count: "8,234", yes: 48, no: 52, momentum: 1.5, up: true, data: spark(43, "up") },
+  { id: 75, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Hyperloop technology will be tested in at least one GCC country", count: "6,901", yes: 29, no: 71, momentum: 0.6, up: false, data: spark(31, "down", 1) },
+  { id: 76, category: "Infrastructure & Cities", resolves: "Jun 2027", question: "Abu Dhabi will complete Saadiyat Island's cultural district (Guggenheim + all museums)", count: "7,567", yes: 42, no: 58, momentum: 0.9, up: false, data: spark(44, "down") },
+  { id: 77, category: "Infrastructure & Cities", resolves: "Dec 2026", question: "Jeddah Tower (1km+ supertall) will resume construction in 2026", count: "10,123", yes: 53, no: 47, momentum: 2.6, up: true, data: spark(47, "up") },
+  { id: 78, category: "Infrastructure & Cities", resolves: "Mar 2028", question: "Baghdad will open a new international airport terminal", count: "5,234", yes: 44, no: 56, momentum: 0.4, up: false, data: spark(46, "flat") },
+  { id: 79, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "Qatar's Lusail City will reach 250,000 permanent residents", count: "6,789", yes: 51, no: 49, momentum: 0.8, up: true, data: spark(48, "up") },
+  { id: 80, category: "Infrastructure & Cities", resolves: "Jun 2027", question: "Oman's Duqm economic zone will attract $10B+ in committed investment", count: "4,567", yes: 46, no: 54, momentum: 1.2, up: true, data: spark(42, "up") },
+  { id: 81, category: "Sports & Entertainment", resolves: "Dec 2030", question: "Saudi Arabia will be awarded the 2034 FIFA World Cup (confirmed)", count: "15,678", yes: 91, no: 9, momentum: 0.2, up: true, data: spark(89, "up", 1) },
+  { id: 82, category: "Sports & Entertainment", resolves: "Jun 2027", question: "A MENA football club will sign a current top-10 world player for $100M+", count: "8,901", yes: 72, no: 28, momentum: 1.6, up: true, data: spark(67, "up") },
+  { id: 83, category: "Sports & Entertainment", resolves: "Dec 2026", question: "Esports revenue in MENA will exceed $1 billion in 2026", count: "7,234", yes: 48, no: 52, momentum: 2.1, up: true, data: spark(42, "up") },
+  { id: 84, category: "Sports & Entertainment", resolves: "Sep 2027", question: "Qatar will host another mega sporting event (Olympics bid or similar)", count: "9,456", yes: 55, no: 45, momentum: 0.8, up: true, data: spark(52, "up") },
+  { id: 85, category: "Sports & Entertainment", resolves: "Dec 2027", question: "F1 will add a 3rd MENA race (beyond Bahrain and Saudi Arabia)", count: "6,123", yes: 63, no: 37, momentum: 1.3, up: true, data: spark(59, "up") },
+  { id: 86, category: "Sports & Entertainment", resolves: "Jun 2028", question: "A MENA country will host the Summer or Winter Olympics by 2040", count: "7,890", yes: 44, no: 56, momentum: 0.7, up: true, data: spark(41, "up") },
+  { id: 87, category: "Sports & Entertainment", resolves: "Dec 2026", question: "Saudi Pro League average attendance will exceed 15,000 per match", count: "5,678", yes: 39, no: 61, momentum: 1.1, up: false, data: spark(42, "down") },
+  { id: 88, category: "Sports & Entertainment", resolves: "Mar 2027", question: "A MENA-based gaming studio will publish a globally top-100 game", count: "6,234", yes: 35, no: 65, momentum: 1.9, up: true, data: spark(29, "up") },
+  { id: 89, category: "Sports & Entertainment", resolves: "Dec 2027", question: "WWE will hold 10+ events annually in Saudi Arabia", count: "8,012", yes: 78, no: 22, momentum: 0.4, up: true, data: spark(76, "up", 1) },
+  { id: 90, category: "Sports & Entertainment", resolves: "Sep 2026", question: "Riyadh Season 2026 will attract 25+ international music headliners", count: "9,567", yes: 82, no: 18, momentum: 0.6, up: true, data: spark(80, "up", 1) },
+  { id: 91, category: "Health & Demographics", resolves: "Dec 2027", question: "MENA's diabetes prevalence will exceed 15% of the adult population", count: "8,234", yes: 74, no: 26, momentum: 0.5, up: true, data: spark(72, "up", 1) },
+  { id: 92, category: "Health & Demographics", resolves: "Jun 2028", question: "Gulf countries will mandate mental health coverage in all insurance plans", count: "6,789", yes: 47, no: 53, momentum: 1.8, up: true, data: spark(41, "up") },
+  { id: 93, category: "Health & Demographics", resolves: "Dec 2026", question: "UAE population will officially surpass 10.5 million", count: "7,901", yes: 69, no: 31, momentum: 0.7, up: true, data: spark(67, "up", 1) },
+  { id: 94, category: "Health & Demographics", resolves: "Sep 2027", question: "Saudi Arabia's average life expectancy will reach 78 years", count: "5,456", yes: 58, no: 42, momentum: 0.9, up: true, data: spark(55, "up") },
+  { id: 95, category: "Health & Demographics", resolves: "Dec 2028", question: "At least 3 MENA countries will fully legalize IVF for unmarried women", count: "4,123", yes: 22, no: 78, momentum: 0.4, up: false, data: spark(24, "flat", 1) },
+  { id: 96, category: "Health & Demographics", resolves: "Jun 2027", question: "Medical tourism revenue in UAE and Turkey combined will exceed $15 billion", count: "7,345", yes: 63, no: 37, momentum: 1.2, up: true, data: spark(59, "up") },
+  { id: 97, category: "Health & Demographics", resolves: "Dec 2027", question: "MENA's total population will officially surpass 550 million", count: "8,678", yes: 81, no: 19, momentum: 0.3, up: true, data: spark(79, "up", 1) },
+  { id: 98, category: "Health & Demographics", resolves: "Mar 2028", question: "Obesity rates in the Gulf will exceed 35% (adult population)", count: "6,012", yes: 72, no: 28, momentum: 0.6, up: true, data: spark(70, "up", 1) },
+  { id: 99, category: "Health & Demographics", resolves: "Dec 2026", question: "MENA will have 100+ operational telemedicine platforms", count: "5,234", yes: 66, no: 34, momentum: 1.5, up: true, data: spark(61, "up") },
+  { id: 100, category: "Health & Demographics", resolves: "Sep 2028", question: "Water scarcity will force at least one MENA city to implement strict rationing", count: "9,123", yes: 55, no: 45, momentum: 2.3, up: true, data: spark(48, "up") },
+  { id: 101, category: "Culture & Society", resolves: "Dec 2027", question: "Arabic will become a top-10 language on the internet by content volume", count: "6,789", yes: 31, no: 69, momentum: 1.1, up: true, data: spark(27, "up") },
+  { id: 102, category: "Business & Startups", resolves: "Jun 2027", question: "Careem (or equivalent) will launch financial services rivaling traditional banks", count: "7,234", yes: 54, no: 46, momentum: 1.4, up: true, data: spark(50, "up") },
+  { id: 103, category: "Technology & AI", resolves: "Dec 2028", question: "MENA will produce a globally recognized open-source AI framework", count: "4,891", yes: 28, no: 72, momentum: 0.8, up: false, data: spark(30, "flat") },
+  { id: 104, category: "Geopolitics & Governance", resolves: "Jun 2028", question: "A GCC country will grant permanent residency pathways to long-term expats", count: "11,567", yes: 58, no: 42, momentum: 1.7, up: true, data: spark(53, "up") },
+  { id: 105, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "A fully autonomous public transit system will operate in a MENA city", count: "6,345", yes: 52, no: 48, momentum: 1.3, up: true, data: spark(48, "up") },
+  { id: 106, category: "Economy & Finance", resolves: "Dec 2027", question: "Remittances from GCC to South Asia will exceed $100 billion annually", count: "7,890", yes: 64, no: 36, momentum: 0.6, up: true, data: spark(62, "up", 1) },
+  { id: 107, category: "Energy & Climate", resolves: "Jun 2028", question: "Saudi Aramco's market cap will drop below $1.5 trillion", count: "8,456", yes: 37, no: 63, momentum: 1.9, up: true, data: spark(31, "up") },
+  { id: 108, category: "Sports & Entertainment", resolves: "Dec 2026", question: "A Saudi-produced TV series will trend globally on Netflix or similar", count: "7,012", yes: 59, no: 41, momentum: 2.4, up: true, data: spark(52, "up") },
+  { id: 109, category: "Education & Workforce", resolves: "Sep 2027", question: "KAUST will be ranked in the global top-50 universities", count: "5,678", yes: 42, no: 58, momentum: 0.9, up: true, data: spark(39, "up") },
+  { id: 110, category: "Health & Demographics", resolves: "Dec 2027", question: "Fertility rates in the Gulf will drop below 1.8 children per woman", count: "6,234", yes: 57, no: 43, momentum: 0.7, up: true, data: spark(54, "up") },
+  { id: 111, category: "Culture & Society", resolves: "Mar 2027", question: "MENA will have 10+ internationally touring music festivals annually", count: "5,890", yes: 68, no: 32, momentum: 1.1, up: true, data: spark(64, "up") },
+  { id: 112, category: "Business & Startups", resolves: "Dec 2027", question: "A MENA crypto exchange will become a top-5 global platform by volume", count: "6,456", yes: 33, no: 67, momentum: 1.6, up: true, data: spark(27, "up") },
+  { id: 113, category: "Geopolitics & Governance", resolves: "Jun 2027", question: "Morocco will formally bid for the 2030 FIFA World Cup co-hosting", count: "8,234", yes: 84, no: 16, momentum: 0.4, up: true, data: spark(82, "up", 1) },
+  { id: 114, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Dubai Creek Tower will be completed and open to the public", count: "7,345", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
+  { id: 115, category: "Technology & AI", resolves: "Sep 2027", question: "Drone delivery will be commercially available in 3+ MENA cities", count: "6,901", yes: 61, no: 39, momentum: 1.3, up: true, data: spark(57, "up") },
+  { id: 116, category: "Infrastructure & Cities", resolves: "Jun 2030", question: "Morocco's TGV high-speed rail will extend from Casablanca to Marrakech by 2030", count: "7,823", yes: 54, no: 46, momentum: 1.1, up: true, data: spark(50, "up") },
+  { id: 117, category: "Sports & Entertainment", resolves: "Jun 2030", question: "Morocco will successfully co-host the 2030 FIFA World Cup with Spain and Portugal", count: "14,502", yes: 92, no: 8, momentum: 0.3, up: true, data: spark(90, "up", 1) },
+  { id: 118, category: "Business & Startups", resolves: "Dec 2027", question: "Tanger Med port will surpass 10 million TEU containers annually", count: "6,234", yes: 67, no: 33, momentum: 0.9, up: true, data: spark(63, "up") },
+  { id: 119, category: "Energy & Climate", resolves: "Dec 2028", question: "Morocco's Noor-Ouarzazate solar complex will reach full 580 MW capacity and export power to Europe", count: "8,012", yes: 58, no: 42, momentum: 1.4, up: true, data: spark(54, "up") },
+  { id: 120, category: "Economy & Finance", resolves: "Dec 2027", question: "Morocco's automotive sector will export $15 billion annually, surpassing South Africa", count: "5,678", yes: 62, no: 38, momentum: 1.2, up: true, data: spark(58, "up") },
+  { id: 121, category: "Culture & Society", resolves: "Dec 2026", question: "Morocco's Amazigh New Year (Yennayer) will be widely observed as a national holiday across North Africa", count: "4,567", yes: 71, no: 29, momentum: 0.5, up: true, data: spark(69, "up", 1) },
+  { id: 122, category: "Education & Workforce", resolves: "Jun 2028", question: "Morocco's mandatory French-language instruction in public schools will be reduced in favor of English", count: "6,345", yes: 44, no: 56, momentum: 1.7, up: true, data: spark(38, "up") },
+  { id: 123, category: "Health & Demographics", resolves: "Dec 2027", question: "Morocco's universal health insurance (AMO) will cover 90% of the population", count: "5,901", yes: 52, no: 48, momentum: 0.8, up: true, data: spark(49, "up") },
+  { id: 124, category: "Economy & Finance", resolves: "Dec 2027", question: "Algeria will reduce its oil and gas dependency to below 85% of total exports", count: "5,234", yes: 28, no: 72, momentum: 0.6, up: false, data: spark(31, "down", 1) },
+  { id: 125, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Algiers Metro will complete its extension to El Harrach and Baraki (Line 1 full build-out)", count: "4,567", yes: 43, no: 57, momentum: 0.7, up: false, data: spark(45, "flat") },
+  { id: 126, category: "Business & Startups", resolves: "Jun 2027", question: "Algeria's 2022 startup law will produce at least 5,000 registered startups", count: "5,123", yes: 51, no: 49, momentum: 1.3, up: true, data: spark(47, "up") },
+  { id: 127, category: "Energy & Climate", resolves: "Dec 2029", question: "Algeria will begin construction on its first nuclear power plant for electricity generation", count: "4,012", yes: 32, no: 68, momentum: 0.4, up: false, data: spark(34, "down", 1) },
+  { id: 128, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Algeria and Morocco will reopen their shared land border (closed since 1994)", count: "7,456", yes: 22, no: 78, momentum: 0.5, up: false, data: spark(24, "flat") },
+  { id: 129, category: "Culture & Society", resolves: "Jun 2027", question: "Algeria's film industry will produce a Cannes Film Festival official selection entry", count: "3,890", yes: 47, no: 53, momentum: 1.1, up: true, data: spark(43, "up") },
+  { id: 130, category: "Technology & AI", resolves: "Dec 2027", question: "Algeria will achieve 95% 4G coverage nationwide, up from 70% in 2024", count: "4,678", yes: 55, no: 45, momentum: 0.8, up: true, data: spark(52, "up") },
+  { id: 131, category: "Economy & Finance", resolves: "Dec 2027", question: "Tunisia will secure a new IMF loan program after rejecting the 2023 deal", count: "6,012", yes: 38, no: 62, momentum: 0.9, up: false, data: spark(41, "down") },
+  { id: 132, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Tunisia will hold free and competitive parliamentary elections under President Saied", count: "5,678", yes: 24, no: 76, momentum: 0.6, up: false, data: spark(27, "down", 1) },
+  { id: 133, category: "Business & Startups", resolves: "Jun 2027", question: "Tunisia's olive oil exports will exceed $1 billion, becoming the world's second-largest exporter", count: "4,891", yes: 63, no: 37, momentum: 0.7, up: true, data: spark(60, "up", 1) },
+  { id: 134, category: "Culture & Society", resolves: "Dec 2026", question: "Tunisia will maintain its 1956 Personal Status Code protections for women's rights despite constitutional changes", count: "5,234", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+  { id: 135, category: "Health & Demographics", resolves: "Dec 2028", question: "Tunisia's emigration of healthcare workers will exceed 2,000 doctors per year", count: "3,456", yes: 67, no: 33, momentum: 1.5, up: true, data: spark(62, "up") },
+  { id: 136, category: "Energy & Climate", resolves: "Dec 2028", question: "Tunisia's TuNur solar export project will begin transmitting power to Europe via subsea cable", count: "4,123", yes: 29, no: 71, momentum: 0.5, up: false, data: spark(32, "down", 1) },
+  { id: 137, category: "Infrastructure & Cities", resolves: "Dec 2027", question: "Egypt's Grand Egyptian Museum in Giza will reach 10 million annual visitors", count: "9,567", yes: 55, no: 45, momentum: 1.3, up: true, data: spark(51, "up") },
+  { id: 138, category: "Economy & Finance", resolves: "Jun 2027", question: "The Ras El-Hekma mega-development (UAE's $35B deal) will break ground on Phase 1", count: "8,234", yes: 64, no: 36, momentum: 0.9, up: true, data: spark(61, "up") },
+  { id: 139, category: "Health & Demographics", resolves: "Dec 2028", question: "Egypt's population will officially surpass 115 million", count: "7,901", yes: 82, no: 18, momentum: 0.3, up: true, data: spark(80, "up", 1) },
+  { id: 140, category: "Technology & AI", resolves: "Dec 2027", question: "Egypt's Knowledge City in the New Administrative Capital will host 30+ tech companies", count: "5,456", yes: 48, no: 52, momentum: 1.1, up: true, data: spark(44, "up") },
+  { id: 141, category: "Energy & Climate", resolves: "Jun 2028", question: "Egypt's El Dabaa nuclear plant (built by Rosatom) will begin generating power", count: "6,789", yes: 39, no: 61, momentum: 0.7, up: false, data: spark(42, "down") },
+  { id: 142, category: "Culture & Society", resolves: "Dec 2026", question: "Egyptian cinema will produce 200+ feature films in 2026, reclaiming its 'Hollywood of the Arab World' title", count: "5,012", yes: 58, no: 42, momentum: 0.8, up: true, data: spark(55, "up") },
+  { id: 143, category: "Business & Startups", resolves: "Dec 2027", question: "Egypt's Suez Canal Economic Zone will attract $10 billion in cumulative FDI", count: "6,345", yes: 45, no: 55, momentum: 1.0, up: true, data: spark(41, "up") },
+  { id: 144, category: "Energy & Climate", resolves: "Dec 2027", question: "Jordan will generate 35% of electricity from renewables (currently 27%)", count: "5,234", yes: 64, no: 36, momentum: 0.8, up: true, data: spark(60, "up") },
+  { id: 145, category: "Economy & Finance", resolves: "Jun 2028", question: "Jordan's national debt-to-GDP ratio will decrease below 85% (currently 89%)", count: "4,567", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
+  { id: 146, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "The Aqaba-Amman national railway project will begin passenger service", count: "5,901", yes: 33, no: 67, momentum: 0.6, up: false, data: spark(36, "down") },
+  { id: 147, category: "Technology & AI", resolves: "Jun 2027", question: "Jordan's tech sector will exceed $3 billion in revenue, led by Maktoob/Mawdoo3-era companies", count: "4,890", yes: 54, no: 46, momentum: 1.2, up: true, data: spark(50, "up") },
+  { id: 148, category: "Health & Demographics", resolves: "Dec 2027", question: "Jordan's water crisis will force year-round rationing in Amman (currently seasonal)", count: "6,123", yes: 61, no: 39, momentum: 1.6, up: true, data: spark(55, "up") },
+  { id: 149, category: "Culture & Society", resolves: "Dec 2026", question: "Jordan will amend its penal code to eliminate reduced sentences for 'honor' crimes", count: "5,345", yes: 38, no: 62, momentum: 0.7, up: false, data: spark(40, "flat") },
+  { id: 150, category: "Economy & Finance", resolves: "Dec 2027", question: "Lebanon's banking sector will begin formal restructuring with depositor compensation plan", count: "7,234", yes: 34, no: 66, momentum: 0.8, up: false, data: spark(37, "down") },
+  { id: 151, category: "Infrastructure & Cities", resolves: "Jun 2028", question: "Beirut port explosion site will have a completed memorial and reconstruction plan underway", count: "5,678", yes: 42, no: 58, momentum: 0.9, up: true, data: spark(38, "up") },
+  { id: 152, category: "Health & Demographics", resolves: "Dec 2027", question: "Lebanon will lose more than 40% of its physicians to emigration (up from 30% in 2023)", count: "4,901", yes: 72, no: 28, momentum: 1.3, up: true, data: spark(68, "up") },
+  { id: 153, category: "Energy & Climate", resolves: "Dec 2028", question: "Lebanon will begin offshore gas extraction from Block 9 (Qana prospect)", count: "5,456", yes: 28, no: 72, momentum: 0.4, up: false, data: spark(31, "down", 1) },
+  { id: 154, category: "Culture & Society", resolves: "Jun 2027", question: "Beirut will reclaim its position as the Arab world's top publishing city by title output", count: "4,012", yes: 45, no: 55, momentum: 0.6, up: false, data: spark(48, "flat") },
+  { id: 155, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Lebanon's new government will implement the Taif Agreement's decentralization provisions", count: "5,234", yes: 21, no: 79, momentum: 0.3, up: false, data: spark(23, "down", 1) },
+  { id: 156, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Iraq's Grand Faw Port on the Persian Gulf will complete Phase 1 and begin commercial operations", count: "7,123", yes: 52, no: 48, momentum: 1.1, up: true, data: spark(48, "up") },
+  { id: 157, category: "Economy & Finance", resolves: "Jun 2027", question: "Iraq's Development Road (1,200 km rail corridor to Turkey) will complete its first section", count: "5,890", yes: 35, no: 65, momentum: 0.7, up: false, data: spark(38, "down") },
+  { id: 158, category: "Energy & Climate", resolves: "Dec 2027", question: "Iraq will reduce natural gas flaring by 50% from 2023 levels (currently world's 2nd-largest flarer)", count: "4,567", yes: 27, no: 73, momentum: 0.5, up: false, data: spark(30, "down", 1) },
+  { id: 159, category: "Health & Demographics", resolves: "Dec 2028", question: "Iraq's cancer rates in Basra and Fallujah will be formally linked to depleted uranium exposure by WHO", count: "3,901", yes: 44, no: 56, momentum: 0.8, up: true, data: spark(40, "up") },
+  { id: 160, category: "Culture & Society", resolves: "Jun 2027", question: "Iraqi Kurdistan's tourism sector will exceed 5 million visitors annually", count: "5,234", yes: 57, no: 43, momentum: 1.0, up: true, data: spark(53, "up") },
+  { id: 161, category: "Technology & AI", resolves: "Dec 2027", question: "Iraq will complete its national fiber-optic backbone connecting all 18 governorates", count: "4,345", yes: 41, no: 59, momentum: 0.6, up: false, data: spark(43, "flat") },
+  { id: 162, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "Kuwait's Mubarak Al-Kabeer Port (Bubiyan Island) will reach initial operating capacity", count: "5,678", yes: 38, no: 62, momentum: 0.7, up: false, data: spark(41, "down") },
+  { id: 163, category: "Economy & Finance", resolves: "Dec 2026", question: "Kuwait's parliament will pass the public debt law after 7+ years of deadlock", count: "6,890", yes: 52, no: 48, momentum: 1.4, up: true, data: spark(47, "up") },
+  { id: 164, category: "Health & Demographics", resolves: "Dec 2027", question: "Kuwait's diabetes prevalence will remain the world's highest at 24%+ of adults", count: "4,123", yes: 78, no: 22, momentum: 0.3, up: true, data: spark(76, "up", 1) },
+  { id: 165, category: "Geopolitics & Governance", resolves: "Jun 2028", question: "Kuwait will implement its expat population cap, reducing non-Kuwaiti residents by 15%", count: "5,456", yes: 34, no: 66, momentum: 0.9, up: false, data: spark(37, "down") },
+  { id: 166, category: "Energy & Climate", resolves: "Dec 2027", question: "Kuwait's Shagaya renewable energy park will reach its 4.5 GW target", count: "4,789", yes: 29, no: 71, momentum: 0.5, up: false, data: spark(32, "down", 1) },
+  { id: 167, category: "Economy & Finance", resolves: "Dec 2027", question: "Bahrain's fiscal balance plan will reduce its budget deficit below 3% of GDP", count: "4,567", yes: 36, no: 64, momentum: 0.7, up: false, data: spark(39, "down") },
+  { id: 168, category: "Business & Startups", resolves: "Jun 2027", question: "Bahrain's fintech ecosystem will host 200+ licensed fintech firms (currently 120+)", count: "5,234", yes: 58, no: 42, momentum: 1.1, up: true, data: spark(54, "up") },
+  { id: 169, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "The King Hamad Causeway (second Bahrain-Saudi link) will begin construction", count: "6,012", yes: 41, no: 59, momentum: 0.6, up: false, data: spark(43, "flat") },
+  { id: 170, category: "Culture & Society", resolves: "Jun 2027", question: "Bahrain's Pearling Path UNESCO World Heritage site will draw 500,000 annual tourists", count: "3,890", yes: 49, no: 51, momentum: 0.8, up: true, data: spark(46, "up") },
+  { id: 171, category: "Energy & Climate", resolves: "Dec 2027", question: "Qatar's North Field LNG expansion will increase production capacity to 126 MTPA (from 77 MTPA)", count: "8,456", yes: 71, no: 29, momentum: 0.6, up: true, data: spark(68, "up", 1) },
+  { id: 172, category: "Education & Workforce", resolves: "Jun 2028", question: "Qatar Foundation's Education City will host 15+ international university branches", count: "5,234", yes: 66, no: 34, momentum: 0.5, up: true, data: spark(64, "up", 1) },
+  { id: 173, category: "Economy & Finance", resolves: "Dec 2027", question: "Qatar Investment Authority's global portfolio will exceed $500 billion in assets", count: "6,789", yes: 73, no: 27, momentum: 0.8, up: true, data: spark(70, "up") },
+  { id: 174, category: "Culture & Society", resolves: "Dec 2026", question: "Qatar's kafala system reforms will result in measurable improvements in worker conditions per ILO audit", count: "5,678", yes: 32, no: 68, momentum: 0.7, up: false, data: spark(35, "down") },
+  { id: 175, category: "Economy & Finance", resolves: "Dec 2028", question: "Oman's Vision 2040 will reduce oil dependency to below 60% of government revenue", count: "5,345", yes: 42, no: 58, momentum: 0.9, up: true, data: spark(38, "up") },
+  { id: 176, category: "Infrastructure & Cities", resolves: "Jun 2028", question: "Oman's national railway (connecting Muscat to Sohar and Duqm) will begin operations", count: "4,901", yes: 36, no: 64, momentum: 0.5, up: false, data: spark(38, "down", 1) },
+  { id: 177, category: "Business & Startups", resolves: "Dec 2027", question: "Oman's Duqm Special Economic Zone will attract cumulative investment exceeding $15 billion", count: "5,123", yes: 49, no: 51, momentum: 1.0, up: true, data: spark(45, "up") },
+  { id: 178, category: "Culture & Society", resolves: "Dec 2026", question: "Oman's tourism sector will surpass 3.5 million visitors (Vision 2040 target ramp-up)", count: "4,567", yes: 54, no: 46, momentum: 0.7, up: true, data: spark(51, "up") },
+  { id: 179, category: "Economy & Finance", resolves: "Dec 2027", question: "Turkey's inflation will drop below 20% annually (from 65% peak in 2024)", count: "8,901", yes: 47, no: 53, momentum: 1.5, up: true, data: spark(41, "up") },
+  { id: 180, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Turkey's Kanal Istanbul (parallel to the Bosphorus) will complete its first phase", count: "7,234", yes: 28, no: 72, momentum: 0.4, up: false, data: spark(31, "down", 1) },
+  { id: 181, category: "Business & Startups", resolves: "Jun 2027", question: "Turkey's defense industry exports will exceed $10 billion annually (Baykar drones leading)", count: "6,567", yes: 62, no: 38, momentum: 1.3, up: true, data: spark(58, "up") },
+  { id: 182, category: "Health & Demographics", resolves: "Dec 2027", question: "Turkey's medical tourism revenue will surpass $15 billion (currently $10B+)", count: "5,890", yes: 56, no: 44, momentum: 0.9, up: true, data: spark(52, "up") },
+  { id: 183, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Turkey will hold municipal elections with opposition parties winning 5+ major cities", count: "6,234", yes: 54, no: 46, momentum: 1.1, up: true, data: spark(50, "up") },
+  { id: 184, category: "Energy & Climate", resolves: "Dec 2027", question: "Turkey's Akkuyu nuclear power plant will deliver first electricity to the grid", count: "7,012", yes: 61, no: 39, momentum: 0.7, up: true, data: spark(58, "up") },
+  { id: 185, category: "Culture & Society", resolves: "Jun 2027", question: "Turkish TV series (dizi) export revenue will exceed $1 billion annually", count: "5,456", yes: 74, no: 26, momentum: 0.5, up: true, data: spark(72, "up", 1) },
+  { id: 186, category: "Sports & Entertainment", resolves: "Dec 2028", question: "Istanbul will submit another Summer Olympics bid (after 5 failed bids)", count: "4,678", yes: 51, no: 49, momentum: 0.8, up: true, data: spark(48, "up") },
+  { id: 187, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "The number of UN member states recognizing Palestinian statehood will exceed 160 (currently 146)", count: "9,012", yes: 71, no: 29, momentum: 1.4, up: true, data: spark(66, "up") },
+  { id: 188, category: "Economy & Finance", resolves: "Dec 2028", question: "Gaza reconstruction costs will officially be assessed at over $50 billion by the World Bank", count: "7,456", yes: 78, no: 22, momentum: 0.6, up: true, data: spark(75, "up", 1) },
+  { id: 189, category: "Health & Demographics", resolves: "Jun 2028", question: "UNRWA will face existential funding crisis with annual budget gap exceeding $500 million", count: "6,345", yes: 74, no: 26, momentum: 1.7, up: true, data: spark(69, "up") },
+  { id: 190, category: "Technology & AI", resolves: "Dec 2027", question: "Palestinian tech startups in Ramallah will collectively raise over $200 million in funding", count: "4,123", yes: 41, no: 59, momentum: 1.1, up: true, data: spark(36, "up") },
+  { id: 191, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Yemen's Houthi-controlled areas will maintain de facto independence from the recognized government", count: "7,890", yes: 76, no: 24, momentum: 0.5, up: true, data: spark(74, "up", 1) },
+  { id: 192, category: "Health & Demographics", resolves: "Dec 2027", question: "Yemen will remain the world's worst humanitarian crisis with 18+ million people needing aid", count: "6,567", yes: 81, no: 19, momentum: 0.4, up: true, data: spark(79, "up", 1) },
+  { id: 193, category: "Economy & Finance", resolves: "Jun 2028", question: "Yemen's rial will continue dual exchange rates between Aden and Sana'a governments", count: "4,901", yes: 72, no: 28, momentum: 0.6, up: true, data: spark(69, "up") },
+  { id: 194, category: "Energy & Climate", resolves: "Dec 2028", question: "The Safer oil tanker environmental disaster in the Red Sea will cost over $20 billion in damages", count: "5,234", yes: 48, no: 52, momentum: 0.9, up: true, data: spark(44, "up") },
+  { id: 195, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Sudan's civil war between SAF and RSF will continue with no formal ceasefire by end of 2027", count: "8,234", yes: 68, no: 32, momentum: 1.2, up: true, data: spark(64, "up") },
+  { id: 196, category: "Health & Demographics", resolves: "Jun 2027", question: "Sudan's internally displaced population will exceed 12 million (currently 9M+)", count: "7,012", yes: 75, no: 25, momentum: 1.8, up: true, data: spark(70, "up") },
+  { id: 197, category: "Economy & Finance", resolves: "Dec 2027", question: "Sudan's agricultural sector will remain below 50% of its pre-war production capacity", count: "4,567", yes: 71, no: 29, momentum: 0.7, up: true, data: spark(67, "up") },
+  { id: 198, category: "Culture & Society", resolves: "Dec 2028", question: "Sudan's cultural heritage sites in Khartoum including the National Museum will sustain irreparable war damage", count: "5,123", yes: 64, no: 36, momentum: 1.0, up: true, data: spark(60, "up") },
+  { id: 199, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Western sanctions on Syria will be partially lifted to enable reconstruction", count: "6,789", yes: 37, no: 63, momentum: 0.8, up: true, data: spark(33, "up") },
+  { id: 200, category: "Economy & Finance", resolves: "Dec 2028", question: "Syria's reconstruction will attract less than $5 billion in international funding (vs. $400B needed)", count: "5,456", yes: 74, no: 26, momentum: 0.6, up: true, data: spark(71, "up") },
+  { id: 201, category: "Health & Demographics", resolves: "Jun 2028", question: "Fewer than 500,000 Syrian refugees will have returned home (out of 5.5 million abroad)", count: "6,012", yes: 68, no: 32, momentum: 0.9, up: true, data: spark(64, "up") },
+  { id: 202, category: "Culture & Society", resolves: "Dec 2027", question: "Syria's pre-war population of 21 million will remain below 18 million due to displacement and emigration", count: "4,890", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+  { id: 203, category: "Energy & Climate", resolves: "Dec 2027", question: "Libya's oil production will stabilize above 1.2 million barrels per day despite political division", count: "5,678", yes: 51, no: 49, momentum: 1.0, up: true, data: spark(48, "up") },
+  { id: 204, category: "Geopolitics & Governance", resolves: "Dec 2028", question: "Libya will remain governed by two rival administrations (Tripoli and Benghazi) through 2028", count: "6,345", yes: 73, no: 27, momentum: 0.5, up: true, data: spark(71, "up", 1) },
+  { id: 205, category: "Infrastructure & Cities", resolves: "Dec 2028", question: "Derna flood reconstruction (2023 disaster, 11,000+ killed) will be less than 30% complete", count: "4,901", yes: 66, no: 34, momentum: 0.8, up: true, data: spark(62, "up") },
+  { id: 206, category: "Health & Demographics", resolves: "Jun 2027", question: "Libya's healthcare system will continue operating at below 50% capacity due to conflict damage", count: "4,234", yes: 69, no: 31, momentum: 0.6, up: true, data: spark(66, "up") },
+  { id: 207, category: "Economy & Finance", resolves: "Dec 2027", question: "Morocco's phosphate exports (OCP Group) will generate $10+ billion annually due to global fertilizer demand", count: "6,234", yes: 66, no: 34, momentum: 1.1, up: true, data: spark(62, "up") },
+  { id: 208, category: "Technology & AI", resolves: "Jun 2028", question: "Turkey's Baykar will export Bayraktar TB3 drones to 30+ countries worldwide", count: "7,012", yes: 64, no: 36, momentum: 1.3, up: true, data: spark(59, "up") },
+  { id: 209, category: "Education & Workforce", resolves: "Dec 2027", question: "Egyptian expat remittances will exceed $35 billion annually (key source of foreign currency)", count: "5,890", yes: 68, no: 32, momentum: 0.7, up: true, data: spark(65, "up") },
+  { id: 210, category: "Business & Startups", resolves: "Jun 2027", question: "Jordan will have 1,000+ active tech startups, cementing its role as the Levant's startup hub", count: "4,567", yes: 55, no: 45, momentum: 1.0, up: true, data: spark(51, "up") },
+  { id: 211, category: "Energy & Climate", resolves: "Dec 2028", question: "Algeria's Trans-Saharan gas pipeline to Nigeria will begin construction", count: "5,123", yes: 31, no: 69, momentum: 0.5, up: false, data: spark(34, "down", 1) },
+  { id: 212, category: "Infrastructure & Cities", resolves: "Dec 2027", question: "Kuwait's South Al-Mutlaa City project will deliver 30,000 housing units (out of planned 400,000)", count: "4,678", yes: 43, no: 57, momentum: 0.6, up: false, data: spark(45, "flat") },
+  { id: 213, category: "Culture & Society", resolves: "Jun 2027", question: "Lebanon's literary scene will produce 5+ internationally translated Arabic novels per year", count: "3,456", yes: 62, no: 38, momentum: 0.5, up: true, data: spark(59, "up") },
+  { id: 214, category: "Sports & Entertainment", resolves: "Dec 2026", question: "Morocco's Atlas Lions will remain in the FIFA top 15 rankings through 2026", count: "6,789", yes: 61, no: 39, momentum: 0.8, up: true, data: spark(58, "up") },
+  { id: 215, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Algeria will maintain its non-aligned foreign policy, refusing to join any Saudi or Iran-led bloc", count: "5,012", yes: 79, no: 21, momentum: 0.3, up: true, data: spark(77, "up", 1) },
+  { id: 216, category: "Health & Demographics", resolves: "Dec 2028", question: "Turkey will face a net emigration of skilled workers exceeding 200,000 annually", count: "5,678", yes: 58, no: 42, momentum: 1.4, up: true, data: spark(53, "up") },
+  { id: 217, category: "Economy & Finance", resolves: "Jun 2027", question: "Bahrain's aluminum industry (Alba) will remain the country's largest non-oil export at $3B+", count: "4,234", yes: 76, no: 24, momentum: 0.4, up: true, data: spark(74, "up", 1) },
+  { id: 218, category: "Technology & AI", resolves: "Dec 2027", question: "Qatar's TASMU smart city platform will achieve 90% digital government service delivery", count: "5,345", yes: 62, no: 38, momentum: 0.9, up: true, data: spark(58, "up") },
+  { id: 219, category: "Business & Startups", resolves: "Dec 2028", question: "Egypt's Golden Triangle mining project in the Eastern Desert will begin gold and mineral extraction", count: "4,901", yes: 44, no: 56, momentum: 0.7, up: true, data: spark(40, "up") },
+  { id: 220, category: "Education & Workforce", resolves: "Jun 2028", question: "Tunisia's youth emigration rate will exceed 50% of university graduates within 5 years of graduation", count: "4,567", yes: 66, no: 34, momentum: 1.5, up: true, data: spark(61, "up") },
+  { id: 221, category: "Infrastructure & Cities", resolves: "Dec 2029", question: "Iraq's Bismayah new city project south of Baghdad will house 500,000 residents", count: "4,234", yes: 37, no: 63, momentum: 0.6, up: false, data: spark(39, "down") },
+  { id: 222, category: "Sports & Entertainment", resolves: "Jun 2027", question: "Algeria's national football team will qualify for the 2026 Africa Cup of Nations", count: "5,123", yes: 72, no: 28, momentum: 0.4, up: true, data: spark(70, "up", 1) },
+  { id: 223, category: "Energy & Climate", resolves: "Dec 2028", question: "Jordan's Red Sea–Dead Sea desalination project will begin delivering water to Amman", count: "4,890", yes: 34, no: 66, momentum: 0.7, up: false, data: spark(37, "down") },
+  { id: 224, category: "Geopolitics & Governance", resolves: "Dec 2027", question: "Iraq's Kurdistan Region will hold an independence referendum or formal autonomy vote", count: "4,012", yes: 18, no: 82, momentum: 0.4, up: false, data: spark(20, "flat", 1) },
+  { id: 225, category: "Culture & Society", resolves: "Jun 2028", question: "Oman will open its Royal Opera House second venue, expanding Muscat's cultural tourism", count: "3,678", yes: 58, no: 42, momentum: 0.6, up: true, data: spark(55, "up") },
+  { id: 226, category: "Economy & Finance", resolves: "Dec 2027", question: "Turkey's GDP will surpass $1.2 trillion, making it the world's 16th largest economy", count: "6,567", yes: 59, no: 41, momentum: 1.0, up: true, data: spark(55, "up") },
+  { id: 227, category: "Health & Demographics", resolves: "Dec 2028", question: "Algeria's population will surpass 48 million with a fertility rate above 2.8", count: "4,345", yes: 75, no: 25, momentum: 0.3, up: true, data: spark(73, "up", 1) },
+  { id: 228, category: "Technology & AI", resolves: "Jun 2027", question: "Morocco's Casablanca Finance City will host 250+ international financial firms", count: "4,789", yes: 56, no: 44, momentum: 0.8, up: true, data: spark(53, "up") },
+  { id: 229, category: "Business & Startups", resolves: "Dec 2027", question: "Kuwait's direct investment portfolio through KIA will exceed $800 billion globally", count: "5,012", yes: 65, no: 35, momentum: 0.6, up: true, data: spark(62, "up") },
+  { id: 230, category: "Education & Workforce", resolves: "Dec 2027", question: "Oman's Saudization (Omanization) rate in the private sector will reach 42%", count: "4,123", yes: 48, no: 52, momentum: 0.9, up: true, data: spark(44, "up") },
+];
+
+function parseCount(c: string): number {
+  return parseInt(c.replace(/,/g, ""), 10);
+}
+
+function toSlug(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+const PULSE_TOPICS_SEED = [
+  { id: "authoritarianism-index", tag: "POWER", tagColor: "#EF4444", title: "Press Freedom Collapse", stat: "17 of 19 countries", delta: "Not Free", deltaUp: false, blurb: "17 of 19 MENA nations are rated 'Not Free' or 'Partly Free' by Freedom House.", source: "Freedom House 2026 / RSF Press Freedom Index", sparkData: [14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 17] },
+  { id: "surveillance-tech", tag: "POWER", tagColor: "#EF4444", title: "Surveillance Tech Spending", stat: "$4.8B", delta: "+62% since 2021", deltaUp: true, blurb: "UAE deployed Pegasus spyware against its own citizens. MENA is the world's #1 buyer of spyware.", source: "Citizen Lab / Amnesty International / Carnegie Endowment", sparkData: [1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5, 4.7, 4.8] },
+  { id: "political-prisoners", tag: "POWER", tagColor: "#EF4444", title: "Political Detainees", stat: "60,000+", delta: "Across MENA", deltaUp: false, blurb: "Egypt holds 60,000+ political prisoners — more than during Mubarak.", source: "HRW / Amnesty International / ANHRI", sparkData: [35, 38, 40, 42, 44, 47, 50, 52, 54, 56, 58, 60] },
+  { id: "wealth-inequality", tag: "MONEY", tagColor: "#F59E0B", title: "Billionaire Wealth vs. GDP", stat: "Top 10 = $186B", delta: "+41%", deltaUp: true, blurb: "The 10 richest Arabs hold $186B — more than the GDP of Jordan, Lebanon, Tunisia, Libya, and Yemen combined.", source: "Forbes MENA Rich List 2026 / World Bank", sparkData: [95, 102, 110, 118, 125, 132, 140, 150, 160, 170, 178, 186] },
+  { id: "inflation-crisis", tag: "MONEY", tagColor: "#F59E0B", title: "Cost of Living Crisis", stat: "Egypt: 38% inflation", delta: "Peak 2024", deltaUp: false, blurb: "Egypt's pound lost 70% of its value since 2022. Lebanon's lira collapsed 98%.", source: "IMF WEO / Central Bank of Egypt / BDL", sparkData: [12, 15, 19, 24, 29, 33, 38, 36, 34, 32, 30, 28] },
+  { id: "crypto-volume", tag: "MONEY", tagColor: "#F59E0B", title: "Crypto Trading Volume", stat: "$338B", delta: "+74%", deltaUp: true, blurb: "UAE is now the world's 3rd largest crypto market by volume.", source: "Chainalysis MENA Report 2026", sparkData: [89, 110, 125, 145, 160, 180, 210, 240, 268, 295, 318, 338] },
+  { id: "sovereign-wealth", tag: "MONEY", tagColor: "#F59E0B", title: "Sovereign Wealth Power", stat: "$4.1 Trillion", delta: "+18%", deltaUp: true, blurb: "Gulf sovereign wealth funds now control $4.1T — more than the GDP of Germany.", source: "SWF Institute / PIF Annual Report 2026", sparkData: [2.8, 2.9, 3.0, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.1] },
+  { id: "womens-rights", tag: "SOCIETY", tagColor: "#EC4899", title: "Women's Rights Gap", stat: "Worst region globally", delta: "WEF ranking", deltaUp: false, blurb: "MENA ranks last on the Global Gender Gap Index — every single year.", source: "WEF Gender Gap Report 2026 / HRW", sparkData: [0.49, 0.50, 0.51, 0.51, 0.52, 0.52, 0.53, 0.53, 0.54, 0.54, 0.55, 0.55] },
+  { id: "women-workforce", tag: "SOCIETY", tagColor: "#EC4899", title: "Women in the Workforce", stat: "33.4%", delta: "+9.2pp since 2019", deltaUp: true, blurb: "Saudi female workforce participation jumped from 17% to 33% in 6 years.", source: "GASTAT / ILO 2026", sparkData: [17, 19, 21, 23, 25, 26, 28, 29, 30, 31, 32, 33.4] },
+  { id: "honor-killings", tag: "SOCIETY", tagColor: "#EC4899", title: "\"Honor\"-Based Violence", stat: "~5,000/year", delta: "Underreported", deltaUp: false, blurb: "An estimated 5,000 'honor' killings occur annually.", source: "UN Women / UNFPA / HRW", sparkData: [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0] },
+  { id: "lgbtq-criminalization", tag: "SOCIETY", tagColor: "#EC4899", title: "LGBTQ+ Criminalization", stat: "18 of 19 countries", delta: "Death penalty in 6", deltaUp: false, blurb: "Homosexuality is illegal in 18 of 19 MENA countries.", source: "ILGA World Database / HRW", sparkData: [18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18] },
+  { id: "ai-adoption", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "AI Adoption Rate", stat: "68%", delta: "+31% YoY", deltaUp: true, blurb: "UAE ranks #1 globally in government AI readiness.", source: "Oxford Insights / PIF / SDAIA", sparkData: [22, 28, 31, 35, 39, 42, 48, 52, 55, 59, 63, 68] },
+  { id: "digital-censorship", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "Internet Censorship", stat: "8 countries block VPNs", delta: "+3 since 2022", deltaUp: true, blurb: "Iran shut down the internet during protests — 80M people went dark.", source: "NetBlocks / Access Now / OONI", sparkData: [3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8] },
+  { id: "gaming", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "MENA Gaming Market", stat: "$6.8B", delta: "+28%", deltaUp: true, blurb: "Saudi Arabia is now the world's largest gaming investor.", source: "Newzoo / Savvy Games Group", sparkData: [2.1, 2.5, 2.9, 3.3, 3.7, 4.0, 4.5, 5.0, 5.5, 6.0, 6.4, 6.8] },
+  { id: "water-crisis", tag: "SURVIVAL", tagColor: "#F97316", title: "Water Scarcity Emergency", stat: "12 of 19 countries", delta: "Below crisis threshold", deltaUp: false, blurb: "MENA has 1% of the world's freshwater but 6% of its population.", source: "World Resources Institute / FAO / UNICEF", sparkData: [8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12] },
+  { id: "food-security", tag: "SURVIVAL", tagColor: "#F97316", title: "Food Import Dependency", stat: "85% imported", delta: "Zero change", deltaUp: false, blurb: "GCC imports 85% of its food.", source: "FAO / KAUST / WFP", sparkData: [87, 87, 86, 86, 86, 85, 85, 85, 85, 85, 85, 85] },
+  { id: "climate-heat", tag: "SURVIVAL", tagColor: "#F97316", title: "Lethal Heat Threshold", stat: "56°C recorded", delta: "Uninhabitable by 2060", deltaUp: true, blurb: "Parts of Iraq, Kuwait, and UAE are approaching the wet-bulb temperature threshold.", source: "MIT / Lancet Countdown / Nature Climate Change", sparkData: [48, 49, 49, 50, 51, 51, 52, 53, 53, 54, 55, 56] },
+  { id: "displaced-populations", tag: "SURVIVAL", tagColor: "#F97316", title: "Displaced Populations", stat: "42 Million", delta: "Refugees + IDPs", deltaUp: false, blurb: "Syria: 13M displaced. Yemen: 4.5M. Iraq: 2.5M. Sudan: 9M+.", source: "UNHCR / UNRWA / IOM 2026", sparkData: [28, 30, 31, 32, 33, 34, 35, 36, 38, 39, 41, 42], live: { baseValue: 42000000, annualGrowth: 0.03 } },
+  { id: "kafala-system", tag: "MIGRATION", tagColor: "#EF4444", title: "Kafala Sponsorship System", stat: "23M workers affected", delta: "Reforms stalling", deltaUp: false, blurb: "23M migrant workers across the Gulf live under the kafala system.", source: "ILO / Amnesty International / Equidem", sparkData: [25, 25, 24, 24, 24, 24, 23, 23, 23, 23, 23, 23] },
+  { id: "brain-drain", tag: "MIGRATION", tagColor: "#EF4444", title: "MENA Brain Drain", stat: "1 in 3 graduates leave", delta: "Accelerating", deltaUp: false, blurb: "Lebanon lost 50% of its physicians.", source: "IOM / World Bank / Arab Barometer", sparkData: [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33] },
+  { id: "expat-exodus", tag: "MIGRATION", tagColor: "#EF4444", title: "Nationalization vs. Expat Workforce", stat: "1.2M jobs nationalized", delta: "Since 2021", deltaUp: false, blurb: "Saudi Nitaqat reforms displaced 800K+ expat workers.", source: "HRDF / MOHRE / IOM", sparkData: [120, 250, 380, 470, 560, 650, 740, 830, 920, 1010, 1100, 1200] },
+  { id: "sectarian-divide", tag: "CULTURE", tagColor: "#A855F7", title: "Sectarian Tension Index", stat: "7 active conflicts", delta: "Sunni\u2013Shia fault line", deltaUp: false, blurb: "Iraq, Syria, Yemen, Lebanon, Bahrain, Iran, and Saudi Arabia all have active sectarian fault lines.", source: "IISS / Carnegie Middle East Center", sparkData: [5, 5, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7] },
+  { id: "religious-decline", tag: "CULTURE", tagColor: "#A855F7", title: "Religious Observance Decline", stat: "18% drop in prayer", delta: "Since 2013", deltaUp: false, blurb: "Arab Barometer: the share of Arabs identifying as 'not religious' doubled in 10 years.", source: "Arab Barometer Wave VII / Pew Research", sparkData: [82, 80, 79, 77, 76, 74, 73, 71, 70, 68, 66, 64] },
+  { id: "blasphemy-laws", tag: "CULTURE", tagColor: "#A855F7", title: "Blasphemy & Apostasy Laws", stat: "14 countries", delta: "Death penalty in 6", deltaUp: false, blurb: "Leaving Islam is punishable by death in 6 MENA countries.", source: "USCIRF / Library of Congress / HRW", sparkData: [14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14] },
+  { id: "creator-economy", tag: "CULTURE", tagColor: "#A855F7", title: "MENA Creator Economy", stat: "$1.2B", delta: "+42%", deltaUp: true, blurb: "Arabic is now the 4th most-used language on TikTok.", source: "Arab Social Media Report / TikTok 2026", sparkData: [0.3, 0.4, 0.5, 0.55, 0.6, 0.7, 0.78, 0.85, 0.92, 1.0, 1.1, 1.2] },
+  { id: "mental-health", tag: "HEALTH", tagColor: "#10B981", title: "Mental Health Search Volume", stat: "312% increase", delta: "+312%", deltaUp: true, blurb: "'Anxiety' in Arabic is now the most-searched health term in 14 MENA countries.", source: "Google Trends MENA / WHO EMRO", sparkData: [30, 42, 55, 68, 82, 95, 110, 135, 168, 210, 265, 312] },
+  { id: "youth-unemployment", tag: "HEALTH", tagColor: "#10B981", title: "Youth Unemployment", stat: "26%", delta: "Highest globally", deltaUp: false, blurb: "MENA youth unemployment is the highest on earth — 2x the global average.", source: "ILO Global Employment Trends 2026", sparkData: [25, 25, 26, 27, 28, 28, 27, 27, 26, 26, 26, 26] },
+  { id: "youth-bulge", tag: "HEALTH", tagColor: "#10B981", title: "Population Under 30", stat: "60%", delta: "~325M people", deltaUp: true, blurb: "MENA has the youngest population on earth relative to its economy.", source: "UN Population Division / ILO", sparkData: [63, 63, 62, 62, 62, 61, 61, 61, 61, 60, 60, 60], live: { baseValue: 325000000, annualGrowth: 0.016 } },
+  { id: "child-marriage", tag: "HEALTH", tagColor: "#10B981", title: "Child Marriage Rate", stat: "1 in 5 girls", delta: "Before age 18", deltaUp: false, blurb: "20% of girls in MENA are married before 18.", source: "UNICEF / Girls Not Brides / UNFPA", sparkData: [25, 24, 24, 23, 23, 22, 22, 21, 21, 20, 20, 20] },
+  { id: "oil-dependency", tag: "MONEY", tagColor: "#F59E0B", title: "Oil Revenue Dependency", stat: "70% of Gulf GDP", delta: "Target: 50% by 2030", deltaUp: false, blurb: "Despite Vision 2030 rhetoric, oil still funds 70%+ of Saudi, Kuwait, and Iraq government budgets.", source: "IMF Article IV Consultations / OPEC", sparkData: [85, 83, 82, 80, 78, 76, 75, 74, 73, 72, 71, 70] },
+  { id: "sportswashing", tag: "POWER", tagColor: "#EF4444", title: "Sportswashing Spending", stat: "$75B+", delta: "Since 2016", deltaUp: true, blurb: "Saudi: LIV Golf, Newcastle FC, Cristiano Ronaldo, WWE, Formula 1, esports.", source: "Grant Liberty / PlayTheGame / Forbes", sparkData: [8, 15, 22, 28, 35, 42, 48, 55, 60, 65, 70, 75] },
+  { id: "normalization", tag: "POWER", tagColor: "#EF4444", title: "Arab-Israel Normalization", stat: "4 Abraham Accords", delta: "Saudi deal pending", deltaUp: true, blurb: "UAE, Bahrain, Morocco, and Sudan normalized with Israel.", source: "Arab Barometer / Abraham Accords Institute", sparkData: [0, 0, 0, 0, 2, 2, 3, 3, 4, 4, 4, 4] },
+  { id: "tobacco-epidemic", tag: "HEALTH", tagColor: "#10B981", title: "Tobacco & Vaping Epidemic", stat: "42% male smoking rate", delta: "Vaping +180%", deltaUp: true, blurb: "MENA has the fastest-growing vaping market on earth.", source: "WHO EMRO / Euromonitor / Lancet", sparkData: [25, 27, 29, 31, 33, 34, 36, 37, 38, 39, 41, 42] },
+  { id: "cannabis-debate", tag: "CULTURE", tagColor: "#A855F7", title: "Cannabis Reform Momentum", stat: "3 countries decriminalizing", delta: "Morocco, Lebanon, Tunisia", deltaUp: true, blurb: "Morocco legalized medical cannabis and became Africa's largest legal exporter.", source: "INCB / Reuters / Morocco Ministry of Interior", sparkData: [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3] },
+  { id: "tourism-boom", tag: "MONEY", tagColor: "#F59E0B", title: "Saudi Tourism Revolution", stat: "109M visits", delta: "+23%", deltaUp: true, blurb: "Saudi Arabia went from 0 tourist visas to 109M visits in 5 years.", source: "Saudi Tourism Authority / MoT", sparkData: [18, 27, 39, 51, 62, 70, 78, 85, 92, 98, 104, 109] },
+  { id: "domestic-workers", tag: "MIGRATION", tagColor: "#EF4444", title: "Domestic Worker Abuse", stat: "3.2M+ workers", delta: "Minimal protections", deltaUp: false, blurb: "3.2M domestic workers across the Gulf — mostly women from Ethiopia, Philippines, and South Asia.", source: "HRW / ILO / Amnesty International", sparkData: [2.5, 2.6, 2.7, 2.8, 2.8, 2.9, 2.9, 3.0, 3.0, 3.1, 3.1, 3.2] },
+  { id: "military-spending", tag: "POWER", tagColor: "#EF4444", title: "Military Expenditure", stat: "$198B annually", delta: "+9% YoY", deltaUp: true, blurb: "Saudi Arabia is the world's 5th largest military spender at $75B.", source: "SIPRI 2026 / IISS Military Balance", sparkData: [145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 194, 198] },
+  { id: "death-penalty", tag: "POWER", tagColor: "#EF4444", title: "Death Penalty Executions", stat: "1,100+ in 2025", delta: "Iran + Saudi = 85%", deltaUp: true, blurb: "Iran executed 901 people in 2025 — highest in 30 years.", source: "Amnesty International / Iran Human Rights / Reprieve", sparkData: [680, 720, 760, 800, 830, 860, 900, 940, 980, 1020, 1060, 1100] },
+  { id: "arms-imports", tag: "POWER", tagColor: "#EF4444", title: "Arms Import Volume", stat: "35% of global arms trade", delta: "Top buyer since 2015", deltaUp: true, blurb: "MENA imports more weapons than any other region.", source: "SIPRI Arms Transfer Database 2026", sparkData: [28, 29, 30, 31, 32, 33, 33, 34, 34, 35, 35, 35] },
+  { id: "remittances", tag: "MONEY", tagColor: "#F59E0B", title: "Remittance Outflows", stat: "$128B annually", delta: "+11%", deltaUp: true, blurb: "Gulf states are the world's largest remittance senders.", source: "World Bank Remittance Data 2026", sparkData: [82, 86, 90, 95, 100, 104, 108, 112, 116, 120, 124, 128] },
+  { id: "real-estate-boom", tag: "MONEY", tagColor: "#F59E0B", title: "Real Estate Mega-Projects", stat: "$1.3 Trillion planned", delta: "Delivery risk: HIGH", deltaUp: true, blurb: "NEOM: $500B. The Line: $200B. Jeddah Tower: $1.4B (still unfinished).", source: "MEED Projects / Knight Frank / JLL", sparkData: [400, 480, 550, 620, 700, 780, 850, 920, 1000, 1100, 1200, 1300] },
+  { id: "debt-crisis", tag: "MONEY", tagColor: "#F59E0B", title: "Public Debt Surge", stat: "Egypt: 92% of GDP", delta: "Lebanon: 150%+", deltaUp: true, blurb: "Lebanon's debt-to-GDP hit 150% before the banking collapse.", source: "IMF WEO / World Bank / Central Bank data", sparkData: [72, 75, 78, 80, 82, 84, 86, 87, 88, 89, 91, 92] },
+  { id: "fintech-explosion", tag: "MONEY", tagColor: "#F59E0B", title: "Fintech Adoption", stat: "843 fintech startups", delta: "+58% since 2023", deltaUp: true, blurb: "UAE has 350+ fintechs. Saudi Arabia's digital payments hit 70% of transactions.", source: "MAGNiTT / SAMA / CBB", sparkData: [290, 340, 390, 440, 490, 540, 590, 640, 690, 740, 790, 843] },
+  { id: "divorce-rates", tag: "SOCIETY", tagColor: "#EC4899", title: "Divorce Rate Surge", stat: "1 in 3 marriages", delta: "+22% in 5 years", deltaUp: true, blurb: "Kuwait: 48% divorce rate — nearly 1 in 2 marriages ends.", source: "Arab Social Media Report / National Statistics Bureaus", sparkData: [24, 25, 26, 27, 28, 29, 29, 30, 31, 31, 32, 33] },
+  { id: "social-media-penetration", tag: "SOCIETY", tagColor: "#EC4899", title: "Social Media Penetration", stat: "99% in UAE", delta: "Highest globally", deltaUp: true, blurb: "UAE has 99% social media penetration — #1 on earth.", source: "DataReportal / We Are Social 2026", sparkData: [85, 87, 89, 90, 92, 93, 94, 95, 96, 97, 98, 99] },
+  { id: "education-spend", tag: "SOCIETY", tagColor: "#EC4899", title: "Education Spending vs. Outcomes", stat: "5.2% of GDP average", delta: "PISA: Bottom quartile", deltaUp: false, blurb: "MENA spends more on education than Latin America but scores worse.", source: "OECD PISA 2025 / World Bank Education", sparkData: [4.5, 4.6, 4.7, 4.8, 4.8, 4.9, 5.0, 5.0, 5.1, 5.1, 5.2, 5.2] },
+  { id: "cybersecurity-attacks", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "Cyberattacks on Infrastructure", stat: "2,300+ in 2025", delta: "+45% YoY", deltaUp: true, blurb: "Saudi Aramco was hit by the world's largest cyberattack (Shamoon).", source: "IBM X-Force / Kaspersky / DarkMatter", sparkData: [800, 900, 1000, 1100, 1200, 1350, 1500, 1650, 1800, 1950, 2100, 2300] },
+  { id: "edtech-growth", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "EdTech Market Growth", stat: "$7.2B by 2027", delta: "+34%", deltaUp: true, blurb: "MENA EdTech funding grew 3x faster than global average.", source: "HolonIQ / MAGNiTT / GSMA", sparkData: [2.1, 2.6, 3.0, 3.5, 4.0, 4.4, 4.9, 5.3, 5.8, 6.2, 6.7, 7.2] },
+  { id: "space-race", tag: "TECHNOLOGY", tagColor: "#3B82F6", title: "MENA Space Programs", stat: "$6.5B invested", delta: "3 Mars missions", deltaUp: true, blurb: "UAE's Hope Probe orbits Mars — the first Arab interplanetary mission.", source: "UAE Space Agency / Saudi Space Commission / NASA Artemis", sparkData: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5] },
+  { id: "renewable-energy", tag: "SURVIVAL", tagColor: "#F97316", title: "Renewable Energy Capacity", stat: "42 GW installed", delta: "+210% since 2020", deltaUp: true, blurb: "UAE's Barakah: the Arab world's first nuclear plant.", source: "IRENA / IEA / ACWA Power", sparkData: [8, 11, 14, 17, 20, 23, 26, 29, 32, 36, 39, 42] },
+  { id: "air-quality", tag: "SURVIVAL", tagColor: "#F97316", title: "Air Pollution Deaths", stat: "138,000/year in MENA", delta: "5th leading cause", deltaUp: true, blurb: "Cairo's air quality is 10x worse than WHO limits.", source: "WHO Air Quality Database / Lancet Planetary Health", sparkData: [95, 100, 105, 108, 112, 115, 118, 122, 126, 130, 134, 138] },
+  { id: "desalination", tag: "SURVIVAL", tagColor: "#F97316", title: "Desalination Dependency", stat: "55% of global capacity", delta: "Energy cost: $2.8B/yr", deltaUp: true, blurb: "MENA operates 55% of the world's desalination plants.", source: "IDA / ACWA Power / World Bank", sparkData: [42, 43, 44, 45, 46, 47, 48, 49, 50, 52, 53, 55] },
+  { id: "golden-visa", tag: "MIGRATION", tagColor: "#EF4444", title: "Golden Visa Programs", stat: "250,000+ issued", delta: "UAE leads globally", deltaUp: true, blurb: "UAE issued 150,000+ Golden Visas since 2019.", source: "UAE ICP / Saudi CDA / Gulf Business", sparkData: [5, 15, 30, 50, 75, 100, 120, 140, 165, 195, 220, 250] },
+  { id: "freelance-economy", tag: "MIGRATION", tagColor: "#EF4444", title: "Freelance & Gig Economy", stat: "3.8M gig workers", delta: "+67% since 2021", deltaUp: true, blurb: "Dubai's freelance visa program grew 400% in 3 years.", source: "MOHRE / Freelancer.com / GigVista MENA", sparkData: [1.2, 1.5, 1.8, 2.0, 2.3, 2.5, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8] },
+  { id: "arabic-content", tag: "CULTURE", tagColor: "#A855F7", title: "Arabic Content Deficit", stat: "3% of internet content", delta: "For 420M speakers", deltaUp: false, blurb: "Arabic is the 5th most spoken language but represents only 3% of internet content.", source: "Internet World Stats / W3Techs / UNESCO", sparkData: [2.4, 2.5, 2.5, 2.6, 2.6, 2.7, 2.7, 2.8, 2.8, 2.9, 2.9, 3.0] },
+  { id: "cinema-revolution", tag: "CULTURE", tagColor: "#A855F7", title: "Cinema & Entertainment Boom", stat: "$3.2B market", delta: "From $0 in 2018", deltaUp: true, blurb: "Saudi Arabia went from 0 cinemas to 80+ multiplexes in 5 years.", source: "Comscore / Saudi GEA / AMC", sparkData: [0, 0.2, 0.5, 0.8, 1.2, 1.5, 1.9, 2.2, 2.5, 2.8, 3.0, 3.2] },
+];
+
+const DESIGN_TOKENS_SEED = [
+  { name: "power-red", label: "Power", value: "#EF4444", category: "brand", tokenType: "color" },
+  { name: "money-amber", label: "Money", value: "#F59E0B", category: "brand", tokenType: "color" },
+  { name: "society-pink", label: "Society", value: "#EC4899", category: "brand", tokenType: "color" },
+  { name: "tech-blue", label: "Technology", value: "#3B82F6", category: "brand", tokenType: "color" },
+  { name: "survival-orange", label: "Survival", value: "#F97316", category: "brand", tokenType: "color" },
+  { name: "migration-red", label: "Migration", value: "#EF4444", category: "brand", tokenType: "color" },
+  { name: "culture-purple", label: "Culture", value: "#A855F7", category: "brand", tokenType: "color" },
+  { name: "health-emerald", label: "Health", value: "#10B981", category: "brand", tokenType: "color" },
+  { name: "crimson", label: "Crimson (Primary)", value: "#DC143C", category: "brand", tokenType: "color" },
+  { name: "black-bg", label: "Background", value: "#0A0A0A", category: "ui", tokenType: "color" },
+  { name: "dark-surface", label: "Surface", value: "#0D0D0D", category: "ui", tokenType: "color" },
+  { name: "white", label: "White", value: "#FFFFFF", category: "ui", tokenType: "color" },
+  { name: "beige", label: "Beige", value: "#F5F5DC", category: "ui", tokenType: "color" },
+];
+
+const HOMEPAGE_CONFIG_SEED = {
+  masthead: {
+    title: "The Tribunal.",
+    subtitle: "by The Middle East Hustle",
+    showPopulationCounter: true,
+    issueLabel: "EST. 2026 \u00B7 ISSUE NO. 001",
+  },
+  ticker: {
+    enabled: true,
+    speed: "normal",
+    items: [
+      { topic: "New Debate Every 24 Hours", votes: "\u2014" },
+      { topic: "The Middle East Unfiltered", votes: "\u2014" },
+    ],
+  },
+  sections: [
+    { id: "lead-debate", type: "lead_debate", title: "Today's Lead Debate", enabled: true, order: 1, config: { showSidebar: true, showOpinionBubbles: true } },
+    { id: "weekly-debates", type: "debate_grid", title: "This Week's Debates", enabled: true, order: 2, config: { maxItems: 4, layout: "grid-2col", firstSpanFull: true } },
+    { id: "predictions", type: "predictions", title: "What Do You Think Actually Happens?", enabled: true, order: 3, config: { maxItems: 4, layout: "grid-2col" } },
+    { id: "voices", type: "voices", title: "The Voices", enabled: true, order: 4, config: { maxItems: 8, layout: "grid-4col" } },
+    { id: "topics", type: "explore_topics", title: "Explore Topics", enabled: true, order: 5, config: {} },
+    { id: "live-activity", type: "live_activity", title: "Live Activity", enabled: true, order: 6, config: {} },
+    { id: "newsletter", type: "newsletter_cta", title: "Newsletter CTA", enabled: true, order: 7, config: {} },
+  ],
+  banners: [
+    { id: "launch-banner", title: "The Tribunal is Live", subtitle: "The Middle East's first opinion platform \u2014 powered by the people.", ctaText: "Start Voting", ctaLink: "/polls", bgColor: "#DC143C", textColor: "#FFFFFF", enabled: true, position: "top" },
+    { id: "ramadan-banner", title: "Ramadan Special", subtitle: "How is the region celebrating this year? Share your perspective.", ctaText: "Join the Debate", ctaLink: "/polls?category=culture", bgColor: "#1A1A2E", textColor: "#F5F5DC", enabled: false, position: "middle" },
+    { id: "newsletter-promo", title: "Get the Weekly Digest", subtitle: "The hottest debates, predictions, and voices \u2014 every Friday.", ctaText: "Subscribe", ctaLink: "#newsletter", bgColor: "#0D0D0D", textColor: "#FFFFFF", enabled: true, position: "bottom" },
+  ],
+  newsletter: {
+    heading: "The Region's Opinion. Unfiltered.",
+    subheading: "The questions no one else asks. The data no one else collects.",
+    buttonText: "Join The Hustle",
+    enabled: true,
+  },
+};
+
+const PAGE_CONFIGS_SEED: Record<string, unknown> = {
+  about: {
+    hero: {
+      tagline: "Est. 2026 \u00B7 Founded by Kareem Kaddoura",
+      title: "The Region's First Collective Mirror",
+      subtitle: "MENA's first opinion intelligence platform \u2014 part editorial, part data engine, part social experiment. Covering 19 countries. 541 million people. One platform.",
+    },
+    pillars: [
+      { num: "01", title: "Debates", body: "The questions no one asks out loud \u2014 about identity, money, religion, gender, power, and the future.", link: "/polls", cta: "Enter the Debates" },
+      { num: "02", title: "Predictions", body: "Not what should happen \u2014 what will. A Bloomberg-style prediction market for MENA\u2019s biggest questions.", link: "/predictions", cta: "Make a Prediction" },
+      { num: "03", title: "The Pulse", body: "Exploding Topics for MENA. 36 data-driven trend cards across 8 categories.", link: "/mena-pulse", cta: "Read The Pulse" },
+      { num: "04", title: "The Voices", body: "94 founders, operators, and changemakers from 10 countries.", link: "/profiles", cta: "Meet The Voices" },
+    ],
+    beliefs: [
+      { num: "01", title: "A Social Experiment", body: "Every question is a controlled provocation. The point is not agreement. The point is honesty." },
+      { num: "02", title: "No Editorial Agenda", body: "We write the questions. We never write the answers." },
+      { num: "03", title: "Private Opinions, Public Data", body: "Your vote is anonymous. The aggregate is not." },
+      { num: "04", title: "The Questions No One Asks", body: "Not because they're dangerous. Because nobody built the room yet." },
+      { num: "05", title: "Youngest Region on Earth", body: "60% of MENA is under 30. 541 million people." },
+      { num: "06", title: "Real People Only", body: "No bots. No astroturfing. No sponsored opinions." },
+    ],
+  },
+  pulse: {
+    categories: [
+      { key: "ALL", label: "All Trends", color: "#DC143C" },
+      { key: "POWER", label: "Power & Politics", color: "#EF4444" },
+      { key: "MONEY", label: "Money & Markets", color: "#F59E0B" },
+      { key: "SOCIETY", label: "Society & Identity", color: "#EC4899" },
+      { key: "TECHNOLOGY", label: "Tech & AI", color: "#3B82F6" },
+      { key: "SURVIVAL", label: "Survival & Crisis", color: "#F97316" },
+      { key: "MIGRATION", label: "Migration & Talent", color: "#EF4444" },
+      { key: "CULTURE", label: "Culture & Religion", color: "#A855F7" },
+      { key: "HEALTH", label: "Health & Youth", color: "#10B981" },
+    ],
+    hero: {
+      title: "MENA PULSE",
+      subtitle: "Real-time trend tracking across 19 countries. The region's vital signs.",
+    },
+  },
+  faq: {
+    sections: [
+      { category: "The Platform", questions: [
+        { q: "What is The Tribunal?", a: "The Tribunal, by The Middle East Hustle, is MENA's first opinion intelligence platform." },
+        { q: "Is The Tribunal free to use?", a: "Yes. Voting on debates, making predictions, browsing The Pulse trends, and exploring Voice profiles are all completely free." },
+        { q: "Who is behind The Tribunal?", a: "The Tribunal was founded by Kareem Kaddoura under The Middle East Hustle." },
+        { q: "Are the polls scientific?", a: "No. Our polls are not statistically representative surveys." },
+      ]},
+      { category: "Debates", questions: [
+        { q: "How do the debates work?", a: "Every debate is a single question with multiple options. You click your answer. Your vote is anonymous." },
+        { q: "Can I vote more than once?", a: "No. Each device can cast one vote per debate." },
+        { q: "What is the Share Gate?", a: "The Share Gate sits between your vote and the full results." },
+      ]},
+      { category: "Predictions", questions: [
+        { q: "What is the Predictions page?", a: "Predictions is our Bloomberg-style prediction market for MENA's biggest questions." },
+      ]},
+      { category: "The Pulse", questions: [
+        { q: "What is The Pulse?", a: "The Pulse is our data-driven trend tracking page." },
+      ]},
+      { category: "The Voices", questions: [
+        { q: "How do I become a Voice?", a: "Apply through the 'Join The Voices' page." },
+      ]},
+      { category: "Data & Privacy", questions: [
+        { q: "Is my vote anonymous?", a: "Yes. We do not store your IP address." },
+      ]},
+    ],
+  },
+  terms: {
+    lastUpdated: "2026-01-01",
+    sections: [
+      { id: "acceptance", title: "1. Acceptance of Terms", content: "By accessing or using The Tribunal, you agree to be bound by these Terms and Conditions." },
+      { id: "platform", title: "2. What The Tribunal Is", content: "The Tribunal is an independent opinion and polling platform focused on the Middle East and North Africa region." },
+      { id: "eligibility", title: "3. Age and Eligibility", content: "You must be at least 16 years old to use The Tribunal." },
+      { id: "data", title: "4. Data Collection", content: "When you vote on a poll, we collect: your anonymised vote selection, the poll ID and timestamp, your approximate country of origin." },
+      { id: "cookies", title: "5. Cookies and Local Storage", content: "The Tribunal uses browser localStorage (not third-party cookies)." },
+      { id: "ugc", title: "6. User-Generated Content", content: "Voice profiles, submitted poll questions, and application materials constitute user-generated content." },
+      { id: "ip", title: "7. Intellectual Property", content: "All branding, editorial content, design assets, and platform code are the intellectual property of The Middle East Hustle." },
+      { id: "sharing", title: "8. The Share Gate Mechanic", content: "The Share Gate requires users to share a poll or provide an email before accessing full results." },
+      { id: "disclaimers", title: "9. Disclaimers and Limitation of Liability", content: "THE PLATFORM IS PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND." },
+      { id: "prohibited", title: "10. Prohibited Conduct", content: "You agree not to: vote multiple times using VPNs/proxies, submit false information, or use bots." },
+      { id: "governing", title: "11. Governing Law", content: "These Terms are governed by the laws of the United Arab Emirates." },
+    ],
+  },
+  contact: {
+    emails: [
+      { label: "General Inquiries", email: "hello@themiddleeasthustle.com", description: "For questions, partnerships, and media inquiries" },
+      { label: "Legal & Data Requests", email: "legal@themiddleeasthustle.com", description: "For GDPR requests, legal notices, and data inquiries" },
+      { label: "Editorial & Corrections", email: "editorial@themiddleeasthustle.com", description: "For content corrections, editorial submissions, and fact-checking" },
+    ],
+    socialLinks: [
+      { platform: "X (Twitter)", url: "https://x.com/tmehustle" },
+      { platform: "LinkedIn", url: "https://linkedin.com/company/themiddleeasthustle" },
+      { platform: "Instagram", url: "https://instagram.com/themiddleeasthustle" },
+    ],
+    officeLocation: "Dubai, United Arab Emirates",
+  },
+  debates_page: {
+    hero: { title: "What Does the Region Actually Think?", subtitle: "Anonymous debates on the questions that matter. One vote. One voice. No takebacks." },
+    ticker: { enabled: true, source: "latest_debates" },
+    sortLabels: { latest: "Latest", trending: "Trending", ending_soon: "Ending Soon" },
+    emptyState: { title: "No debates yet", body: "Check back soon for new debates." },
+  },
+  predictions_page: {
+    hero: { title: "What Do You Think Actually Happens?", subtitle: "Bloomberg-style prediction market for MENA's biggest questions." },
+    ticker: { enabled: true, source: "predictions" },
+    categories: ["Economy & Finance", "Technology & AI", "Energy & Climate", "Culture & Society", "Business & Startups", "Geopolitics & Governance", "Education & Workforce", "Infrastructure & Cities", "Sports & Entertainment", "Health & Demographics"],
+    featuredIds: [1, 11, 21, 31],
+  },
+  voices_page: {
+    hero: { title: "Meet the People Moving This Region", subtitle: "94 founders, operators, and changemakers from 10 countries \u2014 curated, not applied-for." },
+    impactStatements: [
+      { company: "Careem", statement: "Built the Middle East's first $3.1B acquisition" },
+      { company: "Fetchr", statement: "Reimagined logistics for a region without addresses" },
+      { company: "Kitopi", statement: "Built the world's largest cloud kitchen network" },
+      { company: "Anghami", statement: "First Arab tech company listed on NASDAQ" },
+      { company: "Sarwa", statement: "Democratized investing for the Arab world" },
+    ],
+    statsBar: [
+      { label: "Voices", value: "94" },
+      { label: "Countries", value: "10" },
+      { label: "Sectors", value: "12" },
+      { label: "Combined Impact", value: "$18B+" },
+    ],
+    filterLabels: { sector: "Sector", country: "Country", featured: "Featured", verified: "Verified" },
+  },
+};
+
+export async function seedCmsData() {
+  console.log("Starting CMS data seed...");
+
+  const [predCount] = await db.select({ count: count() }).from(predictionsTable);
+  if (predCount.count === 0) {
+    console.log(`Seeding ${PREDICTIONS_SEED.length} predictions...`);
+    for (const p of PREDICTIONS_SEED) {
+      await db.insert(predictionsTable).values({
+        question: p.question,
+        category: p.category,
+        categorySlug: toSlug(p.category),
+        resolvesAt: p.resolves,
+        yesPercentage: p.yes,
+        noPercentage: p.no,
+        totalCount: parseCount(p.count),
+        momentum: p.momentum,
+        momentumDirection: p.up ? "up" : "down",
+        trendData: p.data,
+        cardLayout: "grid",
+        editorialStatus: "approved",
+        isFeatured: [1, 11, 21, 31, 41, 51].includes(p.id),
+        tags: [],
+      });
+    }
+    console.log("Predictions seeded.");
+  } else {
+    console.log(`Predictions table already has ${predCount.count} rows, skipping seed.`);
+  }
+
+  const [pulseCount] = await db.select({ count: count() }).from(pulseTopicsTable);
+  if (pulseCount.count === 0) {
+    console.log(`Seeding ${PULSE_TOPICS_SEED.length} pulse topics...`);
+    for (let i = 0; i < PULSE_TOPICS_SEED.length; i++) {
+      const t = PULSE_TOPICS_SEED[i];
+      await db.insert(pulseTopicsTable).values({
+        topicId: t.id,
+        tag: t.tag,
+        tagColor: t.tagColor,
+        title: t.title,
+        stat: t.stat,
+        delta: t.delta,
+        deltaUp: t.deltaUp,
+        blurb: t.blurb,
+        source: t.source,
+        sparkData: t.sparkData,
+        liveConfig: (t as Record<string, unknown>).live as { baseValue: number; annualGrowth: number } | null || null,
+        editorialStatus: "approved",
+      });
+    }
+    console.log("Pulse topics seeded.");
+  } else {
+    console.log(`Pulse topics table already has ${pulseCount.count} rows, skipping seed.`);
+  }
+
+  const [tokenCount] = await db.select({ count: count() }).from(designTokensTable);
+  if (tokenCount.count === 0) {
+    console.log("Seeding design tokens...");
+    for (const t of DESIGN_TOKENS_SEED) {
+      await db.insert(designTokensTable).values(t);
+    }
+    console.log("Design tokens seeded.");
+  }
+
+  const configs = [
+    { key: "homepage", value: HOMEPAGE_CONFIG_SEED },
+    ...Object.entries(PAGE_CONFIGS_SEED).map(([key, value]) => ({ key: `page_${key}`, value })),
+  ];
+
+  for (const cfg of configs) {
+    const [existing] = await db.select({ id: cmsConfigsTable.id }).from(cmsConfigsTable).where(eq(cmsConfigsTable.key, cfg.key));
+    if (!existing) {
+      console.log(`Seeding config: ${cfg.key}`);
+      await db.insert(cmsConfigsTable).values({ key: cfg.key, value: cfg.value });
+    }
+  }
+
+  console.log("CMS data seed complete.");
+}

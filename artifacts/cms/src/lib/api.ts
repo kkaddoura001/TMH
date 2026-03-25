@@ -56,6 +56,17 @@ export const api = {
   updatePrediction: (id: number, data: Record<string, unknown>) => request(`/predictions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deletePrediction: (id: number) => request(`/predictions/${id}`, { method: "DELETE" }),
 
+  getPulseTopics: (status?: string) => request(`/pulse-topics${status ? `?status=${status}` : ""}`),
+  getPulseTopic: (id: number) => request(`/pulse-topics/${id}`),
+  updatePulseTopic: (id: number, data: Record<string, unknown>) => request(`/pulse-topics/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePulseTopic: (id: number) => request(`/pulse-topics/${id}`, { method: "DELETE" }),
+  createPulseTopic: (data: Record<string, unknown>) => request(`/pulse-topics`, { method: "POST", body: JSON.stringify(data) }),
+
+  getDesignTokens: () => request("/design-tokens"),
+  updateDesignToken: (id: number, data: Record<string, unknown>) => request(`/design-tokens/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  createDesignToken: (data: Record<string, unknown>) => request(`/design-tokens`, { method: "POST", body: JSON.stringify(data) }),
+  deleteDesignToken: (id: number) => request(`/design-tokens/${id}`, { method: "DELETE" }),
+
   getVoices: (status?: string) => request(`/voices${status ? `?status=${status}` : ""}`),
   getVoice: (id: number) => request(`/voices/${id}`),
   updateVoice: (id: number, data: Record<string, unknown>) => request(`/voices/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -122,4 +133,62 @@ export const api = {
     request("/homepage/banners", { method: "POST", body: JSON.stringify(data) }),
   deleteBanner: (id: string) =>
     request(`/homepage/banners/${id}`, { method: "DELETE" }),
+
+  generateIdeas: async (data: { contentType: string; prompt: string; count: number; guardrails: string[]; categories: string[] }, onChunk: (text: string) => void): Promise<Record<string, unknown>[]> => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (authToken) headers["x-cms-token"] = authToken;
+    const res = await fetch(`${API_BASE}/ideation/generate`, { method: "POST", headers, body: JSON.stringify(data) });
+    if (res.status === 401) { setToken(null); window.location.href = import.meta.env.BASE_URL; throw new Error("Unauthorized"); }
+    if (!res.ok) throw new Error("Generation failed");
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("No stream");
+    const decoder = new TextDecoder();
+    let ideas: Record<string, unknown>[] = [];
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const parsed = JSON.parse(line.slice(6));
+          if (parsed.content) onChunk(parsed.content);
+          if (parsed.done && parsed.ideas) ideas = parsed.ideas;
+        } catch {}
+      }
+    }
+    return ideas;
+  },
+
+  refineIdea: async (data: { item: Record<string, unknown>; contentType: string; instruction: string }, onChunk: (text: string) => void): Promise<Record<string, unknown> | null> => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (authToken) headers["x-cms-token"] = authToken;
+    const res = await fetch(`${API_BASE}/ideation/refine`, { method: "POST", headers, body: JSON.stringify(data) });
+    if (res.status === 401) { setToken(null); window.location.href = import.meta.env.BASE_URL; throw new Error("Unauthorized"); }
+    if (!res.ok) throw new Error("Refinement failed");
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("No stream");
+    const decoder = new TextDecoder();
+    let refined: Record<string, unknown> | null = null;
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const parsed = JSON.parse(line.slice(6));
+          if (parsed.content) onChunk(parsed.content);
+          if (parsed.done && parsed.refined) refined = parsed.refined;
+        } catch {}
+      }
+    }
+    return refined;
+  },
 };
