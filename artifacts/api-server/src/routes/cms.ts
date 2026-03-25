@@ -49,6 +49,39 @@ function requireCmsAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+export let nextPredictionId = 100;
+
+export function incrementPredictionId(): number {
+  return nextPredictionId++;
+}
+
+export interface MockPrediction {
+  id: number;
+  question: string;
+  category: string;
+  categorySlug: string;
+  resolvesAt: string | null;
+  yesPercentage: number;
+  noPercentage: number;
+  totalCount: number;
+  momentum: number;
+  momentumDirection: string;
+  trendData: number[];
+  cardLayout: string;
+  editorialStatus: string;
+  isFeatured: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const mockPredictions: MockPrediction[] = [
+  { id: 1, question: "Will Saudi Arabia's NEOM project meet its 2030 deadline?", category: "Megaprojects", categorySlug: "megaprojects", resolvesAt: "2030-12-31T00:00:00Z", yesPercentage: 22, noPercentage: 78, totalCount: 8420, momentum: 3.2, momentumDirection: "down", trendData: [35, 32, 28, 25, 22], cardLayout: "featured", editorialStatus: "approved", isFeatured: true, tags: ["saudi", "neom", "vision-2030"], createdAt: new Date(Date.now() - 86400000 * 14).toISOString(), updatedAt: new Date().toISOString() },
+  { id: 2, question: "Will Dubai overtake Singapore as the world's top fintech hub by 2027?", category: "Finance", categorySlug: "finance", resolvesAt: "2027-06-30T00:00:00Z", yesPercentage: 61, noPercentage: 39, totalCount: 5230, momentum: 5.1, momentumDirection: "up", trendData: [45, 52, 55, 58, 61], cardLayout: "grid", editorialStatus: "approved", isFeatured: true, tags: ["dubai", "fintech"], createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), updatedAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: 3, question: "Will a MENA-based unicorn IPO on NASDAQ in 2026?", category: "Startups", categorySlug: "startups", resolvesAt: "2026-12-31T00:00:00Z", yesPercentage: 45, noPercentage: 55, totalCount: 3100, momentum: 1.8, momentumDirection: "up", trendData: [38, 40, 42, 44, 45], cardLayout: "grid", editorialStatus: "draft", isFeatured: false, tags: ["ipo", "unicorn"], createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), updatedAt: new Date(Date.now() - 86400000).toISOString() },
+  { id: 4, question: "Will remote work become the default in Gulf tech companies?", category: "Technology & AI", categorySlug: "technology-ai", resolvesAt: "2027-01-01T00:00:00Z", yesPercentage: 33, noPercentage: 67, totalCount: 2750, momentum: -2.1, momentumDirection: "down", trendData: [42, 38, 35, 34, 33], cardLayout: "compact", editorialStatus: "in_review", isFeatured: false, tags: ["remote-work", "gulf"], createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 7200000).toISOString() },
+];
+
 router.post("/cms/auth/login", (req, res) => {
   const { username, pin } = req.body;
   if (username === CMS_USERNAME && pin === CMS_PIN) {

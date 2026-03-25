@@ -1,0 +1,100 @@
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    let fullResponse = "";
+
+    const openai = await getOpenAI();
+    const stream = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 8192,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullResponse += content;
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+    }
+
+    let ideas: Record<string, unknown>[] = [];
+    try {
+      const cleaned = fullResponse.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      ideas = JSON.parse(cleaned);
+    } catch {
+      ideas = [];
+    }
+
+    res.write(`data: ${JSON.stringify({ done: true, ideas })}\n\n`);
+    res.end();
+  } catch (err) {
+    console.error("Ideation error:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to generate ideas" });
+    }
+    res.write(`data: ${JSON.stringify({ error: "Generation failed" })}\n\n`);
+    res.end();
+  }
+});
+
+router.post("/cms/ideation/refine", requireCmsAuth, async (req: Request, res: Response) => {
+  try {
+    const { item, contentType, instruction } = req.body;
+
+    const systemPrompt = `You are an editorial assistant for "The Tribunal", a MENA opinion platform. You are helping refine a ${contentType} idea. The editor has given you specific instructions on how to improve it. Return the refined version as a single JSON object with the same structure as the input. Only return valid JSON, no markdown fences.`;
+
+    const userMessage = `Original ${contentType}:\n${JSON.stringify(item, null, 2)}\n\nEditor instructions: ${instruction}`;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    let fullResponse = "";
+
+    const openai = await getOpenAI();
+    const stream = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 8192,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullResponse += content;
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+    }
+
+    let refined: Record<string, unknown> | null = null;
+    try {
+      const cleaned = fullResponse.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      refined = JSON.parse(cleaned);
+    } catch {
+      refined = null;
+    }
+
+    res.write(`data: ${JSON.stringify({ done: true, refined })}\n\n`);
+    res.end();
+  } catch (err) {
+    console.error("Refine error:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to refine idea" });
+    }
+    res.write(`data: ${JSON.stringify({ error: "Refinement failed" })}\n\n`);
+    res.end();
+=======
+router.get("/cms/ideation/prompt-templates", requireCmsAuth, async (_req, res) => {
+  try {
+    const templates = await db.select().from(ideationPromptTemplatesTable);

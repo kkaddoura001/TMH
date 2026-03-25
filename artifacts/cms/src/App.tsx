@@ -25,6 +25,7 @@ import PageVoices from "@/pages/page-voices";
 import DesignTokensPage from "@/pages/design-tokens";
 import IdeationPage from "@/pages/ideation";
 import MajlisPage from "@/pages/majlis";
+import IdeationPage from "@/pages/ideation";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ function ProtectedRoutes() {
         <Route path="/subscribers" component={SubscribersPage} />
         <Route path="/applications" component={ApplicationsPage} />
         <Route path="/majlis" component={MajlisPage} />
+        <Route path="/ideation" component={IdeationPage} />
         <Route path="/">
           <Redirect to="/dashboard" />
         </Route>

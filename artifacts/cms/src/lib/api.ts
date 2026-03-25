@@ -134,61 +134,61 @@ export const api = {
   deleteBanner: (id: string) =>
     request(`/homepage/banners/${id}`, { method: "DELETE" }),
 
-  generateIdeas: async (data: { contentType: string; prompt: string; count: number; guardrails: string[]; categories: string[] }, onChunk: (text: string) => void): Promise<Record<string, unknown>[]> => {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (authToken) headers["x-cms-token"] = authToken;
-    const res = await fetch(`${API_BASE}/ideation/generate`, { method: "POST", headers, body: JSON.stringify(data) });
-    if (res.status === 401) { setToken(null); window.location.href = import.meta.env.BASE_URL; throw new Error("Unauthorized"); }
-    if (!res.ok) throw new Error("Generation failed");
-    const reader = res.body?.getReader();
-    if (!reader) throw new Error("No stream");
-    const decoder = new TextDecoder();
-    let ideas: Record<string, unknown>[] = [];
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        try {
-          const parsed = JSON.parse(line.slice(6));
-          if (parsed.content) onChunk(parsed.content);
-          if (parsed.done && parsed.ideas) ideas = parsed.ideas;
-        } catch {}
-      }
-    }
-    return ideas;
-  },
+  getPromptTemplates: () => request("/ideation/prompt-templates"),
+  updatePromptTemplate: (pillar: string, promptText: string) =>
+    request(`/ideation/prompt-templates/${pillar}`, { method: "PUT", body: JSON.stringify({ promptText }) }),
 
-  refineIdea: async (data: { item: Record<string, unknown>; contentType: string; instruction: string }, onChunk: (text: string) => void): Promise<Record<string, unknown> | null> => {
+  getExclusionList: () => request("/ideation/exclusion-list"),
+  addExclusion: (phrase: string) =>
+    request("/ideation/exclusion-list", { method: "POST", body: JSON.stringify({ phrase }) }),
+  bulkAddExclusions: (phrases: string[]) =>
+    request("/ideation/exclusion-list/bulk", { method: "POST", body: JSON.stringify({ phrases }) }),
+  deleteExclusion: (id: number) =>
+    request(`/ideation/exclusion-list/${id}`, { method: "DELETE" }),
+
+  createIdeationSession: (data: Record<string, unknown>) =>
+    request("/ideation/sessions", { method: "POST", body: JSON.stringify(data) }),
+  getIdeationSessions: () => request("/ideation/sessions"),
+  getIdeationSession: (id: number) => request(`/ideation/sessions/${id}`),
+  deleteIdeationSession: (id: number) => request(`/ideation/sessions/${id}`, { method: "DELETE" }),
+
+  runResearch: (sessionId: number) =>
+    request(`/ideation/sessions/${sessionId}/research`, { method: "POST" }),
+  runGeneration: (sessionId: number) =>
+    request(`/ideation/sessions/${sessionId}/generate`, { method: "POST" }),
+  runSafetyReview: (sessionId: number) =>
+    request(`/ideation/sessions/${sessionId}/safety-review`, { method: "POST" }),
+  completeSession: (sessionId: number) =>
+    request(`/ideation/sessions/${sessionId}/complete`, { method: "POST" }),
+
+  deleteIdea: (ideaId: number) =>
+    request(`/ideation/ideas/${ideaId}`, { method: "DELETE" }),
+  updateIdea: (ideaId: number, data: Record<string, unknown>) =>
+    request(`/ideation/ideas/${ideaId}`, { method: "PUT", body: JSON.stringify(data) }),
+  cherryPickIdea: (ideaId: number, action: string, rejectionTag?: string) =>
+    request(`/ideation/ideas/${ideaId}/cherry-pick`, { method: "POST", body: JSON.stringify({ action, rejectionTag }) }),
+  refineIdea: (ideaId: number) =>
+    request(`/ideation/ideas/${ideaId}/refine`, { method: "POST" }),
+  updateRefinedIdea: (ideaId: number, refinedContent: Record<string, unknown>) =>
+    request(`/ideation/ideas/${ideaId}/update-refined`, { method: "POST", body: JSON.stringify({ refinedContent }) }),
+  publishDraft: (ideaId: number) =>
+    request(`/ideation/ideas/${ideaId}/publish-draft`, { method: "POST" }),
+
+  getRejectionLog: () => request("/ideation/rejection-log"),
+  bulkAddExclusions: (phrases: string[]) =>
+    request("/ideation/exclusion-list/bulk", { method: "POST", body: JSON.stringify({ phrases }) }),
+  deleteRejectionLogEntry: (id: number) => request(`/ideation/rejection-log/${id}`, { method: "DELETE" }),
+  exportRejectionLog: async () => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (authToken) headers["x-cms-token"] = authToken;
-    const res = await fetch(`${API_BASE}/ideation/refine`, { method: "POST", headers, body: JSON.stringify(data) });
-    if (res.status === 401) { setToken(null); window.location.href = import.meta.env.BASE_URL; throw new Error("Unauthorized"); }
-    if (!res.ok) throw new Error("Refinement failed");
-    const reader = res.body?.getReader();
-    if (!reader) throw new Error("No stream");
-    const decoder = new TextDecoder();
-    let refined: Record<string, unknown> | null = null;
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        try {
-          const parsed = JSON.parse(line.slice(6));
-          if (parsed.content) onChunk(parsed.content);
-          if (parsed.done && parsed.refined) refined = parsed.refined;
-        } catch {}
-      }
-    }
-    return refined;
+    const res = await fetch(`${API_BASE}/ideation/rejection-log/export`, { headers });
+    if (!res.ok) throw new Error("Export failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rejection-log.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   },
 };

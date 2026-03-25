@@ -1,0 +1,21 @@
+  } catch (err) {
+    console.error("Refine error:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to refine idea" });
+    }
+    res.write(`data: ${JSON.stringify({ error: "Refinement failed" })}\n\n`);
+    res.end();
+=======
+router.get("/cms/ideation/prompt-templates", requireCmsAuth, async (_req, res) => {
+  try {
+    const templates = await db.select().from(ideationPromptTemplatesTable);
+
+    const result: Record<string, { id?: number; promptText: string; defaultPromptText: string }> = {};
+    for (const pillar of ["debates", "predictions", "pulse"]) {
+      const existing = templates.find(t => t.pillarType === pillar);
+      if (existing) {
+        result[pillar] = { id: existing.id, promptText: existing.promptText, defaultPromptText: existing.defaultPromptText };
+      } else {
+        result[pillar] = { promptText: DEFAULT_PROMPTS[pillar], defaultPromptText: DEFAULT_PROMPTS[pillar] };
+      }
+    }

@@ -10,7 +10,7 @@ import {
   pollOptionsTable,
 } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { cmsSessions, mockPredictions, incrementPredictionId } from "./cms";
+import { cmsSessions } from "./cms";
 import {
   runResearch,
   runGeneration,
@@ -82,30 +82,6 @@ router.put("/cms/ideation/prompt-templates/:pillar", requireCmsAuth, async (req,
   } catch (err) {
     console.error("Update prompt template error:", err);
     return res.status(500).json({ error: "Failed to update prompt template" });
-  }
-});
-
-router.post("/cms/ideation/exclusion-list/bulk", requireCmsAuth, async (req, res) => {
-  try {
-    const { phrases } = req.body as { phrases: string[] };
-    if (!phrases || !Array.isArray(phrases)) return res.status(400).json({ error: "phrases array required" });
-
-    const existing = await db.select().from(ideationExclusionListTable);
-    const existingPhrases = new Set(existing.map(e => e.phrase.toLowerCase()));
-
-    const newPhrases = phrases.filter(p => p.trim() && !existingPhrases.has(p.trim().toLowerCase()));
-    const inserted = [];
-    for (const phrase of newPhrases) {
-      try {
-        const [item] = await db.insert(ideationExclusionListTable).values({ phrase: phrase.trim() }).returning();
-        inserted.push(item);
-      } catch { /* skip duplicates */ }
-    }
-
-    return res.json({ inserted, skipped: phrases.length - inserted.length });
-  } catch (err) {
-    console.error("Bulk exclusion error:", err);
-    return res.status(500).json({ error: "Failed to bulk add exclusions" });
   }
 });
 
@@ -222,41 +198,11 @@ router.post("/cms/ideation/sessions/:id/generate", requireCmsAuth, async (req, r
     const [session] = await db.select().from(ideationSessionsTable).where(eq(ideationSessionsTable.id, sessionId));
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    const config = session.configSnapshot as {
-      batchSize: number;
-      pillarCounts?: { debates: number; predictions: number; pulse: number };
-      exclusionList: string[];
-      guardrails?: string[];
-      categories: string[];
-      tags: string[];
-      regions: string[];
-    };
+    const config = session.configSnapshot as { batchSize: number; exclusionList: string[]; categories: string[]; tags: string[]; regions: string[] };
 
     const templates = await db.select().from(ideationPromptTemplatesTable);
     const pillarType = session.pillarType || undefined;
-
-    const getPromptForPillar = (p: string) => {
-      const saved = templates.find(t => t.pillarType === p);
-      return saved?.promptText || DEFAULT_PROMPTS[p] || DEFAULT_PROMPTS.debates;
-    };
-
-    let promptTemplate: string;
-    if (pillarType) {
-      promptTemplate = getPromptForPillar(pillarType);
-    } else {
-      promptTemplate = [
-        "You are a multi-pillar content ideation engine for 'The Middle East Hustle'.",
-        "",
-        "When generating DEBATES ideas, follow this guidance:",
-        getPromptForPillar("debates"),
-        "",
-        "When generating PREDICTIONS ideas, follow this guidance:",
-        getPromptForPillar("predictions"),
-        "",
-        "When generating PULSE ideas, follow this guidance:",
-        getPromptForPillar("pulse"),
-      ].join("\n");
-    }
+    const template = pillarType ? templates.find(t => t.pillarType === pillarType) : undefined;
 
     const exclusionItems = await db.select().from(ideationExclusionListTable);
     const exclusionList = [
@@ -268,11 +214,9 @@ router.post("/cms/ideation/sessions/:id/generate", requireCmsAuth, async (req, r
       pillarType,
       mode: session.mode,
       batchSize: config.batchSize || 15,
-      pillarCounts: config.pillarCounts,
-      promptTemplate,
+      promptTemplate: template?.promptText || (pillarType ? DEFAULT_PROMPTS[pillarType] : DEFAULT_PROMPTS.debates),
       exclusionList,
-      guardrails: config.guardrails || [],
-      researchData: (session.researchData as Record<string, unknown>) || { topics: [], dataPoints: [], trends: [] },
+      researchData: (session.researchData as any) || { topics: [], dataPoints: [], trends: [] },
     });
 
     const inserted = [];
@@ -346,19 +290,9 @@ router.post("/cms/ideation/ideas/:id/cherry-pick", requireCmsAuth, async (req, r
     }
 
     if (action === "accept") {
-      const [idea] = await db.select().from(ideationIdeasTable).where(eq(ideationIdeasTable.id, ideaId));
-      if (!idea) return res.status(404).json({ error: "Idea not found" });
-
       await db.update(ideationIdeasTable)
         .set({ status: "accepted" })
         .where(eq(ideationIdeasTable.id, ideaId));
-
-      const [session] = await db.select().from(ideationSessionsTable).where(eq(ideationSessionsTable.id, idea.sessionId));
-      if (session) {
-        await db.update(ideationSessionsTable)
-          .set({ acceptedCount: (session.acceptedCount || 0) + 1 })
-          .where(eq(ideationSessionsTable.id, session.id));
-      }
     } else if (action === "reject") {
       const [idea] = await db.select().from(ideationIdeasTable).where(eq(ideationIdeasTable.id, ideaId));
       if (!idea) return res.status(404).json({ error: "Idea not found" });
@@ -467,63 +401,28 @@ router.post("/cms/ideation/ideas/:id/publish-draft", requireCmsAuth, async (req,
         .set({ status: "published" })
         .where(eq(ideationIdeasTable.id, ideaId));
 
+      const [session] = await db.select().from(ideationSessionsTable).where(eq(ideationSessionsTable.id, idea.sessionId));
+      if (session) {
+        await db.update(ideationSessionsTable)
+          .set({ acceptedCount: (session.acceptedCount || 0) + 1 })
+          .where(eq(ideationSessionsTable.id, session.id));
+      }
+
       return res.json({ success: true, type: "debate", id: poll.id });
     }
 
-    if (idea.pillarType === "predictions") {
-      const categorySlug = ((content.category as string) || "general")
-        .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    await db.update(ideationIdeasTable)
+      .set({ status: "published" })
+      .where(eq(ideationIdeasTable.id, ideaId));
 
-      const newId = incrementPredictionId();
-      const now = new Date().toISOString();
-
-      mockPredictions.push({
-        id: newId,
-        question: (content.question as string) || idea.title,
-        category: (content.category as string) || "General",
-        categorySlug,
-        resolvesAt: (content.resolvesAt as string) || null,
-        yesPercentage: 50,
-        noPercentage: 50,
-        totalCount: 0,
-        momentum: 0,
-        momentumDirection: "neutral",
-        trendData: [50, 50, 50],
-        cardLayout: "grid",
-        editorialStatus: "draft",
-        isFeatured: false,
-        tags: (content.tags as string[]) || ["ai-generated"],
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      await db.update(ideationIdeasTable)
-        .set({ status: "published" })
-        .where(eq(ideationIdeasTable.id, ideaId));
-
-      return res.json({ success: true, type: "prediction", id: newId });
+    const [session] = await db.select().from(ideationSessionsTable).where(eq(ideationSessionsTable.id, idea.sessionId));
+    if (session) {
+      await db.update(ideationSessionsTable)
+        .set({ acceptedCount: (session.acceptedCount || 0) + 1 })
+        .where(eq(ideationSessionsTable.id, session.id));
     }
 
-    if (idea.pillarType === "pulse") {
-      await db.update(ideationIdeasTable)
-        .set({ status: "published" })
-        .where(eq(ideationIdeasTable.id, ideaId));
-
-      return res.json({
-        success: true,
-        type: "pulse",
-        draft: {
-          title: (content.title as string) || idea.title,
-          stat: (content.stat as string) || "N/A",
-          delta: (content.delta as string) || "0%",
-          direction: (content.direction as string) || "up",
-          source: (content.source as string) || "AI Generated",
-        },
-        note: "Pulse draft data returned — add to Pulse page configuration to publish",
-      });
-    }
-
-    return res.status(400).json({ error: `Unsupported pillar type: ${idea.pillarType}` });
+    return res.json({ success: true, type: idea.pillarType, note: "Created as draft" });
   } catch (err) {
     console.error("Publish draft error:", err);
     return res.status(500).json({ error: "Failed to create draft" });
@@ -576,71 +475,7 @@ router.get("/cms/ideation/rejection-log/export", requireCmsAuth, async (_req, re
   } catch (err) {
     console.error("Rejection export error:", err);
     return res.status(500).json({ error: "Export failed" });
-  }
-});
-
-router.delete("/cms/ideation/sessions/:id", requireCmsAuth, async (req, res) => {
-  try {
-    const sessionId = Number(req.params.id);
-    if (!sessionId || sessionId <= 0) return res.status(400).json({ error: "Invalid session ID" });
-
-    await db.delete(ideationRejectionLogTable).where(eq(ideationRejectionLogTable.sessionId, sessionId));
-    await db.delete(ideationIdeasTable).where(eq(ideationIdeasTable.sessionId, sessionId));
-    await db.delete(ideationSessionsTable).where(eq(ideationSessionsTable.id, sessionId));
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("Delete session error:", err);
-    return res.status(500).json({ error: "Failed to delete session" });
-  }
-});
-
-router.delete("/cms/ideation/ideas/:id", requireCmsAuth, async (req, res) => {
-  try {
-    const ideaId = Number(req.params.id);
-    if (!ideaId || ideaId <= 0) return res.status(400).json({ error: "Invalid idea ID" });
-
-    await db.delete(ideationRejectionLogTable).where(eq(ideationRejectionLogTable.ideaId, ideaId));
-    await db.delete(ideationIdeasTable).where(eq(ideationIdeasTable.id, ideaId));
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("Delete idea error:", err);
-    return res.status(500).json({ error: "Failed to delete idea" });
-  }
-});
-
-router.put("/cms/ideation/ideas/:id", requireCmsAuth, async (req, res) => {
-  try {
-    const ideaId = Number(req.params.id);
-    if (!ideaId || ideaId <= 0) return res.status(400).json({ error: "Invalid idea ID" });
-
-    const { title, content, status } = req.body;
-    const updates: Record<string, unknown> = {};
-    if (title !== undefined) updates.title = title;
-    if (content !== undefined) updates.content = content;
-    if (status !== undefined) updates.status = status;
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: "No fields to update" });
-    }
-
-    await db.update(ideationIdeasTable).set(updates).where(eq(ideationIdeasTable.id, ideaId));
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("Update idea error:", err);
-    return res.status(500).json({ error: "Failed to update idea" });
-  }
-});
-
-router.delete("/cms/ideation/rejection-log/:id", requireCmsAuth, async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!id || id <= 0) return res.status(400).json({ error: "Invalid ID" });
-
-    await db.delete(ideationRejectionLogTable).where(eq(ideationRejectionLogTable.id, id));
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("Delete rejection log entry error:", err);
-    return res.status(500).json({ error: "Failed to delete rejection log entry" });
+>>>>>>> e0f654c (feat: CMS Ideation Engine — AI-Powered Content Generation (Task #5))
   }
 });
 

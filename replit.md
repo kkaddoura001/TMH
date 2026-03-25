@@ -25,7 +25,7 @@ Design aligned with main site: "THE TRIBUNAL." branding with crimson period, Pla
 
 Sidebar sections:
 - **Overview**: Dashboard (content stats + recent activity), Analytics (vote analytics, top polls, votes by category/country, daily activity), Homepage Manager (masthead, ticker, sections, banners, newsletter CTA)
-- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Pulse (DB-backed topics with CRUD, spark data, editorial status), Voices (CRUD + full profile editor)
+- **Content**: Debates (CRUD + editorial workflow + vote options), Predictions (CRUD + resolution dates + momentum), Pulse (DB-backed topics with CRUD, spark data, editorial status), Voices (CRUD + full profile editor), Ideation Engine (AI-powered content generation with 5-step agentic workflow)
 - **Pages**: About (hero, pillars, beliefs editor), FAQ (sections + Q&A editor), Terms (sections editor with last-updated date), Contact (emails, social links, office location), Debates Page (hero, ticker, sort labels, empty state), Predictions Page (hero, ticker, categories, featured IDs), Voices Page (hero, impact statements, stats bar, filter labels)
 - **Design**: Design Tokens (brand colors, UI colors, typography — all DB-backed)
 - **Audience**: Subscribers (newsletter list from DB, search, CSV export), Applications ("Join The Voices" submissions from DB, review/approve/reject/shortlist)
@@ -42,6 +42,7 @@ All CMS content endpoints are backed by real PostgreSQL queries via Drizzle ORM:
 - **Subscribers** (`/api/cms/subscribers`, `/export`): Real DB queries on `newsletterSubscribersTable`
 - **Applications** (`/api/cms/applications`): Real DB queries on `hustlerApplicationsTable`
 - **Analytics** (`/api/cms/analytics`): Real DB aggregations across votes, polls, profiles, subscribers
+- **Ideation Engine** (`/api/cms/ideation/*`): AI-powered content generation with sessions, ideas, exclusion list, prompt templates, rejection log. Uses Claude (Anthropic) for generation/safety/refinement and Perplexity for research. Falls back to intelligent mock data when API keys are not configured. DB tables: `ideation_sessions`, `ideation_ideas`, `ideation_rejection_log`, `ideation_exclusion_list`, `ideation_prompt_templates` (schema in `lib/db/src/schema/ideation.ts`). AI service abstraction in `artifacts/api-server/src/services/ideation-ai.ts`
 
 ## Structure
 

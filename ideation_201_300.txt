@@ -1,0 +1,100 @@
+
+    const result: Record<string, { id?: number; promptText: string; defaultPromptText: string }> = {};
+    for (const pillar of ["debates", "predictions", "pulse"]) {
+      const existing = templates.find(t => t.pillarType === pillar);
+      if (existing) {
+        result[pillar] = { id: existing.id, promptText: existing.promptText, defaultPromptText: existing.defaultPromptText };
+      } else {
+        result[pillar] = { promptText: DEFAULT_PROMPTS[pillar], defaultPromptText: DEFAULT_PROMPTS[pillar] };
+      }
+    }
+
+    return res.json(result);
+  } catch (err) {
+    console.error("Prompt templates error:", err);
+    return res.status(500).json({ error: "Failed to fetch prompt templates" });
+  }
+});
+
+router.put("/cms/ideation/prompt-templates/:pillar", requireCmsAuth, async (req, res) => {
+  try {
+    const { pillar } = req.params;
+    const { promptText } = req.body;
+
+    if (!["debates", "predictions", "pulse"].includes(pillar)) {
+      return res.status(400).json({ error: "Invalid pillar type" });
+    }
+
+    const [existing] = await db.select().from(ideationPromptTemplatesTable).where(eq(ideationPromptTemplatesTable.pillarType, pillar));
+
+    if (existing) {
+      await db.update(ideationPromptTemplatesTable)
+        .set({ promptText, updatedAt: new Date() })
+        .where(eq(ideationPromptTemplatesTable.pillarType, pillar));
+    } else {
+      await db.insert(ideationPromptTemplatesTable).values({
+        pillarType: pillar,
+        promptText,
+        defaultPromptText: DEFAULT_PROMPTS[pillar],
+      });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("Update prompt template error:", err);
+    return res.status(500).json({ error: "Failed to update prompt template" });
+  }
+});
+
+router.get("/cms/ideation/exclusion-list", requireCmsAuth, async (_req, res) => {
+  try {
+    const items = await db.select().from(ideationExclusionListTable).orderBy(desc(ideationExclusionListTable.createdAt));
+    return res.json({ items });
+  } catch (err) {
+    console.error("Exclusion list error:", err);
+    return res.status(500).json({ error: "Failed to fetch exclusion list" });
+  }
+});
+
+router.post("/cms/ideation/exclusion-list", requireCmsAuth, async (req, res) => {
+  try {
+    const { phrase } = req.body;
+    if (!phrase?.trim()) {
+      return res.status(400).json({ error: "Phrase is required" });
+    }
+
+    const [item] = await db.insert(ideationExclusionListTable)
+      .values({ phrase: phrase.trim() })
+      .returning();
+
+    return res.json(item);
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      return res.status(409).json({ error: "Phrase already exists" });
+    }
+    console.error("Add exclusion error:", err);
+    return res.status(500).json({ error: "Failed to add exclusion" });
+  }
+});
+
+router.delete("/cms/ideation/exclusion-list/:id", requireCmsAuth, async (req, res) => {
+  try {
+    await db.delete(ideationExclusionListTable).where(eq(ideationExclusionListTable.id, Number(req.params.id)));
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("Delete exclusion error:", err);
+    return res.status(500).json({ error: "Failed to delete exclusion" });
+  }
+});
+
+router.post("/cms/ideation/sessions", requireCmsAuth, async (req, res) => {
+  try {
+    const { mode, pillarType, config } = req.body;
+
+    const [session] = await db.insert(ideationSessionsTable).values({
+      mode: mode || "explore",
+      pillarType: pillarType || null,
+      configSnapshot: config,
+      status: "researching",
+    }).returning();
+
