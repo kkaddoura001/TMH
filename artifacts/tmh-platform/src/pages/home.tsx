@@ -693,7 +693,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div>
-                  {trendingPolls?.polls.slice(0, 5).map((poll) => (
+                  {trendingPolls?.polls.slice(0, 3).map((poll) => (
                     <Link key={poll.id} href={`/polls/${poll.id}`}>
                       <div className="py-3 border-b border-border group cursor-pointer">
                         <p className="text-[9px] uppercase tracking-widest text-primary font-serif font-bold">{poll.category}</p>
@@ -762,7 +762,7 @@ export default function Home() {
                   seen.add(PREDICTIONS[0].category)
                   const mixed: typeof PREDICTIONS = []
                   for (const p of PREDICTIONS) {
-                    if (mixed.length >= 5) break
+                    if (mixed.length >= 3) break
                     if (!seen.has(p.category)) { seen.add(p.category); mixed.push(p) }
                   }
                   return mixed
@@ -912,8 +912,6 @@ export default function Home() {
                   { tag: "POWER", tagColor: "#EF4444", title: "Press Freedom Collapse", stat: "17 of 19", delta: "Not Free", deltaUp: false, sparkData: [14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 17] },
                   { tag: "MONEY", tagColor: "#F59E0B", title: "Crypto Trading Volume", stat: "$338B", delta: "+74%", deltaUp: true, sparkData: [89, 110, 125, 145, 160, 180, 210, 240, 268, 295, 318, 338] },
                   { tag: "SOCIETY", tagColor: "#EC4899", title: "Women in the Workforce", stat: "33.4%", delta: "+9.2pp", deltaUp: true, sparkData: [17, 19, 21, 23, 25, 26, 28, 29, 30, 31, 32, 33.4] },
-                  { tag: "TECH", tagColor: "#3B82F6", title: "Surveillance Tech Spending", stat: "$4.8B", delta: "+62%", deltaUp: true, sparkData: [1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5, 4.7, 4.8] },
-                  { tag: "MONEY", tagColor: "#F59E0B", title: "Cost of Living Crisis", stat: "38% inflation", delta: "Egypt peak", deltaUp: false, sparkData: [12, 15, 19, 24, 29, 33, 38, 36, 34, 32, 30, 28] },
                 ].map((t2, idx) => {
                   const max = Math.max(...t2.sparkData)
                   const min = Math.min(...t2.sparkData)
