@@ -30,7 +30,7 @@ Sidebar sections:
 - **Audience**: Subscribers (newsletter list from DB, search, CSV export), Applications ("Join The Voices" submissions from DB, review/approve/reject/shortlist)
 
 All CMS content endpoints are backed by real PostgreSQL queries via Drizzle ORM:
-- **Debates** (`/api/cms/debates`): Queries `pollsTable` + `pollOptionsTable` — 327 polls with full CRUD, status transitions, and vote counts
+- **Debates** (`/api/cms/debates`): Queries `pollsTable` + `pollOptionsTable` — 422 polls with full CRUD, status transitions, and vote counts
 - **Voices** (`/api/cms/voices`): Queries `profilesTable` — 103 profiles with full CRUD (no editorial_status column in DB; all treated as "approved")
 - **Predictions** (`/api/cms/predictions`): Still uses in-memory mock data (no predictions table in DB yet)
 - **Stats** (`/api/cms/stats`): Real DB counts for debates/voices; mock counts for predictions
