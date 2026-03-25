@@ -89,7 +89,7 @@ artifacts-monorepo/
 - **Admin key** (`ADMIN_KEY`) — defaults to `"tmh-admin-2026"` if not set
 
 ### Pages
-- **Home** (`/`) — WSJ-style editorial front page: masthead → mixed ticker (debates+predictions+pulse with colored badges) → section hooks (Debates/Predictions/The Pulse cards) → lead debate column (with floating opinion bubbles, desktop only) + latest debates sidebar → debates grid → predictions → voices → topics → newsletter CTA
+- **Home** (`/`) — WSJ-style editorial front page: masthead → mixed ticker (debates+predictions+pulse with colored badges) → 4-column section hooks (Debates/Predictions/The Pulse/Voices) → lead debate column + latest debates sidebar → featured prediction with inline YES/NO voting (localStorage-persisted, share gate with WhatsApp/X/LinkedIn/Telegram/email unlock) + prediction sidebar with quick Y/N vote buttons and share icons → featured pulse card with share + "Explore →" link + pulse sidebar with share icons → The Voices → topics → newsletter CTA. All sections have share functionality (ShareMenu component with native share API fallback to clipboard). Prediction votes persist in `localStorage` as `tmh_pred_{id}`. Share gate pattern matches debates: vote → share/email to unlock → see results.
 - **Polls** (`/polls`) — Full poll browser with search bar (sidebar), filter tabs (Latest/Trending/Most Voted) and category sidebar; client-side search filters by question, category, and tags
 - **Poll Detail** (`/polls/:id`) — Full poll with context, voting UI, animated result reveal, share CTA, related polls
 - **Profiles** (`/profiles`) — Searchable directory with country/sector/role filters

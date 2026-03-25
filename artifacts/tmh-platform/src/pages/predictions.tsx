@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { Layout } from "@/components/layout/Layout"
-import { Search, X } from "lucide-react"
+import { Search, X, Share2, CheckCircle2 } from "lucide-react"
 import {
   ComposedChart,
   Area,
@@ -125,33 +125,76 @@ function ConfidenceBars({ yes, no, up, momentum, compact = false }: {
 
 // ─── VOTE BUTTONS ────────────────────────────────────────────────────────────
 
-function VoteButtons({ height = 52, locked = false }: { height?: number; locked?: boolean }) {
-  const [voted, setVoted] = useState<"yes" | "no" | null>(null)
+async function predCopyText(text: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(text); return true } catch {}
+  }
+  try {
+    const ta = document.createElement("textarea")
+    ta.value = text
+    ta.style.cssText = "position:fixed;top:-9999px;opacity:0"
+    document.body.appendChild(ta); ta.focus(); ta.select()
+    const ok = document.execCommand("copy"); document.body.removeChild(ta)
+    return ok
+  } catch { return false }
+}
+
+function PredShareBtn({ question }: { question: string }) {
+  const [copied, setCopied] = useState(false)
+  const url = typeof window !== "undefined" ? `${window.location.origin}/predictions` : "/predictions"
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation()
+    if (navigator.share) {
+      try { await navigator.share({ url, title: question }); return } catch (err) { if ((err as Error).name === "AbortError") return }
+    }
+    const ok = await predCopyText(url)
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 2000) }
+  }
+
+  return (
+    <button onClick={handleShare} title="Share" style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: copied ? "#10B981" : "rgba(250,250,250,0.4)", transition: "color 0.15s" }}>
+      {copied ? <CheckCircle2 size={14} /> : <Share2 size={14} />}
+    </button>
+  )
+}
+
+function VoteButtons({ height = 52, locked = false, predId }: { height?: number; locked?: boolean; predId?: number }) {
+  const storageKey = predId != null ? `tmh_pred_${predId}` : null
+  const [voted, setVoted] = useState<"yes" | "no" | null>(() => {
+    if (typeof window === "undefined" || !storageKey) return null
+    return localStorage.getItem(storageKey) as "yes" | "no" | null
+  })
   if (locked) return null
+  const handleVote = (choice: "yes" | "no") => {
+    if (voted) return
+    setVoted(choice)
+    if (storageKey) localStorage.setItem(storageKey, choice)
+  }
   return (
     <div style={{ display: "flex", gap: 8, width: "100%" }}>
       <button
-        onClick={() => setVoted(v => v === "yes" ? null : "yes")}
+        onClick={() => handleVote("yes")}
         style={{
           flex: 1, height, border: `1.5px solid #10B981`,
           background: voted === "yes" ? "#10B981" : "transparent",
           color: voted === "yes" ? "#fff" : "#10B981",
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.08em",
-          cursor: "pointer", transition: "all 0.15s", borderRadius: 4,
+          cursor: voted ? "default" : "pointer", transition: "all 0.15s", borderRadius: 4,
         }}
       >
         {voted === "yes" ? "✓ YES — LOCKED" : "YES"}
       </button>
       <button
-        onClick={() => setVoted(v => v === "no" ? null : "no")}
+        onClick={() => handleVote("no")}
         style={{
           flex: 1, height, border: `1.5px solid #DC143C`,
           background: voted === "no" ? "#DC143C" : "transparent",
           color: voted === "no" ? "#fff" : "#DC143C",
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em",
-          cursor: "pointer", transition: "all 0.15s", borderRadius: 4,
+          cursor: voted ? "default" : "pointer", transition: "all 0.15s", borderRadius: 4,
         }}
       >
         {voted === "no" ? "✓ NO — LOCKED" : "NO"}
@@ -299,7 +342,7 @@ function FeaturedPrediction() {
           <ConfidenceBars yes={71} no={29} up={true} momentum={2.1} compact={false} />
 
           {/* Vote buttons */}
-          <VoteButtons height={52} />
+          <VoteButtons height={52} predId={0} />
 
           {/* Lock notice */}
           <p style={{ fontFamily: "DM Sans, sans-serif", fontStyle: "italic", fontSize: "0.72rem", color: "var(--muted-foreground)" }}>
@@ -327,13 +370,14 @@ function PredictionGridCard({ card }: { card: PredictionCard }) {
       </div>
 
       {/* Badges */}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
         <span style={{ padding: "2px 7px", background: "var(--foreground)", color: "var(--background)", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em" }}>
           {card.category}
         </span>
         <span style={{ padding: "2px 7px", background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", color: "#F59E0B", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", borderRadius: 2 }}>
           Resolves: {card.resolves}
         </span>
+        <PredShareBtn question={card.question} />
       </div>
 
       {/* Question */}
@@ -350,7 +394,7 @@ function PredictionGridCard({ card }: { card: PredictionCard }) {
       <ConfidenceBars yes={card.yes} no={card.no} up={card.up} momentum={card.momentum} compact={true} />
 
       {/* Vote buttons */}
-      <VoteButtons height={44} />
+      <VoteButtons height={44} predId={card.id} />
 
       {/* Lock notice */}
       <p style={{ fontFamily: "DM Sans, sans-serif", fontStyle: "italic", fontSize: "0.7rem", color: "var(--muted-foreground)" }}>

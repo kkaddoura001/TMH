@@ -5,11 +5,94 @@ import { PollCard } from "@/components/poll/PollCard"
 import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Link } from "wouter"
 import { cn } from "@/lib/utils"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Share2, Lock, Mail, CheckCircle2 } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
 import { PREDICTIONS, type PredictionCard } from "@/data/predictions-data"
+
+async function copyText(text: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(text); return true } catch {}
+  }
+  try {
+    const ta = document.createElement("textarea")
+    ta.value = text
+    ta.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0"
+    document.body.appendChild(ta)
+    ta.focus(); ta.select()
+    const ok = document.execCommand("copy")
+    document.body.removeChild(ta)
+    return ok
+  } catch { return false }
+}
+
+function ShareMenu({ title, shareUrl, color = "#3B82F6", onUnlock }: { title: string; shareUrl: string; color?: string; onUnlock?: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    if (open) document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
+
+  const doShare = (url: string) => { window.open(url, "_blank", "noopener,noreferrer"); onUnlock?.(); setOpen(false) }
+
+  const handleNativeShare = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation()
+    if (navigator.share) {
+      try { await navigator.share({ url: shareUrl, title }); return } catch (err) { if ((err as Error).name === "AbortError") return }
+    }
+    setOpen(!open)
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={handleNativeShare} className="p-1.5 rounded-sm transition-colors hover:bg-white/10" style={{ color }} title="Share">
+        <Share2 className="w-3.5 h-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border rounded-sm shadow-xl p-2 min-w-[160px]" style={{ animation: "gateSlideIn 0.2s ease-out" }}>
+          <button onClick={() => doShare(`https://wa.me/?text=${encodeURIComponent(`${title} — ${shareUrl}`)}`)} className="w-full text-left px-3 py-2 text-[11px] font-serif uppercase tracking-wider hover:bg-white/5 rounded-sm flex items-center gap-2">
+            <span className="text-[#25D366]">●</span> WhatsApp
+          </button>
+          <button onClick={() => doShare(`https://x.com/intent/tweet?text=${encodeURIComponent(`"${title}" — The Tribunal`)}&url=${encodeURIComponent(shareUrl)}`)} className="w-full text-left px-3 py-2 text-[11px] font-serif uppercase tracking-wider hover:bg-white/5 rounded-sm flex items-center gap-2">
+            <span className="text-foreground">●</span> X / Twitter
+          </button>
+          <button onClick={() => doShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`)} className="w-full text-left px-3 py-2 text-[11px] font-serif uppercase tracking-wider hover:bg-white/5 rounded-sm flex items-center gap-2">
+            <span className="text-[#0A66C2]">●</span> LinkedIn
+          </button>
+          <button onClick={() => doShare(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`)} className="w-full text-left px-3 py-2 text-[11px] font-serif uppercase tracking-wider hover:bg-white/5 rounded-sm flex items-center gap-2">
+            <span className="text-[#26A5E4]">●</span> Telegram
+          </button>
+          <div className="border-t border-border mt-1 pt-1">
+            <button onClick={async () => { const ok = await copyText(shareUrl); setCopied(ok); onUnlock?.(); setTimeout(() => { setCopied(false); setOpen(false) }, 1500) }} className="w-full text-left px-3 py-2 text-[11px] font-serif uppercase tracking-wider hover:bg-white/5 rounded-sm flex items-center gap-2">
+              {copied ? <><CheckCircle2 className="w-3 h-3 text-[#10B981]" /> Copied!</> : <><span className="text-muted-foreground">●</span> Copy Link</>}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type PredPhase = "vote" | "gate" | "locked"
+
+function getPredPhase(predId: number): PredPhase {
+  if (typeof window === "undefined") return "vote"
+  const voted = localStorage.getItem(`tmh_pred_${predId}`)
+  if (!voted) return "vote"
+  const unlocked = localStorage.getItem("tmh_email_submitted") || localStorage.getItem(`tmh_pred_unlocked_${predId}`)
+  return unlocked ? "locked" : "gate"
+}
+
+function getPredVote(predId: number): "yes" | "no" | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(`tmh_pred_${predId}`) as "yes" | "no" | null
+}
 
 const MENA_POP_BASE = 525_000_000
 const MENA_POP_BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()
@@ -126,6 +209,254 @@ function LiveActivity() {
 
 
 
+
+interface FeaturedPredProps {
+  featured: PredictionCard
+  chartW: number; chartH: number; padL: number; padR: number; padT: number; padB: number
+  plotW: number; plotH: number
+  toX: (i: number) => number; toY: (v: number) => number
+  yesPoints: string; noPoints: string; yesArea: string; months: string[]
+}
+
+function FeaturedPredictionCard({ featured, chartW, chartH, padL, padR, padT, padB, plotW, plotH, toX, toY, yesPoints, noPoints, yesArea, months }: FeaturedPredProps) {
+  const [phase, setPhase] = useState<PredPhase>(() => getPredPhase(featured.id))
+  const [vote, setVote] = useState<"yes" | "no" | null>(() => getPredVote(featured.id))
+  const [email, setEmail] = useState("")
+  const [emailDone, setEmailDone] = useState(false)
+  const predUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/predictions`
+
+  const handleVote = (choice: "yes" | "no") => {
+    if (vote) return
+    setVote(choice)
+    localStorage.setItem(`tmh_pred_${featured.id}`, choice)
+    const alreadyUnlocked = localStorage.getItem("tmh_email_submitted") || localStorage.getItem(`tmh_pred_unlocked_${featured.id}`)
+    setTimeout(() => {
+      if (alreadyUnlocked) {
+        localStorage.setItem(`tmh_pred_unlocked_${featured.id}`, "true")
+        setPhase("locked")
+      } else {
+        setPhase("gate")
+      }
+    }, 400)
+  }
+
+  const unlock = () => {
+    localStorage.setItem(`tmh_pred_unlocked_${featured.id}`, "true")
+    setPhase("locked")
+  }
+
+  const handleEmail = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    setEmailDone(true)
+    localStorage.setItem("tmh_email_submitted", "true")
+    setTimeout(unlock, 800)
+  }
+
+  const noData = featured.data.map(v => 100 - v)
+
+  return (
+    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 overflow-hidden" style={{ borderWidth: "1.5px" }}>
+      <div className="flex-1 p-5">
+        <p className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground font-serif mb-2">
+          Confidence Over Time — Yes %
+        </p>
+        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full" style={{ maxHeight: 160 }}>
+          <defs>
+            <linearGradient id="homeYesGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {[0, 25, 50, 75, 100].map(v => (
+            <g key={v}>
+              <line x1={padL} x2={chartW - padR} y1={toY(v)} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+              <text x={padL - 4} y={toY(v) + 3} fill="rgba(255,255,255,0.25)" fontSize="6" textAnchor="end" fontFamily="'Barlow Condensed', sans-serif">{v}</text>
+            </g>
+          ))}
+          {featured.data.map((_, i) => {
+            if (i % 3 !== 0 && i !== featured.data.length - 1) return null
+            const mi = i < months.length ? i : i % months.length
+            return <text key={i} x={toX(i)} y={chartH - 4} fill="rgba(255,255,255,0.3)" fontSize="5.5" textAnchor="middle" fontFamily="'Barlow Condensed', sans-serif">{months[mi]}</text>
+          })}
+          <line x1={padL} x2={chartW - padR} y1={toY(50)} y2={toY(50)} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" strokeDasharray="3,2" />
+          <path d={yesArea} fill="url(#homeYesGrad)" />
+          <polyline points={yesPoints} fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinejoin="round" />
+          <polyline points={noPoints} fill="none" stroke="#DC143C" strokeWidth="1.2" strokeLinejoin="round" opacity="0.7" />
+          <circle cx={toX(featured.data.length - 1)} cy={toY(featured.data[featured.data.length - 1])} r="2.5" fill="#10B981" />
+          <circle cx={toX(featured.data.length - 1)} cy={toY(noData[noData.length - 1])} r="2" fill="#DC143C" />
+          <text x={toX(featured.data.length - 1) + 1} y={toY(featured.data[featured.data.length - 1]) - 4} fill="#10B981" fontSize="6" fontWeight="700" fontFamily="'Barlow Condensed', sans-serif">{featured.data[featured.data.length - 1]}%</text>
+        </svg>
+        <p className="text-[9px] font-serif mt-2" style={{ color: "#10B981" }}>
+          {featured.up ? "▲" : "▼"} Confidence moved {featured.up ? "+" : "-"}{featured.momentum}% in the last 30 days
+        </p>
+      </div>
+      <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-border flex flex-col justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="px-2 py-0.5 bg-foreground text-background text-[8px] font-bold uppercase tracking-[0.2em] font-serif">{featured.category}</span>
+            <span className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}>Resolves: {featured.resolves}</span>
+            <ShareMenu title={featured.question} shareUrl={predUrl} color="#3B82F6" onUnlock={phase === "gate" ? unlock : undefined} />
+          </div>
+          <p className="font-serif font-black uppercase text-[15px] leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>{featured.question}</p>
+          <p className="text-[10px] text-muted-foreground font-serif mt-2">{featured.count} predictions locked in</p>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {phase === "vote" && (
+            <motion.div key="pred-vote" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="space-y-2 mb-3">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#10B981" }}>Yes</span>
+                    <span className="text-[10px] font-bold font-serif" style={{ color: "#10B981" }}>{featured.yes}%</span>
+                  </div>
+                  <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <div className="h-full rounded-sm" style={{ width: `${featured.yes}%`, background: "#10B981" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#DC143C" }}>No</span>
+                    <span className="text-[10px] font-bold font-serif" style={{ color: "#DC143C" }}>{featured.no}%</span>
+                  </div>
+                  <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <div className="h-full rounded-sm" style={{ width: `${featured.no}%`, background: "#DC143C" }} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-serif mb-2 font-bold">Lock your prediction</p>
+              <div className="flex gap-2">
+                <button onClick={() => handleVote("yes")} className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#10B981] hover:text-white hover:border-[#10B981]" style={{ borderColor: "#10B981", color: "#10B981" }}>Yes</button>
+                <button onClick={() => handleVote("no")} className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C]" style={{ borderColor: "#DC143C", color: "#DC143C" }}>No</button>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "gate" && (
+            <motion.div key="pred-gate" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="tmh-gate-card">
+              <div className="bg-background/50 border border-border p-4 rounded-sm space-y-3">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[#3B82F6] font-serif">
+                  <Lock className="w-3.5 h-3.5" />
+                  Prediction locked — {vote?.toUpperCase()}
+                </div>
+                <p className="text-[10px] text-muted-foreground font-serif">Share to see full confidence breakdown, or enter your email:</p>
+                <div className="flex gap-2">
+                  <button onClick={() => { window.open(`https://wa.me/?text=${encodeURIComponent(`${featured.question} — Lock your prediction: ${predUrl}`)}`, "_blank"); setTimeout(unlock, 800) }} className="flex-1 py-2 bg-[#25D366] text-white text-[10px] font-bold uppercase tracking-wider font-serif rounded-sm hover:opacity-90 transition-opacity">WhatsApp</button>
+                  <button onClick={() => { window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(`"${featured.question}" — The Tribunal`)}&url=${encodeURIComponent(predUrl)}`, "_blank"); setTimeout(unlock, 800) }} className="flex-1 py-2 bg-foreground text-background text-[10px] font-bold uppercase tracking-wider font-serif rounded-sm hover:opacity-90 transition-opacity">X</button>
+                  <button onClick={() => { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(predUrl)}`, "_blank"); setTimeout(unlock, 800) }} className="flex-1 py-2 bg-[#0A66C2] text-white text-[10px] font-bold uppercase tracking-wider font-serif rounded-sm hover:opacity-90 transition-opacity">LinkedIn</button>
+                </div>
+                <div className="border-t border-border pt-3">
+                  <form onSubmit={handleEmail} className="flex gap-2">
+                    <div className="flex-1 flex items-center gap-2 border border-border px-3 py-2 bg-background rounded-sm">
+                      <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" className="bg-transparent text-[11px] font-sans text-foreground outline-none flex-1 placeholder:text-muted-foreground/50" />
+                    </div>
+                    <button type="submit" className="px-3 py-2 bg-[#3B82F6] text-white text-[10px] font-bold uppercase tracking-wider font-serif rounded-sm hover:opacity-90 transition-opacity">
+                      {emailDone ? <CheckCircle2 className="w-4 h-4" /> : "Unlock"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "locked" && (
+            <motion.div key="pred-locked" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div className="space-y-2 mb-3">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#10B981" }}>Yes</span>
+                    <span className="text-[10px] font-bold font-serif" style={{ color: "#10B981" }}>{featured.yes}%</span>
+                  </div>
+                  <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${featured.yes}%` }} transition={{ duration: 0.6 }} className="h-full rounded-sm" style={{ background: "#10B981" }} />
+                  </div>
+                  <p className="text-[8px] text-muted-foreground font-serif mt-0.5">{featured.up ? "▲" : "▼"} Up {featured.momentum}% this week</p>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#DC143C" }}>No</span>
+                    <span className="text-[10px] font-bold font-serif" style={{ color: "#DC143C" }}>{featured.no}%</span>
+                  </div>
+                  <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${featured.no}%` }} transition={{ duration: 0.6, delay: 0.1 }} className="h-full rounded-sm" style={{ background: "#DC143C" }} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#3B82F6] font-serif">
+                  ✓ You predicted {vote?.toUpperCase()} — Locked until {featured.resolves}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <Link href="/predictions" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif transition-colors flex items-center gap-1">
+                  More Predictions <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+function SidebarPredictionItem({ pred, sideVote: initialVote, sidePhase: initialPhase }: { pred: PredictionCard; sideVote: "yes" | "no" | null; sidePhase: PredPhase }) {
+  const [vote, setVote] = useState(initialVote)
+  const [phase, setPhase] = useState(initialPhase)
+  const predUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/predictions`
+
+  const handleQuickVote = (choice: "yes" | "no", e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation()
+    if (vote) return
+    setVote(choice)
+    localStorage.setItem(`tmh_pred_${pred.id}`, choice)
+    const unlocked = localStorage.getItem("tmh_email_submitted") || localStorage.getItem(`tmh_pred_unlocked_${pred.id}`)
+    if (unlocked) {
+      localStorage.setItem(`tmh_pred_unlocked_${pred.id}`, "true")
+      setPhase("locked")
+    } else {
+      setPhase("locked")
+      localStorage.setItem(`tmh_pred_unlocked_${pred.id}`, "true")
+    }
+  }
+
+  return (
+    <div className="py-3 border-b border-border group">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] uppercase tracking-widest text-[#3B82F6] font-serif font-bold">{pred.category}</p>
+          <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1">
+            {pred.question.length > 70 ? pred.question.slice(0, 70) + "…" : pred.question}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="flex-shrink-0 w-16 h-8">
+            <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
+              <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - (v / 100) * 20}`).join(" ")} fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinejoin="round" />
+              <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - ((100 - v) / 100) * 20}`).join(" ")} fill="none" stroke="#DC143C" strokeWidth="1" opacity="0.6" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <ShareMenu title={pred.question} shareUrl={predUrl} color="#3B82F6" />
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-1.5">
+        <span className="text-[9px] font-bold font-serif" style={{ color: "#10B981" }}>Yes {pred.yes}%</span>
+        <span className="text-[9px] font-bold font-serif" style={{ color: "#DC143C" }}>No {pred.no}%</span>
+        {vote ? (
+          <span className="text-[8px] font-bold font-serif ml-auto text-[#3B82F6]">✓ {vote.toUpperCase()}</span>
+        ) : (
+          <span className="ml-auto flex gap-1">
+            <button onClick={(e) => handleQuickVote("yes", e)} className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider font-serif border border-[#10B981]/40 text-[#10B981] hover:bg-[#10B981] hover:text-white transition-all rounded-sm">Y</button>
+            <button onClick={(e) => handleQuickVote("no", e)} className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider font-serif border border-[#DC143C]/40 text-[#DC143C] hover:bg-[#DC143C] hover:text-white transition-all rounded-sm">N</button>
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function Home() {
   const { data: featuredPoll, isLoading: featuredLoading } = useGetFeaturedPoll()
@@ -375,81 +706,7 @@ export default function Home() {
                 const yesPoints = featured.data.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
                 const noPoints = noData.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
                 const yesArea = `M${featured.data.map((v, i) => `${toX(i)},${toY(v)}`).join(" L")} L${toX(featured.data.length - 1)},${padT + plotH} L${padL},${padT + plotH} Z`
-                return (
-                  <Link href="/predictions" className="block">
-                    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 group hover:-translate-y-0.5 transition-all overflow-hidden" style={{ borderWidth: "1.5px" }}>
-                      <div className="flex-1 p-5">
-                        <p className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground font-serif mb-2">
-                          Confidence Over Time — Yes %
-                        </p>
-                        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full" style={{ maxHeight: 160 }}>
-                          <defs>
-                            <linearGradient id="homeYesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
-                              <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
-                            </linearGradient>
-                          </defs>
-                          {[0, 25, 50, 75, 100].map(v => (
-                            <g key={v}>
-                              <line x1={padL} x2={chartW - padR} y1={toY(v)} y2={toY(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-                              <text x={padL - 4} y={toY(v) + 3} fill="rgba(255,255,255,0.25)" fontSize="6" textAnchor="end" fontFamily="'Barlow Condensed', sans-serif">{v}</text>
-                            </g>
-                          ))}
-                          {featured.data.map((_, i) => {
-                            if (i % 3 !== 0 && i !== featured.data.length - 1) return null
-                            const mi = i < months.length ? i : i % months.length
-                            return <text key={i} x={toX(i)} y={chartH - 4} fill="rgba(255,255,255,0.3)" fontSize="5.5" textAnchor="middle" fontFamily="'Barlow Condensed', sans-serif">{months[mi]}</text>
-                          })}
-                          <line x1={padL} x2={chartW - padR} y1={toY(50)} y2={toY(50)} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" strokeDasharray="3,2" />
-                          <path d={yesArea} fill="url(#homeYesGrad)" />
-                          <polyline points={yesPoints} fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinejoin="round" />
-                          <polyline points={noPoints} fill="none" stroke="#DC143C" strokeWidth="1.2" strokeLinejoin="round" opacity="0.7" />
-                          <circle cx={toX(featured.data.length - 1)} cy={toY(featured.data[featured.data.length - 1])} r="2.5" fill="#10B981" />
-                          <circle cx={toX(featured.data.length - 1)} cy={toY(noData[noData.length - 1])} r="2" fill="#DC143C" />
-                          <text x={toX(featured.data.length - 1) + 1} y={toY(featured.data[featured.data.length - 1]) - 4} fill="#10B981" fontSize="6" fontWeight="700" fontFamily="'Barlow Condensed', sans-serif">{featured.data[featured.data.length - 1]}%</text>
-                        </svg>
-                        <p className="text-[9px] font-serif mt-2" style={{ color: "#10B981" }}>
-                          {featured.up ? "▲" : "▼"} Confidence moved {featured.up ? "+" : "-"}{featured.momentum}% in the last 30 days
-                        </p>
-                      </div>
-                      <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-border flex flex-col justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap mb-2">
-                            <span className="px-2 py-0.5 bg-foreground text-background text-[8px] font-bold uppercase tracking-[0.2em] font-serif">{featured.category}</span>
-                            <span className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] font-serif rounded-sm" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}>Resolves: {featured.resolves}</span>
-                          </div>
-                          <p className="font-serif font-black uppercase text-[15px] leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>{featured.question}</p>
-                          <p className="text-[10px] text-muted-foreground font-serif mt-2">{featured.count} predictions locked in</p>
-                        </div>
-                        <div className="space-y-2">
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#10B981" }}>Yes</span>
-                              <span className="text-[10px] font-bold font-serif" style={{ color: "#10B981" }}>{featured.yes}%</span>
-                            </div>
-                            <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                              <div className="h-full rounded-sm" style={{ width: `${featured.yes}%`, background: "#10B981" }} />
-                            </div>
-                            <p className="text-[8px] text-muted-foreground font-serif mt-0.5">{featured.up ? "▲" : "▼"} Up {featured.momentum}% this week</p>
-                          </div>
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-[10px] uppercase tracking-[0.15em] font-bold font-serif" style={{ color: "#DC143C" }}>No</span>
-                              <span className="text-[10px] font-bold font-serif" style={{ color: "#DC143C" }}>{featured.no}%</span>
-                            </div>
-                            <div className="h-3 rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                              <div className="h-full rounded-sm" style={{ width: `${featured.no}%`, background: "#DC143C" }} />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#10B981] hover:text-white hover:border-[#10B981]" style={{ borderColor: "#10B981", color: "#10B981" }}>Yes</button>
-                          <button className="flex-1 py-2.5 border font-bold text-[11px] uppercase tracking-[0.12em] font-serif transition-all duration-150 hover:bg-[#DC143C] hover:text-white hover:border-[#DC143C]" style={{ borderColor: "#DC143C", color: "#DC143C" }}>No</button>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
+                return <FeaturedPredictionCard featured={featured} chartW={chartW} chartH={chartH} padL={padL} padR={padR} padT={padT} padB={padB} plotW={plotW} plotH={plotH} toX={toX} toY={toY} yesPoints={yesPoints} noPoints={noPoints} yesArea={yesArea} months={months} />
               })()}
             </div>
 
@@ -465,33 +722,13 @@ export default function Home() {
               </div>
 
               <div>
-                {PREDICTIONS.slice(1, 6).map((pred) => (
-                  <Link key={pred.id} href="/predictions">
-                    <div className="py-3 border-b border-border group cursor-pointer">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[9px] uppercase tracking-widest text-[#3B82F6] font-serif font-bold">{pred.category}</p>
-                          <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1 group-hover:text-[#3B82F6] transition-colors">
-                            {pred.question.length > 70 ? pred.question.slice(0, 70) + "…" : pred.question}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0 w-16 h-8">
-                          <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
-                            <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - (v / 100) * 20}`).join(" ")} fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinejoin="round" />
-                            <polyline points={pred.data.map((v, i) => `${(i / (pred.data.length - 1)) * 60},${24 - ((100 - v) / 100) * 20}`).join(" ")} fill="none" stroke="#DC143C" strokeWidth="1" opacity="0.6" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-[9px] font-bold font-serif" style={{ color: "#10B981" }}>Yes {pred.yes}%</span>
-                        <span className="text-[9px] font-bold font-serif" style={{ color: "#DC143C" }}>No {pred.no}%</span>
-                        <span className={cn("text-[8px] font-bold font-serif ml-auto", pred.up ? "text-[#10B981]" : "text-[#DC143C]")}>
-                          {pred.up ? "▲" : "▼"}{pred.momentum}%
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                {PREDICTIONS.slice(1, 6).map((pred) => {
+                  const sideVote = getPredVote(pred.id)
+                  const sidePhase = getPredPhase(pred.id)
+                  return (
+                    <SidebarPredictionItem key={pred.id} pred={pred} sideVote={sideVote} sidePhase={sidePhase} />
+                  )
+                })}
               </div>
             </div>
 
@@ -529,9 +766,9 @@ export default function Home() {
                 const pts = topic.sparkData.map((v, i) => `${toX(i)},${toY(v)}`).join(" ")
                 const area = `M${topic.sparkData.map((v, i) => `${toX(i)},${toY(v)}`).join(" L")} L${toX(topic.sparkData.length - 1)},${padT + plotH} L${padL},${padT + plotH} Z`
                 const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+                const pulseUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/mena-pulse`
                 return (
-                  <Link href="/mena-pulse" className="block">
-                    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 group hover:-translate-y-0.5 transition-all overflow-hidden" style={{ borderWidth: "1.5px" }}>
+                    <div className="bg-card border border-border rounded-[4px] flex flex-col lg:flex-row gap-0 overflow-hidden" style={{ borderWidth: "1.5px" }}>
                       <div className="flex-1 p-5">
                         <p className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground font-serif mb-2">
                           Trend Over 12 Months
@@ -567,6 +804,7 @@ export default function Home() {
                       <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-border flex flex-col justify-center gap-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.2em] font-serif" style={{ background: `${topic.tagColor}20`, border: `1px solid ${topic.tagColor}40`, color: topic.tagColor }}>{topic.tag}</span>
+                          <ShareMenu title={`${topic.title}: ${topic.stat}`} shareUrl={pulseUrl} color="#10B981" />
                         </div>
                         <p className="font-serif font-black uppercase text-[15px] leading-tight text-foreground tracking-tight" style={{ lineHeight: 1.15 }}>{topic.title}</p>
                         <div className="flex items-baseline gap-2">
@@ -574,10 +812,14 @@ export default function Home() {
                           <span className={cn("text-[10px] font-bold font-serif", topic.deltaUp ? "text-[#10B981]" : "text-[#DC143C]")}>{topic.deltaUp ? "▲" : "▼"} {topic.delta}</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">{topic.blurb}</p>
-                        <p className="text-[8px] text-muted-foreground/60 font-serif uppercase tracking-widest">Source: {topic.source}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[8px] text-muted-foreground/60 font-serif uppercase tracking-widest">Source: {topic.source}</p>
+                          <Link href="/mena-pulse" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-[#10B981] font-serif transition-colors flex items-center gap-1">
+                            Explore <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </Link>
                 )
               })()}
             </div>
@@ -604,30 +846,32 @@ export default function Home() {
                   const max = Math.max(...t2.sparkData)
                   const min = Math.min(...t2.sparkData)
                   const rng = max - min || 1
+                  const pUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/mena-pulse`
                   return (
-                    <Link key={idx} href="/mena-pulse">
-                      <div className="py-3 border-b border-border group cursor-pointer">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[9px] uppercase tracking-widest font-serif font-bold" style={{ color: t2.tagColor }}>{t2.tag}</p>
-                            <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1 group-hover:text-[#10B981] transition-colors">
-                              {t2.title}
-                            </p>
-                          </div>
+                    <div key={idx} className="py-3 border-b border-border group">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] uppercase tracking-widest font-serif font-bold" style={{ color: t2.tagColor }}>{t2.tag}</p>
+                          <p className="font-serif font-black uppercase text-[12px] leading-tight text-foreground mt-1">
+                            {t2.title}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
                           <div className="flex-shrink-0 w-16 h-8">
                             <svg viewBox="0 0 60 24" className="w-full h-full" preserveAspectRatio="none">
                               <polyline points={t2.sparkData.map((v, i) => `${(i / (t2.sparkData.length - 1)) * 60},${24 - ((v - min) / rng) * 20}`).join(" ")} fill="none" stroke={t2.tagColor} strokeWidth="1.5" strokeLinejoin="round" />
                             </svg>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-[9px] font-bold font-serif" style={{ color: t2.tagColor }}>{t2.stat}</span>
-                          <span className={cn("text-[8px] font-bold font-serif ml-auto", t2.deltaUp ? "text-[#10B981]" : "text-[#DC143C]")}>
-                            {t2.deltaUp ? "▲" : "▼"} {t2.delta}
-                          </span>
+                          <ShareMenu title={`${t2.title}: ${t2.stat}`} shareUrl={pUrl} color="#10B981" />
                         </div>
                       </div>
-                    </Link>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="text-[9px] font-bold font-serif" style={{ color: t2.tagColor }}>{t2.stat}</span>
+                        <span className={cn("text-[8px] font-bold font-serif ml-auto", t2.deltaUp ? "text-[#10B981]" : "text-[#DC143C]")}>
+                          {t2.deltaUp ? "▲" : "▼"} {t2.delta}
+                        </span>
+                      </div>
+                    </div>
                   )
                 })}
               </div>

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { Layout } from "@/components/layout/Layout"
-import { Search, X } from "lucide-react"
+import { Search, X, Share2, CheckCircle2 } from "lucide-react"
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
 import { useI18n } from "@/lib/i18n"
 
@@ -1066,6 +1066,34 @@ function MiniSparkline({ data, color = "#DC143C", id }: { data: number[]; color?
   )
 }
 
+function PulseShareBtn({ title, stat }: { title: string; stat: string }) {
+  const [copied, setCopied] = useState(false)
+  const url = typeof window !== "undefined" ? `${window.location.origin}/mena-pulse` : "/mena-pulse"
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation()
+    const shareText = `${title}: ${stat} — The Pulse by The Tribunal`
+    if (navigator.share) {
+      try { await navigator.share({ url, title: shareText }); return } catch (err) { if ((err as Error).name === "AbortError") return }
+    }
+    if (navigator.clipboard?.writeText) {
+      try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); return } catch {}
+    }
+    try {
+      const ta = document.createElement("textarea")
+      ta.value = url; ta.style.cssText = "position:fixed;top:-9999px;opacity:0"
+      document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); document.body.removeChild(ta)
+      setCopied(true); setTimeout(() => setCopied(false), 2000)
+    } catch {}
+  }
+
+  return (
+    <button onClick={handleShare} title="Share this insight" style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 3, cursor: "pointer", padding: "4px 10px", color: copied ? "#10B981" : "rgba(255,255,255,0.5)", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+      {copied ? <><CheckCircle2 size={12} /> Copied</> : <><Share2 size={12} /> Share</>}
+    </button>
+  )
+}
+
 function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -1159,9 +1187,12 @@ function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number 
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, marginBottom: 8 }}>
             {topic.blurb}
           </p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-            {t("Source:")} {topic.source}
-          </p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
+              {t("Source:")} {topic.source}
+            </p>
+            <PulseShareBtn title={topic.title} stat={topic.stat} />
+          </div>
         </div>
       )}
     </div>
