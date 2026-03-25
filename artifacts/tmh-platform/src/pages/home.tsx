@@ -348,9 +348,14 @@ export default function Home() {
 
             {/* RIGHT: Sidebar */}
             <div className="lg:pl-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-border">
-              <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-4 font-serif">
-                {t("Latest Debates")}
-              </p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground font-serif">
+                  {t("Latest Debates")}
+                </p>
+                <Link href="/polls" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif transition-colors">
+                  {t("View All")}
+                </Link>
+              </div>
 
               {trendingLoading ? (
                 <div className="space-y-4">
@@ -377,39 +382,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── THIS WEEK'S DEBATES ── */}
-      <section className="py-16 bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12 border-l-4 border-primary pl-4">
-            <h2 className="font-serif font-black uppercase text-2xl text-foreground">
-              {t("This Week's Debates")}
-            </h2>
-            <Link href="/polls" className="hidden sm:inline-block text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif">
-              {t("View All")}
-            </Link>
-          </div>
-
-          {trendingLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[1, 2, 3].map(i => <div key={i} className="h-72 bg-secondary animate-pulse border border-border" />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {trendingPolls?.polls.slice(0, 4).map((poll, idx) => (
-                <div key={poll.id} className={cn(idx === 0 && trendingPolls.polls.length >= 3 ? "md:col-span-2" : "")}>
-                  <PollCard poll={poll} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-8 sm:hidden">
-            <Link href="/polls" className="block text-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground border border-border py-4 font-serif">
-              {t("View All Debates")}
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* ── PREDICTIONS ── */}
       <section id="predictions" className="py-20 bg-background border-b border-border">
