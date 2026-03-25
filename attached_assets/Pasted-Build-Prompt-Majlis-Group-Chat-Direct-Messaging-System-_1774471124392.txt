@@ -1,0 +1,117 @@
+Build Prompt: Majlis Group Chat & Direct Messaging System
+What to Build
+Add full group chat and peer-to-peer (DM) messaging to the existing Majlis private forum at /majlis. Currently the Majlis has a single shared chat room with mock data on the frontend. Replace this with a real, multi-channel system: users can create/join groups and DM other members directly. All messages must be encrypted before storage in the existing PostgreSQL database (Drizzle ORM — NOT Supabase).
+
+Product Placement
+The Majlis page (/majlis) currently shows a single group chat + members sidebar. Redesign the layout to:
+
+Left sidebar: Channel/conversation list — "General" (default group), user-created groups, and DM threads. Each shows name, last message preview (decrypted client-side), unread count, and timestamp.
+Center: Active chat view (the existing message UI — keep the MessageBubble component style, reply threading, scroll-to-bottom button).
+Right sidebar: Members panel (already exists) — add a "Message" button next to each member to start a DM. Add a "Create Group" button at the top.
+On mobile: left sidebar becomes a slide-out drawer; right sidebar toggles as it does now.
+Architecture & Existing Code
+Stack: pnpm monorepo, React + Vite frontend (artifacts/tmh-platform/), Express 5 API (artifacts/api-server/), PostgreSQL + Drizzle ORM (lib/db/), Tailwind CSS.
+
+Existing Majlis system (keep and extend — don't break):
+
+Auth: invite-only registration. Users have majlis_users table (id, profileId, email, passwordHash, displayName, isActive, isBanned, isMuted, lastSeenAt). Sessions stored in-memory Map keyed by token. Auth via x-majlis-token header.
+Messages: majlis_messages table (id, userId, content, replyToId, isEdited, isDeleted, createdAt). Currently stores plaintext — this needs to change to encrypted.
+API routes in artifacts/api-server/src/routes/majlis.ts: register, login, verify, GET/POST messages, poll for new messages, GET members. Plus CMS admin routes for moderation.
+Frontend in artifacts/tmh-platform/src/pages/majlis.tsx: currently uses MOCK_MEMBERS and buildMockMessages() — the frontend is NOT wired to the real API. Login page at majlis-login.tsx also uses a MOCK_USER and doesn't call the real API.
+DB schema in lib/db/src/schema/majlis.ts: has majlisInvitesTable, majlisUsersTable, majlisMessagesTable.
+New Database Tables (Drizzle ORM in lib/db/src/schema/majlis.ts)
+Add these tables:
+
+majlis_channels — group chat channels
+
+id (serial PK)
+name (text, not null) — channel display name
+description (text, nullable)
+type (text, not null) — "group" or "dm"
+createdBy (integer, FK → majlis_users.id)
+isArchived (boolean, default false)
+createdAt (timestamp, defaultNow)
+majlis_channel_members — who belongs to which channel
+
+id (serial PK)
+channelId (integer, FK → majlis_channels.id)
+userId (integer, FK → majlis_users.id)
+joinedAt (timestamp, defaultNow)
+Unique constraint on (channelId, userId)
+Update majlis_messages: Add a channelId (integer, FK → majlis_channels.id, nullable for backward compat). Messages without channelId are legacy "General" room messages. All new messages must have channelId.
+
+Message Encryption
+Encrypt messages before storing in DB. Approach:
+
+Use AES-256-CBC encryption with a server-side encryption key stored as an environment variable (MAJLIS_ENCRYPTION_KEY — 32-byte hex string).
+Encrypt message content server-side before INSERT. Store the encrypted ciphertext + IV (prepend IV to ciphertext, both hex-encoded, separated by :) in the content column.
+Decrypt server-side when reading messages before sending to client.
+This is symmetric encryption (not end-to-end) — the server can read messages but the database at rest contains only ciphertext.
+Use Node.js built-in crypto module: crypto.createCipheriv('aes-256-cbc', key, iv) / crypto.createDecipheriv(...).
+Generate a random IV per message for security.
+Do NOT use salted hashing (per user request) — use deterministic symmetric encryption with per-message IV.
+API Endpoints to Add (in artifacts/api-server/src/routes/majlis.ts)
+All require requireMajlisAuth middleware:
+
+Channels:
+
+POST /majlis/channels — create a group channel (body: { name, description?, memberIds[] }). Creator auto-added. For DM: { type: "dm", memberIds: [otherUserId] } — enforce exactly 2 members, check no duplicate DM channel exists.
+GET /majlis/channels — list channels the current user belongs to. Return last message preview (decrypted), unread count, member count.
+GET /majlis/channels/:id — get channel details + members list.
+POST /majlis/channels/:id/members — add members to a group (body: { userIds[] }). Only group creator can add. Not allowed for DM channels.
+DELETE /majlis/channels/:id/members/:userId — leave a channel (users can leave groups; can't leave DMs, only archive).
+Messages (update existing):
+
+GET /majlis/channels/:channelId/messages — paginated messages for a channel (replaces current /majlis/messages). Decrypt before returning.
+POST /majlis/channels/:channelId/messages — send message to a channel. Encrypt before storing.
+GET /majlis/channels/:channelId/messages/poll?after=ID — poll for new messages in a channel.
+Keep legacy /majlis/messages endpoint working for backward compat (treat as "General" channel).
+Frontend Changes (artifacts/tmh-platform/src/pages/majlis.tsx)
+Wire to real API: Remove all MOCK_MEMBERS, MOCK_USER, buildMockMessages(). The login page (majlis-login.tsx) must call POST /api/majlis/auth/login and POST /api/majlis/auth/register. The chat page must call real API endpoints for channels, messages, members.
+
+Channel sidebar (left):
+
+List all channels (groups + DMs) the user belongs to.
+Show channel name (for DMs, show the other person's name), last message snippet, timestamp, unread dot.
+"Create Group" button opens a modal: enter name, select members from a checkbox list.
+Active channel highlighted.
+On mobile: slide-out drawer triggered by a hamburger/channel icon.
+Chat area (center):
+
+Keep existing MessageBubble component style (it looks great).
+Load messages for the active channel.
+Poll for new messages every 3 seconds (existing pattern).
+Reply threading (already built — keep it).
+Members sidebar (right):
+
+Keep existing MembersSidebar component.
+Add a "Message" button (small envelope icon) next to each member — clicking creates/opens a DM channel with that user.
+For group channels: show channel members. For DMs: show the other person's profile.
+Seed a "General" channel: On first load or via a migration, create a default "General" group channel and add all existing Majlis users to it. This replaces the current single-room behavior.
+
+Design Rules (must match existing)
+Dark theme, crimson primary (hsl(348 83% 53%)), sharp corners
+Fonts: Playfair Display for headings, Barlow Condensed for labels, DM Sans for body
+Text sizing: text-[9px] to text-[11px] for labels, uppercase tracking-[0.2em]
+Use cn() utility for conditional classes
+Icons from lucide-react
+Existing components: keep MessageBubble, MembersSidebar, MemberItem styles
+NOT needed (out of scope)
+Typing indicators
+Read receipts
+WebSocket/real-time (polling is fine)
+File/image uploads in chat
+Message reactions/emoji
+Supabase (use existing PostgreSQL + Drizzle)
+Edge Cases to Handle
+DM deduplication: if user A messages user B, and user B later tries to message user A, open the existing DM channel instead of creating a new one.
+Banned/muted users: banned users can't access any channel. Muted users can read but not send.
+Empty channels: show a welcome/empty state.
+Channel with deleted messages: handle isDeleted flag in message display.
+Legacy messages (no channelId): migrate or display in "General" channel.
+Encryption key missing: fail loudly on server startup if MAJLIS_ENCRYPTION_KEY env var is not set. Provide a script/instruction to generate one (node -e "console.log(require('crypto').randomBytes(32).toString('hex'))").
+Testing Approach
+Create test accounts via the CMS invite flow or directly seed the DB.
+Verify: create group → send messages → messages appear encrypted in DB → messages display decrypted in UI.
+Verify: DM a member → conversation appears in sidebar → messages flow correctly.
+Verify: legacy single-room messages still visible in "General" channel.
