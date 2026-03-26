@@ -24,3 +24,9 @@ id = "gF2DN2yR2iloS0tZWdKAI"
 uri = "file://tmh-full-source.txt"
 type = "text"
 title = "TMH Full Platform Source — All Pages, Components & Styles"
+
+[[outputs]]
+id = "lJYNYLV26UoCEWqIdtmuB"
+uri = "file://docs/PRODUCT.md"
+type = "text"
+title = "The Tribunal — Complete Product Bible"
