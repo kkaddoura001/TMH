@@ -6,13 +6,6 @@ import { cn } from "@/lib/utils"
 import { useI18n, LangToggle } from "@/lib/i18n"
 import { useSiteSettings } from "@/hooks/use-cms-data"
 
-interface SiteSettingsData {
-  navigation?: {
-    links?: Array<{ label: string; href: string; icon?: string; enabled?: boolean }>
-    ctaButton?: { label: string; href: string; enabled?: boolean }
-  }
-}
-
 export function Navbar() {
   const [location] = useLocation()
   const { isDark, toggleTheme } = useTheme()
@@ -22,7 +15,7 @@ export function Navbar() {
   const [isHidden, setIsHidden] = useState(false)
   const lastScrollY = useRef(0)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { data: settings } = useSiteSettings<SiteSettingsData>()
+  const { data: settings } = useSiteSettings()
 
   useEffect(() => {
     const clearIdleTimer = () => {
@@ -85,6 +78,12 @@ export function Navbar() {
     ? (rawCtaButton || { label: t("Join The Voices"), href: "/apply" })
     : null
 
+  const seoSettings = settings?.seo
+  const brandName = seoSettings?.siteTitle?.split(" by ")?.[0] || "The Tribunal"
+  const brandSub = seoSettings?.siteTitle?.includes(" by ")
+    ? `by ${seoSettings.siteTitle.split(" by ")[1]}`
+    : "by The Middle East Hustle"
+
   return (
     <header
       className={cn(
@@ -100,10 +99,10 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <Link href="/" className="flex flex-col leading-none group">
               <span className="font-display font-black text-lg uppercase tracking-tight text-foreground leading-none group-hover:text-primary transition-colors">
-                The Tribunal<span className="text-primary">.</span>
+                {brandName}<span className="text-primary">.</span>
               </span>
               <span className="text-[7px] font-serif tracking-[0.2em] uppercase text-muted-foreground leading-none mt-1.5">
-                by The Middle East Hustle
+                {brandSub}
               </span>
             </Link>
 

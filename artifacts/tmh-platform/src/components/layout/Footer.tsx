@@ -1,30 +1,37 @@
 import { Link } from "wouter"
 import { useI18n } from "@/lib/i18n"
-import { useSiteSettings } from "@/hooks/use-cms-data"
+import { useSiteSettings, useDesignTokens, getTokenValue } from "@/hooks/use-cms-data"
 
-interface SiteSettingsData {
-  footer?: {
-    links?: Array<{ label: string; href: string }>
-    socialLinks?: Array<{ platform: string; url: string }>
-    tagline?: string
-    copyright?: string
-  }
-}
-
-const SOCIALS_DEFAULT = [
+const FALLBACK_SOCIALS = [
   { label: "X", href: "https://x.com/tmhustle" },
   { label: "LinkedIn", href: "https://linkedin.com/company/the-middle-east-hustle" },
   { label: "Instagram", href: "https://instagram.com/tmhustle" },
 ]
 
+const FALLBACK_TAGLINE = "The voice of 541 million. Real people. Real hustle. Real change."
+const FALLBACK_COPYRIGHT = "© 2026 The Middle East Hustle. All rights reserved."
+
 export function Footer() {
   const { t } = useI18n()
-  const { data: settings } = useSiteSettings<SiteSettingsData>()
+  const { data: siteSettings } = useSiteSettings()
+  const { data: designTokens } = useDesignTokens()
 
-  const footerConfig = settings?.footer
+  const footerSettings = siteSettings?.footer
+  const SOCIALS = footerSettings?.socialLinks?.length
+    ? footerSettings.socialLinks.map(s => ({ label: s.platform, href: s.url }))
+    : designTokens?.items
+      ? [
+          { label: "X", href: getTokenValue(designTokens.items, "social_x", "https://x.com/tmhustle") },
+          { label: "LinkedIn", href: getTokenValue(designTokens.items, "social_linkedin", "https://linkedin.com/company/the-middle-east-hustle") },
+          { label: "Instagram", href: getTokenValue(designTokens.items, "social_instagram", "https://instagram.com/tmhustle") },
+        ]
+      : FALLBACK_SOCIALS
 
-  const NAV = footerConfig?.links?.length
-    ? footerConfig.links
+  const tagline = footerSettings?.tagline || FALLBACK_TAGLINE
+  const copyright = footerSettings?.copyright || FALLBACK_COPYRIGHT
+
+  const NAV = footerSettings?.links?.length
+    ? footerSettings.links.map(link => ({ label: t(link.label), href: link.href }))
     : [
         { label: t("About"), href: "/about" },
         { label: t("Pulse"), href: "/mena-pulse" },
@@ -34,13 +41,6 @@ export function Footer() {
         { label: t("Join The Voices"), href: "/apply" },
       ]
 
-  const SOCIALS = footerConfig?.socialLinks?.length
-    ? footerConfig.socialLinks.map(s => ({ label: s.platform, href: s.url }))
-    : SOCIALS_DEFAULT
-
-  const tagline = footerConfig?.tagline || "The voice of 541 million. Real people. Real hustle. Real change."
-  const copyright = footerConfig?.copyright || `© ${new Date().getFullYear()} The Tribunal, by The Middle East Hustle. Founded by Kareem Kaddoura.`
-
   return (
     <footer className="bg-foreground text-background pt-16 pb-8 border-t-2 border-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,10 +48,10 @@ export function Footer() {
           <div className="flex-1">
             <Link href="/">
               <span className="font-display font-black text-3xl uppercase tracking-tight text-background leading-none block hover:text-primary transition-colors">
-                The Tribunal<span className="text-primary">.</span>
+                {siteSettings?.seo?.siteTitle?.split(" by ")?.[0] || "The Tribunal"}<span className="text-primary">.</span>
               </span>
               <span className="text-[9px] font-serif tracking-[0.2em] uppercase text-background/40 mt-1 block">
-                {t("by The Middle East Hustle")}
+                {t(siteSettings?.seo?.siteTitle?.includes(" by ") ? `by ${siteSettings.seo.siteTitle.split(" by ")[1]}` : "by The Middle East Hustle")}
               </span>
             </Link>
             <p className="text-background/50 font-sans text-sm mt-4 max-w-xs leading-relaxed">

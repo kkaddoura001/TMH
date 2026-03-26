@@ -7,6 +7,7 @@ import { useVotePoll } from "@workspace/api-client-react"
 import type { Poll, PollOption } from "@workspace/api-client-react/src/generated/api.schemas"
 import { useVoter } from "@/hooks/use-voter"
 import { useToast } from "@/hooks/use-toast"
+import { useSiteSettings } from "@/hooks/use-cms-data"
 import { cn } from "@/lib/utils"
 import { ResultsBreakdown } from "./ResultsBreakdown"
 import { generateShareCard, generateStoryCard, getPollUrl, getWhatsAppUrl, getLinkedInUrl } from "@/lib/shareCard"
@@ -64,6 +65,8 @@ function generateInsight(
 export function PollCard({ poll, featured = false }: PollCardProps) {
   const { hasVoted, getVotedOption, recordVote, token, currentStreak, isFirstTimer, markWelcomed, totalVotesAllTime } = useVoter()
   const { toast } = useToast()
+  const { data: siteSettings } = useSiteSettings()
+  const shareGate = siteSettings?.shareGate
   const voteMutation = useVotePoll()
   const [localOptions, setLocalOptions] = useState<PollOption[]>(poll.options ?? [])
   const [localTotal, setLocalTotal] = useState(poll.totalVotes ?? 0)
@@ -226,7 +229,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
     if (!email.trim()) return
     setEmailSubmitted(true)
     localStorage.setItem("tmh_email_submitted", "true")
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
+    const baseUrl = import.meta.env?.VITE_API_BASE_URL ?? ""
     fetch(`${baseUrl}/api/polls/${poll.id}/email-unlock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -423,7 +426,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-primary">
                   <Lock className="w-3.5 h-3.5" />
-                  Share to unlock full breakdown
+                  {shareGate?.heading || "Share to unlock full breakdown"}
                 </div>
               </motion.div>
             )}
@@ -581,16 +584,16 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
               onClick={unlock}
               className="absolute top-4 right-4 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground font-serif"
             >
-              Skip →
+              {shareGate?.skipText || "Skip →"}
             </button>
 
             {/* Header */}
             <div>
               <p className="font-serif font-black uppercase text-2xl tracking-tight text-foreground" style={{ fontSize: "2.1rem", lineHeight: 1.05 }}>
-                Unlock Full Results
+                {shareGate?.heading || "Unlock Full Results"}
               </p>
               <p className="text-[13px] text-muted-foreground font-sans mt-2 leading-relaxed">
-                Share this debate — or drop your email. Either unlocks the full regional breakdown.
+                {shareGate?.body || "Share this debate — or drop your email. Either unlocks the full regional breakdown."}
               </p>
             </div>
 
@@ -668,7 +671,7 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                 <input
                   type="email"
                   required
-                  placeholder="your@email.com"
+                  placeholder={shareGate?.emailPlaceholder || "your@email.com"}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="flex-1 px-4 py-3 text-foreground text-sm font-sans focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground rounded-sm"

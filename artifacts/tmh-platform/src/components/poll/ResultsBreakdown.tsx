@@ -52,7 +52,7 @@ export function ResultsBreakdown({ pollId, totalVotes, userCountry }: ResultsBre
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
+    const baseUrl = import.meta.env?.VITE_API_BASE_URL ?? ""
     fetch(`${baseUrl}/api/polls/${pollId}/breakdown`)
       .then(r => r.json())
       .then(data => {

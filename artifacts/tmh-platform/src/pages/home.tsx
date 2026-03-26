@@ -10,8 +10,23 @@ import { useI18n } from "@/lib/i18n"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
-import { PREDICTIONS as PREDICTIONS_FALLBACK, type PredictionCard } from "@/data/predictions-data"
-import { usePublicPredictions, usePublicPulseTopics, useLiveCounts, useHomepageConfig } from "@/hooks/use-cms-data"
+import { PREDICTIONS as FALLBACK_PREDICTIONS, type PredictionCard } from "@/data/predictions-data"
+import { usePredictions, usePulseTopics, useHomepageConfig, useLiveCounts, type ApiPrediction } from "@/hooks/use-cms-data"
+
+function apiToPredCard(p: ApiPrediction): PredictionCard {
+  return {
+    id: p.id,
+    category: p.category,
+    resolves: p.resolvesAt ?? "TBD",
+    question: p.question,
+    count: p.totalCount.toLocaleString(),
+    yes: p.yesPercentage,
+    no: p.noPercentage,
+    momentum: p.momentum,
+    up: p.momentumDirection === "up",
+    data: p.trendData?.length ? p.trendData : Array.from({ length: 12 }, () => p.yesPercentage),
+  }
+}
 
 async function copyText(text: string): Promise<boolean> {
   if (navigator.clipboard?.writeText) {
@@ -144,7 +159,7 @@ function LiveActivity() {
   const { t } = useI18n()
 
   useEffect(() => {
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
+    const baseUrl = import.meta.env?.VITE_API_BASE_URL ?? ""
     const fetchActivity = () => {
       fetch(`${baseUrl}/api/activity`)
         .then(r => r.json())
@@ -514,10 +529,10 @@ export default function Home() {
   const { data: trendingPolls, isLoading: trendingLoading } = useListPolls({ filter: "trending", limit: 5 })
   const { data: featuredProfiles, isLoading: profilesLoading } = useListProfiles({ filter: "featured", limit: 8 })
   const { data: categories } = useListCategories()
-  const { data: apiPredictions } = usePublicPredictions<{ items: Array<{ id: number; question: string; category: string; resolvesAt: string; yesPercentage: number; noPercentage: number; totalCount: number; momentum: number; momentumDirection: string; trendData: number[] }> }>()
-  const { data: apiPulseTopics } = usePublicPulseTopics<{ items: Array<{ tag: string; tagColor: string; title: string; stat: string; delta: string; deltaUp: boolean; sparkData: number[] }> }>()
+  const { data: apiPredictions } = usePredictions()
+  const { data: apiPulseTopics } = usePulseTopics()
   const { data: liveCounts } = useLiveCounts()
-  const { data: homepageConfig } = useHomepageConfig<{ masthead?: { basePopulation?: number; growthRate?: number } }>()
+  const { data: homepageConfig } = useHomepageConfig<{ masthead?: { basePopulation?: number; growthRate?: number }; populationBase?: number; populationBaseDate?: string; growthRate?: number; sectionStats?: { debates?: string; predictions?: string; pulse?: string; voices?: string } }>()
   const [ctaEmail, setCtaEmail] = useState("")
   const [ctaJoined, setCtaJoined] = useState(() => !!localStorage.getItem("tmh_cta_joined"))
   const [pulseHovIdx, setPulseHovIdx] = useState<number | null>(null)
@@ -527,6 +542,11 @@ export default function Home() {
   )
   const { t, isAr } = useI18n()
 
+  const PREDICTIONS: PredictionCard[] = useMemo(() => {
+    if (apiPredictions?.items?.length) return apiPredictions.items.map(apiToPredCard)
+    return FALLBACK_PREDICTIONS
+  }, [apiPredictions])
+
   const handleCtaSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!ctaEmail.trim()) return
@@ -534,65 +554,50 @@ export default function Home() {
     setCtaJoined(true)
   }
 
-  const PREDICTIONS: PredictionCard[] = useMemo(() => {
-    if (apiPredictions?.items?.length) {
-      return apiPredictions.items.map(p => ({
-        id: p.id,
-        category: p.category,
-        resolves: p.resolvesAt,
-        question: p.question,
-        count: p.totalCount.toLocaleString(),
-        yes: p.yesPercentage,
-        no: p.noPercentage,
-        momentum: p.momentum,
-        up: p.momentumDirection === "up",
-        data: p.trendData?.length ? p.trendData : [p.yesPercentage],
-      }))
-    }
-    return PREDICTIONS_FALLBACK
-  }, [apiPredictions])
-
   const tickerPolls = trendingPolls?.polls ?? []
   const debateItems = tickerPolls.slice(0, 8).map(p => ({
     topic: p.question?.length > 38 ? p.question.substring(0, 36) + "…" : p.question ?? "Debate",
     badge: "DEBATE" as const,
     stat: `${(p.totalVotes ?? 0).toLocaleString()} votes`,
   }))
-  const predictionItemsFallback = [
-    { topic: "NEOM's Line will have residents by 2030?", badge: "PREDICTION" as const, stat: "36% yes" },
-    { topic: "Saudi non-oil GDP to exceed 50%?", badge: "PREDICTION" as const, stat: "62% yes" },
-    { topic: "UAE income tax within 3 years?", badge: "PREDICTION" as const, stat: "38% yes" },
-    { topic: "$10B MENA startup in 2026?", badge: "PREDICTION" as const, stat: "44% yes" },
-    { topic: "Arabic mandatory in Dubai schools?", badge: "PREDICTION" as const, stat: "58% yes" },
-    { topic: "Riyadh Metro fully operational?", badge: "PREDICTION" as const, stat: "64% yes" },
-    { topic: "Saudi 2034 World Cup confirmed?", badge: "PREDICTION" as const, stat: "91% yes" },
-    { topic: "Oil above $85 all of 2026?", badge: "PREDICTION" as const, stat: "52% yes" },
-  ]
-  const predictionItems = apiPredictions?.items?.length
-    ? apiPredictions.items.slice(0, 8).map(p => ({
-        topic: p.question.length > 38 ? p.question.substring(0, 36) + "…" : p.question,
+  const predictionItems = useMemo(() => {
+    if (apiPredictions?.items?.length) {
+      return apiPredictions.items.slice(0, 8).map(p => ({
+        topic: p.question.length > 40 ? p.question.substring(0, 38) + "…" : p.question,
         badge: "PREDICTION" as const,
         stat: `${p.yesPercentage}% yes`,
       }))
-    : predictionItemsFallback
-
-  const pulseItemsFallback = [
-    { topic: "Youth unemployment across MENA", badge: "PULSE" as const, stat: "↑ 23%" },
-    { topic: "Fintech adoption in GCC", badge: "PULSE" as const, stat: "↑ 340%" },
-    { topic: "Renewable energy investment", badge: "PULSE" as const, stat: "$15.2B" },
-    { topic: "Golden visa applications surge", badge: "PULSE" as const, stat: "↑ 67%" },
-    { topic: "Arabic content digital deficit", badge: "PULSE" as const, stat: "4% of web" },
-    { topic: "MENA cinema box office boom", badge: "PULSE" as const, stat: "↑ 54%" },
-    { topic: "Diabetes crisis in the Gulf", badge: "PULSE" as const, stat: "↑ 17%" },
-    { topic: "GCC military spending", badge: "PULSE" as const, stat: "$105B" },
-  ]
-  const pulseItems = apiPulseTopics?.items?.length
-    ? apiPulseTopics.items.slice(0, 8).map(p => ({
-        topic: p.title,
+    }
+    return [
+      { topic: "NEOM's Line will have residents by 2030?", badge: "PREDICTION" as const, stat: "36% yes" },
+      { topic: "Saudi non-oil GDP to exceed 50%?", badge: "PREDICTION" as const, stat: "62% yes" },
+      { topic: "UAE income tax within 3 years?", badge: "PREDICTION" as const, stat: "38% yes" },
+      { topic: "$10B MENA startup in 2026?", badge: "PREDICTION" as const, stat: "44% yes" },
+      { topic: "Arabic mandatory in Dubai schools?", badge: "PREDICTION" as const, stat: "58% yes" },
+      { topic: "Riyadh Metro fully operational?", badge: "PREDICTION" as const, stat: "64% yes" },
+      { topic: "Saudi 2034 World Cup confirmed?", badge: "PREDICTION" as const, stat: "91% yes" },
+      { topic: "Oil above $85 all of 2026?", badge: "PREDICTION" as const, stat: "52% yes" },
+    ]
+  }, [apiPredictions])
+  const pulseItems = useMemo(() => {
+    if (apiPulseTopics?.items?.length) {
+      return apiPulseTopics.items.slice(0, 8).map(t => ({
+        topic: t.title.length > 35 ? t.title.substring(0, 33) + "…" : t.title,
         badge: "PULSE" as const,
-        stat: p.deltaUp ? `↑ ${p.delta}` : p.stat,
+        stat: `${t.deltaUp ? "↑" : "↓"} ${t.delta}`,
       }))
-    : pulseItemsFallback
+    }
+    return [
+      { topic: "Youth unemployment across MENA", badge: "PULSE" as const, stat: "↑ 23%" },
+      { topic: "Fintech adoption in GCC", badge: "PULSE" as const, stat: "↑ 340%" },
+      { topic: "Renewable energy investment", badge: "PULSE" as const, stat: "$15.2B" },
+      { topic: "Golden visa applications surge", badge: "PULSE" as const, stat: "↑ 67%" },
+      { topic: "Arabic content digital deficit", badge: "PULSE" as const, stat: "4% of web" },
+      { topic: "MENA cinema box office boom", badge: "PULSE" as const, stat: "↑ 54%" },
+      { topic: "Diabetes crisis in the Gulf", badge: "PULSE" as const, stat: "↑ 17%" },
+      { topic: "GCC military spending", badge: "PULSE" as const, stat: "$105B" },
+    ]
+  }, [apiPulseTopics])
   const maxLen = Math.max(debateItems.length, predictionItems.length, pulseItems.length)
   const interleaved: typeof debateItems = []
   for (let i = 0; i < maxLen; i++) {
@@ -655,10 +660,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-4 gap-0 divide-x divide-border">
             {[
-              { href: "/polls", label: t("Debates"), desc: "Vote on the questions shaping MENA", count: liveCounts ? String(liveCounts.debates) : "422", accent: "#DC143C" },
-              { href: "/predictions", label: t("Predictions"), desc: "Bet on what actually happens next", count: liveCounts ? String(liveCounts.predictions) : "230", accent: "#3B82F6" },
-              { href: "/mena-pulse", label: t("The Pulse"), desc: "Real trends backed by real data", count: liveCounts ? String(liveCounts.pulseTopics) : "78", accent: "#10B981" },
-              { href: "/profiles", label: t("Voices"), desc: "The people shaping the region", count: liveCounts ? String(liveCounts.voices) : "103", accent: "#A855F7" },
+              { href: "/polls", label: t("Debates"), desc: "Vote on the questions shaping MENA", count: String(homepageConfig?.sectionStats?.debates ?? liveCounts?.debates ?? "422"), accent: "#DC143C" },
+              { href: "/predictions", label: t("Predictions"), desc: "Bet on what actually happens next", count: String(homepageConfig?.sectionStats?.predictions ?? liveCounts?.predictions ?? apiPredictions?.total ?? "230"), accent: "#3B82F6" },
+              { href: "/mena-pulse", label: t("The Pulse"), desc: "Real trends backed by real data", count: String(homepageConfig?.sectionStats?.pulse ?? liveCounts?.pulseTopics ?? "78"), accent: "#10B981" },
+              { href: "/profiles", label: t("Voices"), desc: "The people shaping the region", count: String(homepageConfig?.sectionStats?.voices ?? liveCounts?.voices ?? "103"), accent: "#A855F7" },
             ].map(item => (
               <Link key={item.href} href={item.href} className="group flex flex-col items-center justify-center gap-1 py-3 px-4 hover:bg-secondary/30 transition-colors">
                 <div className="flex items-center gap-3">
@@ -847,7 +852,7 @@ export default function Home() {
                 {t("TODAY'S PULSE")}
               </div>
               {(() => {
-                const topic = {
+                const fallbackTopic = {
                   tag: "MONEY", tagColor: "#F59E0B",
                   title: "Sovereign Wealth Power",
                   stat: "$4.1 Trillion", delta: "+18%", deltaUp: true,
@@ -855,6 +860,14 @@ export default function Home() {
                   source: "SWF Institute / PIF Annual Report 2026",
                   sparkData: [2.8, 2.9, 3.0, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.1],
                 }
+                const apiTopic = apiPulseTopics?.items?.[0]
+                const topic = apiTopic ? {
+                  tag: apiTopic.tag, tagColor: apiTopic.tagColor,
+                  title: apiTopic.title, stat: apiTopic.stat,
+                  delta: apiTopic.delta, deltaUp: apiTopic.deltaUp,
+                  blurb: apiTopic.blurb, source: apiTopic.source,
+                  sparkData: apiTopic.sparkData,
+                } : fallbackTopic
                 const chartW = 280, chartH = 100, padL = 28, padR = 4, padT = 8, padB = 20
                 const plotW = chartW - padL - padR, plotH = chartH - padT - padB
                 const maxV = Math.max(...topic.sparkData)
@@ -964,10 +977,10 @@ export default function Home() {
 
               <div>
                 {(apiPulseTopics?.items?.length
-                  ? apiPulseTopics.items.slice(0, 3).map(p => ({
-                      tag: p.tag, tagColor: p.tagColor, title: p.title,
-                      stat: p.stat, delta: p.delta, deltaUp: p.deltaUp,
-                      sparkData: p.sparkData,
+                  ? apiPulseTopics.items.slice(0, 3).map(t => ({
+                      tag: t.tag, tagColor: t.tagColor, title: t.title,
+                      stat: t.stat, delta: t.delta, deltaUp: t.deltaUp,
+                      sparkData: t.sparkData,
                     }))
                   : [
                     { tag: "POWER", tagColor: "#EF4444", title: "Press Freedom Collapse", stat: "17 of 19", delta: "Not Free", deltaUp: false, sparkData: [14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 17] },

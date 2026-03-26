@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout"
 import { Search, X, Share2, CheckCircle2 } from "lucide-react"
 import { LiveNumber } from "@/components/live-counter/FlipDigit"
 import { useI18n } from "@/lib/i18n"
-import { usePublicPulseTopics, useCmsConfig } from "@/hooks/use-cms-data"
+import { usePulseTopics, usePageConfig, type ApiPulseTopic } from "@/hooks/use-cms-data"
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
 const BASE_DATE = new Date("2026-01-01T00:00:00Z").getTime()
@@ -22,7 +22,23 @@ interface TopicCard {
   live?: { baseValue: number; annualGrowth: number; prefix?: string }
 }
 
-const CATEGORIES = [
+function apiToTopicCard(t: ApiPulseTopic): TopicCard {
+  return {
+    id: t.topicId,
+    tag: t.tag,
+    tagColor: t.tagColor,
+    title: t.title,
+    stat: t.stat,
+    delta: t.delta,
+    deltaUp: t.deltaUp,
+    blurb: t.blurb,
+    source: t.source,
+    sparkData: t.sparkData,
+    live: t.liveConfig ? { baseValue: t.liveConfig.baseValue, annualGrowth: t.liveConfig.annualGrowth } : undefined,
+  }
+}
+
+const FALLBACK_CATEGORIES = [
   { key: "ALL", label: "All Trends", color: "#DC143C" },
   { key: "POWER", label: "Power & Politics", color: "#EF4444" },
   { key: "MONEY", label: "Money & Markets", color: "#F59E0B" },
@@ -34,7 +50,7 @@ const CATEGORIES = [
   { key: "HEALTH", label: "Health & Youth", color: "#10B981" },
 ]
 
-const EXPLODING_TOPICS: TopicCard[] = [
+const FALLBACK_TOPICS: TopicCard[] = [
   {
     id: "authoritarianism-index",
     tag: "POWER",
@@ -1194,10 +1210,12 @@ function TopicCardComponent({ topic, index }: { topic: TopicCard; index: number 
 
 interface PulseConfig {
   tickerItems?: Array<{ label: string; value: string; delta: string; up: boolean }>
+  categories?: Array<{ key: string; label: string; color: string }>
+  hero?: { title?: string; subtitle?: string }
 }
 
 function PulseTicker() {
-  const { data: config } = useCmsConfig<PulseConfig>("pulse")
+  const { data: config } = usePageConfig<PulseConfig>("pulse")
   const items = config?.tickerItems?.length ? config.tickerItems : TICKER_ITEMS
   const doubled = [...items, ...items]
 
@@ -1261,11 +1279,11 @@ function BigNumber() {
   )
 }
 
-function CategoryFilter({ active, onSelect, topics }: { active: string; onSelect: (key: string) => void; topics: TopicCard[] }) {
+function CategoryFilter({ active, onSelect, categories, topics }: { active: string; onSelect: (key: string) => void; categories: typeof FALLBACK_CATEGORIES; topics: TopicCard[] }) {
   const { t } = useI18n()
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "16px 0" }}>
-      {CATEGORIES.map(cat => {
+      {categories.map(cat => {
         const isActive = active === cat.key
         return (
           <button
@@ -1302,26 +1320,39 @@ export default function MenaPulse() {
   const [activeCategory, setActiveCategory] = useState("ALL")
   const [searchQuery, setSearchQuery] = useState("")
   const { t, isAr } = useI18n()
-  const { data: apiTopics } = usePublicPulseTopics<{ items: Array<{ topicId: string; tag: string; tagColor: string; title: string; stat: string; delta: string; deltaUp: boolean; blurb: string; source: string; sparkData: number[]; liveConfig: { baseValue: number; annualGrowth: number; prefix?: string } | null }> }>()
+  const { data: apiTopics, isLoading } = usePulseTopics()
+  const { data: pulseConfig } = usePageConfig<PulseConfig>("pulse")
 
   const allTopics: TopicCard[] = useMemo(() => {
-    if (apiTopics?.items?.length) {
-      return apiTopics.items.map(p => ({
-        id: p.topicId,
-        tag: p.tag,
-        tagColor: p.tagColor,
-        title: p.title,
-        stat: p.stat,
-        delta: p.delta,
-        deltaUp: p.deltaUp,
-        blurb: p.blurb,
-        source: p.source,
-        sparkData: p.sparkData,
-        live: p.liveConfig ? { baseValue: p.liveConfig.baseValue, annualGrowth: p.liveConfig.annualGrowth, prefix: p.liveConfig.prefix } : undefined,
-      }))
-    }
-    return EXPLODING_TOPICS
+    if (apiTopics?.items?.length) return apiTopics.items.map(apiToTopicCard)
+    return FALLBACK_TOPICS
   }, [apiTopics])
+
+  const CATEGORIES = useMemo(() => {
+    if (pulseConfig?.categories?.length) {
+      return pulseConfig.categories
+    }
+    if (apiTopics?.items?.length) {
+      const tags = [...new Set(apiTopics.items.map(t => t.tag))]
+      const TAG_COLORS: Record<string, string> = {}
+      const TAG_LABELS: Record<string, string> = {}
+      for (const item of apiTopics.items) {
+        TAG_COLORS[item.tag] = item.tagColor
+      }
+      for (const cat of FALLBACK_CATEGORIES) {
+        TAG_LABELS[cat.key] = cat.label
+      }
+      return [
+        { key: "ALL", label: "All Trends", color: "#DC143C" },
+        ...tags.map(tag => ({
+          key: tag,
+          label: TAG_LABELS[tag] ?? tag,
+          color: TAG_COLORS[tag] ?? "#DC143C",
+        })),
+      ]
+    }
+    return FALLBACK_CATEGORIES
+  }, [pulseConfig, apiTopics])
 
   const filtered = useMemo(() => {
     let result = activeCategory === "ALL"
@@ -1352,13 +1383,13 @@ export default function MenaPulse() {
       <div className="bg-foreground text-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.28em", color: "#DC143C", marginBottom: "0.5rem" }}>
-            {t("Pulse")}
+            {t(pulseConfig?.hero?.title || "Pulse")}
           </p>
           <h1 style={{ fontFamily: isAr ? "'IBM Plex Sans Arabic', sans-serif" : "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "clamp(2rem, 5vw, 3.5rem)", textTransform: "uppercase", color: "var(--background)", letterSpacing: "-0.01em", lineHeight: 1.05, marginBottom: "0.5rem" }}>
             {isAr ? (
-              <>{t("What's Actually Happening in MENA")}<span style={{ color: "#DC143C" }}>.</span></>
+              <>{t(pulseConfig?.hero?.subtitle || "What's Actually Happening in MENA")}<span style={{ color: "#DC143C" }}>.</span></>
             ) : (
-              <>What's Actually<br />Happening in MENA<span style={{ color: "#DC143C" }}>.</span></>
+              <>{pulseConfig?.hero?.subtitle || "What's Actually\nHappening in MENA"}<span style={{ color: "#DC143C" }}>.</span></>
             )}
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(250,250,250,0.65)" }}>
@@ -1425,7 +1456,7 @@ export default function MenaPulse() {
               </span>
             </div>
 
-            <CategoryFilter active={activeCategory} onSelect={setActiveCategory} topics={allTopics} />
+            <CategoryFilter active={activeCategory} onSelect={setActiveCategory} categories={CATEGORIES} topics={allTopics} />
 
             <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "rgba(255,255,255,0.5)", marginBottom: 16, letterSpacing: "0.05em" }}>
               {t("Showing")} {filtered.length} {t("of")} {allTopics.length} {t("trends")}

@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { CheckCircle2, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useCmsConfig } from "@/hooks/use-cms-data"
+import { usePageConfig } from "@/hooks/use-cms-data"
 
-const CRITERIA_DEFAULT = [
+const FALLBACK_CRITERIA = [
   "Real, verifiable impact — named outcomes, not just job titles",
   "Based in MENA or with a deep, ongoing connection to the region",
   "A unique story — pivots, failures, non-linear journeys",
@@ -13,13 +13,13 @@ const CRITERIA_DEFAULT = [
   "A public profile verifiable on LinkedIn or in the press",
 ]
 
-const COUNTRIES_DEFAULT = [
+const FALLBACK_COUNTRIES = [
   "UAE", "Saudi Arabia", "Egypt", "Jordan", "Lebanon", "Kuwait",
   "Bahrain", "Qatar", "Oman", "Morocco", "Tunisia", "Iraq",
   "Palestine", "Other MENA", "Diaspora"
 ]
 
-const SECTORS_DEFAULT = [
+const FALLBACK_SECTORS = [
   "Technology / AI", "Fintech", "Startups & VC", "Media & Creative",
   "Healthcare / MedTech", "Education", "Real Estate", "Consulting",
   "Social Enterprise", "Government / Policy", "Arts & Culture", "Other"
@@ -43,14 +43,14 @@ export default function Apply() {
     city: "", country: "", sector: "",
     bio: "", quote: "", linkedin: "", impact: "",
   })
-  const { data: config } = useCmsConfig<ApplyConfig>("apply")
+  const { data: pageConfig } = usePageConfig<ApplyConfig>("apply")
 
-  const hero = config?.hero
-  const criteria = config?.criteria?.length ? config.criteria : CRITERIA_DEFAULT
-  const countries = config?.countries?.length ? config.countries : COUNTRIES_DEFAULT
-  const sectors = config?.sectors?.length ? config.sectors : SECTORS_DEFAULT
-  const successMsg = config?.successMessage
-  const disclaimer = config?.disclaimer
+  const hero = pageConfig?.hero
+  const criteria = useMemo(() => pageConfig?.criteria?.length ? pageConfig.criteria : FALLBACK_CRITERIA, [pageConfig])
+  const countries = useMemo(() => pageConfig?.countries?.length ? pageConfig.countries : FALLBACK_COUNTRIES, [pageConfig])
+  const sectors = useMemo(() => pageConfig?.sectors?.length ? pageConfig.sectors : FALLBACK_SECTORS, [pageConfig])
+  const successMsg = pageConfig?.successMessage
+  const disclaimer = pageConfig?.disclaimer
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [k]: e.target.value }))

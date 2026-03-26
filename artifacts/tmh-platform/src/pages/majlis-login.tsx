@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout"
 import { useLocation } from "wouter"
 import { Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
+const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? ""
 
 export default function MajlisLogin() {
   const [, navigate] = useLocation()

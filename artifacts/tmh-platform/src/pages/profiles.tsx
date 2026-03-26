@@ -5,8 +5,9 @@ import { ProfileCard } from "@/components/profile/ProfileCard"
 import { Search, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "wouter"
+import { usePageConfig } from "@/hooks/use-cms-data"
 
-const IMPACT_STATEMENTS_FALLBACK: Record<string, string> = {
+const FALLBACK_IMPACT_STATEMENTS: Record<string, string> = {
   "Kitopi": "Scaled cloud kitchens across 5 countries — redefining how the region eats",
   "Replit": "Made coding accessible to millions worldwide — democratizing software creation",
   "Sarwa": "AED 10B+ in trading volume — making investing accessible to every Arab",
@@ -27,11 +28,11 @@ const IMPACT_STATEMENTS_FALLBACK: Record<string, string> = {
   "Revolut UAE": "Founded Souqalmal, now leading Revolut UAE — making finance transparent for Arabs",
 }
 
-function VoicesTicker({ profiles }: { profiles: Array<{ name: string; company?: string | null; quote: string; impactStatement?: string | null }> }) {
+function VoicesTicker({ profiles, impactStatements }: { profiles: Array<{ name: string; company?: string | null; quote: string; impactStatement?: string | null }>; impactStatements: Record<string, string> }) {
   const items = profiles
     .filter(p => p.company && p.name)
     .map(p => {
-      const impact = p.impactStatement || IMPACT_STATEMENTS_FALLBACK[p.company || ""]
+      const impact = p.impactStatement || impactStatements[p.company || ""]
       const statement = impact || (p.quote && p.quote.length > 10 && p.quote.length < 80 ? `"${p.quote.replace(/^["']|["']$/g, "")}"` : null)
       if (!statement) return null
       return { name: p.name.split(" ")[0].toUpperCase(), company: p.company!, statement }
@@ -76,6 +77,14 @@ export default function Profiles() {
   const [country, setCountry] = useState("all")
 
   const { data, isLoading } = useListProfiles({ search, filter, limit: 200 })
+  const { data: pageConfig } = usePageConfig<{ impactStatements?: Record<string, string> }>("profiles")
+
+  const IMPACT_STATEMENTS = useMemo(() => {
+    if (pageConfig?.impactStatements && Object.keys(pageConfig.impactStatements).length > 0) {
+      return pageConfig.impactStatements
+    }
+    return FALLBACK_IMPACT_STATEMENTS
+  }, [pageConfig])
 
   const countries = useMemo(() => {
     if (!data?.profiles) return []
@@ -118,7 +127,7 @@ export default function Profiles() {
           </Link>
         </div>
 
-        {data?.profiles && <VoicesTicker profiles={data.profiles} />}
+        {data?.profiles && <VoicesTicker profiles={data.profiles} impactStatements={IMPACT_STATEMENTS} />}
 
         <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "0.65rem 0", display: "flex", alignItems: "center", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(250,250,250,0.5)" }}>

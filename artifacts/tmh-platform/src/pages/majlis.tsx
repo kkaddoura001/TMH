@@ -4,7 +4,7 @@ import { useLocation, Link } from "wouter"
 import { Send, Users, LogOut, ChevronDown, Shield, ArrowDown, MessageSquare, Hash, Mail, Plus, X, Menu, BarChart3, TrendingUp, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL ?? ""
+const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? ""
 
 interface MajlisUser {
   id: number

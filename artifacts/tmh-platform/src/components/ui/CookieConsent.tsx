@@ -2,19 +2,9 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSiteSettings } from "@/hooks/use-cms-data"
 
-interface SiteSettingsData {
-  cookieConsent?: {
-    message?: string
-    linkText?: string
-    linkHref?: string
-    acceptLabel?: string
-    dismissLabel?: string
-  }
-}
-
 export function CookieConsent() {
   const [visible, setVisible] = useState(false)
-  const { data: settings } = useSiteSettings<SiteSettingsData>()
+  const { data: settings } = useSiteSettings()
 
   const consent = settings?.cookieConsent
 
@@ -30,6 +20,8 @@ export function CookieConsent() {
     localStorage.setItem("tmh_cookies_accepted", "1")
     setVisible(false)
   }
+
+  if (consent?.enabled === false) return null
 
   return (
     <AnimatePresence>

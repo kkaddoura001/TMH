@@ -14,39 +14,28 @@ import {
   LineChart,
 } from "recharts"
 
-import { PREDICTIONS as PREDICTIONS_FALLBACK, PREDICTION_CATEGORIES as CATEGORIES_FALLBACK, PREDICTIONS_TICKER as TICKER_FALLBACK, type PredictionCard } from "@/data/predictions-data"
-import { usePublicPredictions } from "@/hooks/use-cms-data"
-
-interface ApiPrediction {
-  id: number
-  question: string
-  category: string
-  resolvesAt: string
-  yesPercentage: number
-  noPercentage: number
-  totalCount: number
-  momentum: number
-  momentumDirection: string
-  trendData: number[]
-  isFeatured?: boolean
-}
+import { PREDICTIONS as FALLBACK_PREDICTIONS, PREDICTION_CATEGORIES as FALLBACK_CATEGORIES, PREDICTIONS_TICKER as FALLBACK_TICKER, type PredictionCard } from "@/data/predictions-data"
+import { usePredictions, type ApiPrediction } from "@/hooks/use-cms-data"
 
 function apiToPredictionCard(p: ApiPrediction): PredictionCard {
   return {
     id: p.id,
     category: p.category,
-    resolves: p.resolvesAt,
+    resolves: p.resolvesAt ?? "TBD",
     question: p.question,
     count: p.totalCount.toLocaleString(),
     yes: p.yesPercentage,
     no: p.noPercentage,
     momentum: p.momentum,
     up: p.momentumDirection === "up",
-    data: p.trendData?.length ? p.trendData : [p.yesPercentage],
+    data: p.trendData?.length ? p.trendData : Array.from({ length: 12 }, () => p.yesPercentage),
   }
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+const FALLBACK_TICKER_DATA = FALLBACK_TICKER
+
 
 const CLOSED_RAW = [55, 58, 60, 62, 63, 65, 67, 67, 67, 80]
 const CLOSED_DATA = CLOSED_RAW.map((yes, i) => ({ week: i + 1, yes }))
@@ -235,7 +224,7 @@ function VoteButtons({ height = 52, locked = false, predId }: { height?: number;
 
 // ─── MOMENTUM TICKER ─────────────────────────────────────────────────────────
 
-function MomentumTicker({ tickerData }: { tickerData: typeof TICKER_FALLBACK }) {
+function MomentumTicker({ tickerData }: { tickerData: typeof FALLBACK_TICKER_DATA }) {
   const doubled = [...tickerData, ...tickerData]
   return (
     <div style={{ background: "#0D0D0D", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -484,33 +473,31 @@ export default function Predictions() {
   const [activeCategory, setActiveCategory] = useState("ALL")
   const [visibleCount, setVisibleCount] = useState(20)
 
-  const { data: apiData } = usePublicPredictions<{ items: ApiPrediction[] }>()
+  const { data: apiData, isLoading } = usePredictions()
 
-  const PREDICTIONS = useMemo(() => {
-    if (apiData?.items?.length) {
-      return apiData.items.map(apiToPredictionCard)
-    }
-    return PREDICTIONS_FALLBACK
+  const PREDICTIONS: PredictionCard[] = useMemo(() => {
+    if (apiData?.items?.length) return apiData.items.map(apiToPredictionCard)
+    return FALLBACK_PREDICTIONS
   }, [apiData])
 
   const PREDICTION_CATEGORIES = useMemo(() => {
     if (apiData?.items?.length) {
-      const cats = new Set(apiData.items.map(p => p.category))
-      return Array.from(cats).sort()
+      const cats = [...new Set(apiData.items.map(p => p.category))]
+      return cats.sort()
     }
-    return CATEGORIES_FALLBACK
+    return FALLBACK_CATEGORIES
   }, [apiData])
 
   const tickerData = useMemo(() => {
     if (apiData?.items?.length) {
-      return apiData.items.slice(0, 30).map(p => ({
-        label: p.question.length > 20 ? p.question.slice(0, 20).toUpperCase() : p.question.toUpperCase(),
+      return apiData.items.slice(0, 12).map(p => ({
+        label: p.question.length > 40 ? p.question.substring(0, 38) + "…" : p.question,
         yes: p.yesPercentage,
         delta: p.momentum,
         up: p.momentumDirection === "up",
       }))
     }
-    return TICKER_FALLBACK
+    return FALLBACK_TICKER_DATA
   }, [apiData])
 
   const filteredCards = useMemo(() => {
@@ -648,7 +635,7 @@ export default function Predictions() {
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.22em", color: "var(--muted-foreground)", marginBottom: "1rem" }}>
               {isFiltering
                 ? `${filteredCards.length} prediction${filteredCards.length !== 1 ? 's' : ''}${searchQuery ? ` for "${searchQuery}"` : ''}${activeCategory !== "ALL" ? ` in ${activeCategory}` : ''}`
-                : `Active Predictions (${PREDICTIONS.length})`}
+                : `Active Predictions (${PREDICTIONS.length})${isLoading ? " — loading…" : ""}`}
             </p>
           </div>
           {filteredCards.length === 0 ? (

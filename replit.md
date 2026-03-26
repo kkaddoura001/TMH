@@ -64,6 +64,37 @@ artifacts-monorepo/
 └── ...
 ```
 
+## CMS API Integration (Frontend)
+
+The frontend (`artifacts/tmh-platform/`) fetches data from the CMS backend's public API endpoints, with graceful fallback to hardcoded data when the API is unavailable.
+
+**Hooks file**: `src/hooks/use-cms-data.ts` — shared React Query hooks for all CMS endpoints:
+- `usePredictions(category?)` → `/api/public/predictions` — prediction cards with trend data
+- `usePulseTopics()` → `/api/public/pulse-topics` — MENA Pulse trend cards
+- `usePageConfig<T>(page)` → `/api/public/page-config/:page` — page-specific config (about, apply, profiles, polls, pulse, etc.)
+- `useHomepageConfig<T>()` → `/api/public/homepage` — homepage-specific config (masthead, section stats)
+- `useSiteSettings()` → `/api/public/site-settings` — site-wide settings (navigation, footer, cookie consent, share gate, SEO)
+- `useDesignTokens()` → `/api/public/design-tokens` — design system tokens (colors, typography)
+- `useLiveCounts()` → `/api/public/live-counts` — real-time DB counts (debates, predictions, pulse, voices, votes)
+- `getTokenValue(items, name, fallback)` — utility to extract a design token value
+
+**Pattern**: Every page tries API first, falls back to hardcoded data arrays (renamed as `FALLBACK_*`). This ensures the site works without the CMS backend running.
+
+**Pages migrated**:
+- `predictions.tsx` — predictions + ticker from API
+- `home.tsx` — predictions, pulse topics, section counts from live-counts API with CMS overrides
+- `mena-pulse.tsx` — pulse topics, categories, and hero content from API
+- `profiles.tsx` — impact statements prefer profile.impactStatement from API, fallback to company map
+- `polls.tsx` — hero content from page config, debate ticker from live polls API
+- `apply.tsx` — hero, criteria, countries, sectors, success message, disclaimer from page config
+- `about.tsx` — hero, pillars, beliefs, founder statement, region coverage, stats from page config
+
+**Components migrated**:
+- `Navbar.tsx` — branding from site settings seo.siteTitle, nav links + CTA from navigation
+- `Footer.tsx` — tagline, copyright, nav links, social links from site settings footer section (with design tokens fallback for socials)
+- `CookieConsent.tsx` — all text from site settings cookieConsent
+- `PollCard.tsx` — share-gate heading, body, skip text, email placeholder from site settings shareGate
+
 ## Features
 
 ### Insight & Engagement Layer

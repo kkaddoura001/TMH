@@ -1,9 +1,9 @@
 import { Link } from "wouter"
 import { Layout } from "@/components/layout/Layout"
 import { useI18n } from "@/lib/i18n"
-import { useCmsConfig, useLiveCounts } from "@/hooks/use-cms-data"
+import { usePageConfig } from "@/hooks/use-cms-data"
 
-const PILLARS_DEFAULT = [
+const FALLBACK_PILLARS = [
   {
     num: "01",
     title: "Debates",
@@ -34,7 +34,7 @@ const PILLARS_DEFAULT = [
   },
 ]
 
-const BELIEFS_DEFAULT = [
+const FALLBACK_BELIEFS = [
   {
     num: "01",
     title: "A Social Experiment",
@@ -99,20 +99,20 @@ interface AboutConfig {
 
 export default function About() {
   const { t, isAr } = useI18n()
-  const { data: config } = useCmsConfig<AboutConfig>("about")
-  const { data: counts } = useLiveCounts()
+  const { data: pageConfig } = usePageConfig<AboutConfig & {
+    stats?: Array<{ num: string; label: string }>;
+  }>("about")
 
-  const hero = config?.hero
-  const pillars = config?.pillars?.length ? config.pillars : PILLARS_DEFAULT
-  const beliefs = config?.beliefs?.length ? config.beliefs : BELIEFS_DEFAULT
-  const founder = config?.founderStatement
-  const countries = config?.regionCoverage?.length
-    ? config.regionCoverage.map(c => ({ name: c.name, flag: c.flag, pop: c.population }))
+  const pillars = pageConfig?.pillars?.length ? pageConfig.pillars : FALLBACK_PILLARS
+  const beliefs = pageConfig?.beliefs?.length ? pageConfig.beliefs : FALLBACK_BELIEFS
+  const hero = pageConfig?.hero
+  const founder = pageConfig?.founderStatement
+  const countries = pageConfig?.regionCoverage?.length
+    ? pageConfig.regionCoverage.map(c => ({ name: c.name, flag: c.flag, pop: c.population }))
     : COUNTRIES_DEFAULT
-
-  const stats = [
-    { num: counts ? String(counts.voices) : "94", label: "Founding Voices" },
-    { num: counts ? `${counts.debates}+` : "135+", label: "Active Debates" },
+  const stats = pageConfig?.stats?.length ? pageConfig.stats : [
+    { num: "94", label: "Founding Voices" },
+    { num: "135+", label: "Active Debates" },
     { num: "19", label: "MENA Countries" },
     { num: "541M", label: "People in MENA" },
   ]

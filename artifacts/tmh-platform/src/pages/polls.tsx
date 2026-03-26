@@ -5,9 +5,9 @@ import { Layout } from "@/components/layout/Layout"
 import { PollCard } from "@/components/poll/PollCard"
 import { cn } from "@/lib/utils"
 import { Search, X } from "lucide-react"
-import { useCmsConfig } from "@/hooks/use-cms-data"
+import { usePageConfig } from "@/hooks/use-cms-data"
 
-const DEBATE_TICKER_DEFAULT = [
+const FALLBACK_DEBATE_TICKER = [
   { topic: "Brain Drain", votes: "18,421" },
   { topic: "AI & Jobs", votes: "12,847" },
   { topic: "Gender Leadership", votes: "9,203" },
@@ -37,10 +37,7 @@ export default function Polls() {
 
   const { data: pollsData, isLoading } = useListPolls({ filter, category, limit: 50 })
   const { data: categoriesData } = useListCategories()
-  const { data: config } = useCmsConfig<PollsConfig>("polls")
-
-  const hero = config?.hero
-  const tickerItems = config?.tickerItems?.length ? config.tickerItems : DEBATE_TICKER_DEFAULT
+  const { data: config } = usePageConfig<PollsConfig>("polls")
 
   const filteredPolls = useMemo(() => {
     if (!pollsData?.polls) return []
@@ -59,7 +56,19 @@ export default function Polls() {
     { id: 'most_voted', label: 'Most Voted' }
   ] as const
 
-  const doubled = [...tickerItems, ...tickerItems]
+  const hero = config?.hero
+
+  const DEBATE_TICKER = useMemo(() => {
+    if (pollsData?.polls?.length) {
+      return pollsData.polls.slice(0, 10).map(p => ({
+        topic: p.question && p.question.length > 25 ? p.question.substring(0, 23) + "…" : (p.question ?? "Debate"),
+        votes: (p.totalVotes ?? 0).toLocaleString(),
+      }))
+    }
+    return FALLBACK_DEBATE_TICKER
+  }, [pollsData])
+
+  const doubled = [...DEBATE_TICKER, ...DEBATE_TICKER]
 
   return (
     <Layout>
