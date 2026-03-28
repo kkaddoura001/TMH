@@ -53,8 +53,16 @@ export const majlisMessagesTable = pgTable("majlis_messages", {
   editedAt: timestamp("edited_at"),
 });
 
+export const majlisSessionsTable = pgTable("majlis_sessions", {
+  token: text("token").primaryKey(),
+  userId: integer("user_id").notNull().references(() => majlisUsersTable.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
 export type MajlisInvite = typeof majlisInvitesTable.$inferSelect;
 export type MajlisUser = typeof majlisUsersTable.$inferSelect;
 export type MajlisChannel = typeof majlisChannelsTable.$inferSelect;
 export type MajlisChannelMember = typeof majlisChannelMembersTable.$inferSelect;
 export type MajlisMessage = typeof majlisMessagesTable.$inferSelect;
+export type MajlisSession = typeof majlisSessionsTable.$inferSelect;

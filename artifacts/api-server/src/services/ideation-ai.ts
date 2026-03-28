@@ -38,6 +38,8 @@ interface GenerationConfig {
   promptTemplate: string;
   exclusionList: string[];
   guardrails?: string[];
+  categories?: string[];
+  tags?: string[];
   researchData: ResearchResult | Record<string, unknown>;
 }
 
@@ -61,10 +63,11 @@ async function callPerplexity(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: "sonar",
       messages: [
-        { role: "system", content: "You are a research assistant specializing in Middle East business, technology, and culture trends. Return structured JSON responses." },
+        { role: "system", content: "You are a MENA-focused research analyst. Return ONLY valid JSON. Focus on verifiable facts from the past 7 days. Include specific numbers, named sources, and dates. Prioritize breaking news, policy changes, funding rounds, and market data from the Middle East and North Africa." },
         { role: "user", content: prompt },
       ],
-      temperature: 0.7,
+      temperature: 0.5,
+      search_recency_filter: "week",
     }),
   });
 
@@ -77,7 +80,11 @@ async function callPerplexity(prompt: string): Promise<string> {
   return data.choices?.[0]?.message?.content ?? generateMockResearch(prompt);
 }
 
-async function callClaude(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callClaude(
+  systemPrompt: string,
+  userPrompt: string,
+  options?: { temperature?: number; max_tokens?: number },
+): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return generateMockContent(userPrompt);
@@ -91,8 +98,9 @@ async function callClaude(systemPrompt: string, userPrompt: string): Promise<str
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      model: "claude-sonnet-4-6",
+      max_tokens: options?.max_tokens ?? 4096,
+      temperature: options?.temperature ?? 0.3,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
@@ -137,11 +145,11 @@ function generateMockContent(_prompt: string): string {
 
 function generateMockIdeas(config: GenerationConfig): GeneratedIdea[] {
   const debateTemplates = [
-    { title: "Should Gulf governments mandate AI literacy in school curricula by 2028?", content: { question: "Should Gulf governments mandate AI literacy in school curricula by 2028?", context: "As AI transforms industries across the Middle East, education systems face pressure to prepare the next generation. Several GCC nations have announced AI strategies, but curriculum reform remains slow.", options: ["Yes — Essential for future competitiveness", "No — Let the market drive adoption"] } },
-    { title: "Is remote work undermining the social fabric of Gulf cities?",  content: { question: "Is remote work undermining the social fabric of Gulf cities?", context: "Gulf cities were built around office culture and social gathering. As remote work normalizes post-pandemic, some argue it threatens the communal identity that defines cities like Dubai and Riyadh.", options: ["Yes — Cities need physical presence", "No — Remote work enables better lives"] } },
-    { title: "Will MENA's creator economy replace traditional media within a decade?", content: { question: "Will MENA's creator economy replace traditional media within a decade?", context: "Content creators in the region are generating more engagement than legacy media outlets. Brands are shifting budgets accordingly.", options: ["Yes — Creators are the new media", "No — Traditional media will adapt"] } },
-    { title: "Should startups in the region prioritize profitability over growth?", content: { question: "Should startups in the region prioritize profitability over growth?", context: "After the global tech correction, MENA VCs are increasingly demanding path-to-profitability. But some argue this stifles the bold thinking needed for regional innovation.", options: ["Profitability first", "Growth first — scale matters more"] } },
-    { title: "Is the Gulf's megaproject boom sustainable?", content: { question: "Is the Gulf's megaproject boom sustainable?", context: "From NEOM to The Line to Aman projects, the Gulf is undertaking unprecedented construction. Critics question whether these projects can deliver on their promises.", options: ["Yes — Vision-driven development works", "No — Overreach risks economic strain"] } },
+    { title: "Should Gulf governments mandate AI literacy by 2028?", content: { question: "Should Gulf governments mandate AI literacy by 2028?", context: "GCC nations have ambitious AI strategies but school curricula haven't caught up. The gap between policy ambition and classroom reality is widening fast.", options: ["Yes — Essential for competitiveness", "No — Let the market decide"] } },
+    { title: "Is remote work killing Gulf city culture?",  content: { question: "Is remote work killing Gulf city culture?", context: "Gulf cities were built on office culture and communal gathering. Remote work threatens the social fabric that defines Dubai and Riyadh.", options: ["Yes — Cities need physical presence", "No — Remote work enables better lives"] } },
+    { title: "Will MENA creators replace traditional media?", content: { question: "Will MENA creators replace traditional media?", context: "Regional content creators now outperform legacy media on engagement. Brands are following the audience — and the money.", options: ["Yes — Creators are the new media", "No — Traditional media will adapt"] } },
+    { title: "Should MENA startups prioritize profit over growth?", content: { question: "Should MENA startups prioritize profit over growth?", context: "Post-correction, Gulf VCs demand profitability. Critics say this kills the bold bets the region needs.", options: ["Profitability first", "Growth first — scale matters more"] } },
+    { title: "Is the Gulf's megaproject boom sustainable?", content: { question: "Is the Gulf's megaproject boom sustainable?", context: "NEOM, The Line, Aman — unprecedented construction across the Gulf. The question: can vision outrun economic gravity?", options: ["Yes — Vision-driven development works", "No — Overreach risks economic strain"] } },
   ];
 
   const predictionTemplates = [
@@ -153,11 +161,11 @@ function generateMockIdeas(config: GenerationConfig): GeneratedIdea[] {
   ];
 
   const pulseTemplates = [
-    { title: "MENA Startup Funding Hits Record Quarter", content: { title: "MENA Startup Funding Hits Record Quarter", stat: "$3.2B", delta: "+47%", direction: "up", source: "MAGNiTT Q1 2026 Report" } },
-    { title: "UAE AI Adoption Rate Leads Region", content: { title: "UAE AI Adoption Rate Leads Region", stat: "73%", delta: "+12%", direction: "up", source: "Government AI Index" } },
-    { title: "Saudi Entertainment Sector Growth", content: { title: "Saudi Entertainment Sector Growth", stat: "45%", delta: "+45%", direction: "up", source: "General Entertainment Authority" } },
-    { title: "Gulf Remote Worker Visas Issued", content: { title: "Gulf Remote Worker Visas Issued", stat: "125K", delta: "+200%", direction: "up", source: "Immigration Authority Reports" } },
-    { title: "MENA Renewable Energy Capacity", content: { title: "MENA Renewable Energy Capacity", stat: "42GW", delta: "+18%", direction: "up", source: "IRENA Regional Update" } },
+    { title: "MENA Startup Funding Record Quarter", content: { title: "MENA Startup Funding Record Quarter", stat: "$3.2B", delta: "+47%", direction: "up", blurb: "MENA startup funding just hit its highest quarter ever. The Gulf is betting big on tech — and this time, the numbers back it up.", source: "MAGNiTT Q1 2026 Report" } },
+    { title: "UAE AI Adoption Leads Region", content: { title: "UAE AI Adoption Leads Region", stat: "73%", delta: "+12%", direction: "up", blurb: "Nearly 3 in 4 UAE businesses now use AI tools. The government's top-down push is paying off faster than anyone expected.", source: "Government AI Index" } },
+    { title: "Saudi Entertainment Sector Surges", content: { title: "Saudi Entertainment Sector Surges", stat: "45%", delta: "+45%", direction: "up", blurb: "Saudi entertainment grew 45% YoY — from zero cinemas to a cultural transformation. The kingdom is spending its way into relevance.", source: "General Entertainment Authority" } },
+    { title: "Gulf Remote Worker Visas Surge", content: { title: "Gulf Remote Worker Visas Surge", stat: "125K", delta: "+200%", direction: "up", blurb: "Gulf states issued 125K remote worker visas — a 3x jump. The region is importing talent without importing payroll.", source: "Immigration Authority Reports" } },
+    { title: "MENA Renewable Energy Capacity", content: { title: "MENA Renewable Energy Capacity", stat: "42GW", delta: "+18%", direction: "up", blurb: "Oil nations are quietly building 42GW of renewable capacity. The energy transition in MENA is real — just don't call it that.", source: "IRENA Regional Update" } },
   ];
 
   const allTemplates: Record<string, GeneratedIdea[]> = {
@@ -213,15 +221,17 @@ function generateMockSafetyReview(): SafetyReview {
 }
 
 export async function runResearch(config: ResearchConfig): Promise<ResearchResult> {
-  const prompt = `Research current trending topics, news, and data relevant to the Middle East and North Africa region.
-Focus areas: ${config.categories.join(", ") || "general"}
-Tags of interest: ${config.tags.join(", ") || "none specified"}
-Geographic focus: ${config.regions.join(", ") || "MENA region broadly"}
+  const today = new Date().toISOString().split("T")[0];
+  const prompt = `Today is ${today}. Find the most important MENA news and data from the past 7 days.
+
+Focus areas: ${config.categories.join(", ") || "business, technology, culture, politics, economy"}
+Tags: ${config.tags.join(", ") || "any"}
+Regions: ${config.regions.join(", ") || "MENA region broadly"}
 
 Return a JSON object with:
-- "topics": array of {title, summary, source} for 5-8 trending topics
-- "dataPoints": array of {fact, relevance} for 3-5 key data points
-- "trends": array of 5 trend strings
+- "topics": array of {title, summary, source} for 5-8 BREAKING or trending stories. Each summary must be 1 sentence with a specific fact or number.
+- "dataPoints": array of {fact, relevance} for 3-5 data points. Each fact must include a specific number and named source.
+- "trends": array of 5 trend strings — each must be a specific, debatable claim (not vague platitudes)
 
 Return ONLY valid JSON.`;
 
@@ -250,12 +260,16 @@ export async function runGeneration(config: GenerationConfig): Promise<Generated
     ? `\n\nCONTENT GUARDRAILS — You MUST follow these rules:\n${config.guardrails.map(g => `- ${g}`).join("\n")}`
     : "";
 
+  const focusNote = (config.categories?.length || config.tags?.length)
+    ? `\n\nEDITORIAL FOCUS — Prioritize ideas in these areas:\nCategories: ${config.categories?.join(", ") || "any"}\nThemes/Tags: ${config.tags?.join(", ") || "any"}`
+    : "";
+
   const researchContext = `Research data:\n${JSON.stringify(config.researchData, null, 2)}`;
 
   const pillarInstructions: Record<string, string> = {
-    debates: `Generate debate questions. Each idea should have: title, content with {question, context, options (array of 2-4 position strings)}.`,
-    predictions: `Generate prediction market questions. Each idea should have: title, content with {question, category, resolvesAt (ISO date string)}.`,
-    pulse: `Generate pulse/stat cards. Each idea should have: title, content with {title, stat (number/string), delta (percentage), direction (up/down), source}.`,
+    debates: `Generate debate questions. Each idea must have: title (max 15 words), content with {question (max 20 words, punchy yes/no framing), context (max 2 sentences, ~40 words — a sharp hook that frames the tension, NOT an essay), options (array of 2-4 position strings, each max 8 words)}.`,
+    predictions: `Generate prediction market questions. Each idea must have: title (max 15 words), content with {question (max 20 words, specific and verifiable), category, resolvesAt (ISO date string)}.`,
+    pulse: `Generate pulse/stat cards. Each idea must have: title (max 8 words), content with {title (max 8 words), stat (a specific number/string), delta (percentage change), direction (up/down), blurb (max 2 sentences, ~40 words — a punchy editorial take on what the stat means), source (named source)}.`,
   };
 
   let pillarPrompt: string;
@@ -271,15 +285,17 @@ export async function runGeneration(config: GenerationConfig): Promise<Generated
     pillarPrompt = `Generate a mix of ideas across all three pillars:\n${Object.entries(pillarInstructions).map(([k, v]) => `${k}: ${v}`).join("\n")}`;
   }
 
-  const userPrompt = `${researchContext}${exclusionNote}${guardrailNote}
+  const userPrompt = `${researchContext}${focusNote}${exclusionNote}${guardrailNote}
 
 ${pillarPrompt}
 
 Generate exactly ${totalCount} ideas. Return a JSON array of objects, each with: pillarType ("debates"|"predictions"|"pulse"), title (string), content (object matching the pillar schema).
 
+CRITICAL: All content must be SHORT and punchy. Think newspaper headlines and Twitter threads, not blog posts. Every sentence must earn its place.
+
 Return ONLY a valid JSON array.`;
 
-  const result = await callClaude(systemPrompt, userPrompt);
+  const result = await callClaude(systemPrompt, userPrompt, { temperature: 0.7, max_tokens: 4096 });
   try {
     const jsonMatch = result.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
@@ -314,7 +330,7 @@ Return a JSON array where each element has:
 Flag types: "sentiment_risk", "political_sensitivity", "factual_concern", "cultural_sensitivity"
 Return ONLY valid JSON array.`;
 
-  const result = await callClaude(systemPrompt, userPrompt);
+  const result = await callClaude(systemPrompt, userPrompt, { temperature: 0.1, max_tokens: 2048 });
   try {
     const jsonMatch = result.match(/\[[\s\S]*\]/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(result);
@@ -338,7 +354,7 @@ export async function runRefinement(config: RefinementConfig): Promise<RefinedCo
     if (config.pillarType === "debates") {
       return {
         question: base.question || config.idea.title,
-        context: base.context || "This is an AI-generated debate topic that explores a key issue facing the MENA region. The debate captures the tension between progress and tradition, inviting diverse perspectives from across the region.",
+        context: base.context || "A pivotal question dividing MENA's business and policy elite. The stakes are real, the clock is ticking.",
         options: base.options || ["Position A", "Position B"],
         category: "Technology & AI",
         tags: ["ai-generated", "mena"],
@@ -356,27 +372,48 @@ export async function runRefinement(config: RefinementConfig): Promise<RefinedCo
         stat: base.stat || "N/A",
         delta: base.delta || "0%",
         direction: base.direction || "up",
+        blurb: base.blurb || "A data point that tells you more about the region than any headline.",
         source: base.source || "AI Generated",
       };
     }
   }
 
   const fieldSchemas: Record<string, string> = {
-    debates: `{question: string, context: string (2-3 paragraphs), options: string[] (2-4 debate positions), category: string, tags: string[]}`,
-    predictions: `{question: string, category: string, resolvesAt: string (ISO date), tags: string[]}`,
-    pulse: `{title: string, stat: string, delta: string (percentage), direction: "up"|"down", source: string}`,
+    debates: `{question: string (max 20 words — sharp, provocative yes/no question), context: string (EXACTLY 2-3 sentences, max 50 words total — a punchy hook that frames the stakes, like a newspaper subheadline. NO paragraphs.), options: string[] (2-4 debate positions, each max 8 words), category: string, tags: string[]}`,
+    predictions: `{question: string (max 20 words — specific, verifiable, with a clear resolution), category: string, resolvesAt: string (ISO date), tags: string[]}`,
+    pulse: `{title: string (max 8 words — punchy stat headline), stat: string (specific number), delta: string (percentage change), direction: "up"|"down", blurb: string (EXACTLY 2 sentences, max 40 words — editorial take on what the stat means and why it matters), source: string}`,
   };
 
-  const systemPrompt = `You are a content editor for "The Middle East Hustle". Expand rough content ideas into polished, publication-ready drafts. Maintain a sharp, informed, slightly provocative editorial voice.`;
+  const systemPrompt = `You are the senior editor at "The Middle East Hustle" — a sharp, data-driven platform covering MENA business, tech, and culture. Your job is to TIGHTEN content, never expand it.
 
-  const userPrompt = `Expand this ${config.pillarType} idea into a full content draft:
+EDITORIAL RULES:
+- Write like a Bloomberg terminal meets Vice News — crisp, provocative, zero fluff
+- Every word must earn its place. If a sentence doesn't add new information or punch, cut it
+- Lead with the most surprising or provocative fact
+- Use specific numbers, names, and dates — never vague claims
+- Context should read like a newspaper subheadline: sets the stakes in one breath
+- Blurbs should feel like the first 2 lines of a viral tweet thread
+
+HARD LIMITS:
+- Debate context: max 50 words (2-3 sentences)
+- Pulse blurb: max 40 words (2 sentences)
+- Prediction questions: max 20 words
+- If the input is already good, make it sharper — do NOT pad it`;
+
+  const userPrompt = `TIGHTEN this ${config.pillarType} idea into a publication-ready draft. Do NOT expand — make it shorter and sharper.
+
+Input:
 ${JSON.stringify(config.idea, null, 2)}
 
 Output schema: ${fieldSchemas[config.pillarType] || fieldSchemas.debates}
 
-Return ONLY valid JSON matching the schema.`;
+RULES:
+- The output must be SHORTER than the input, not longer
+- Match the word limits specified in the schema EXACTLY
+- If the input context is longer than 50 words, CUT it down — do not preserve length
+- Return ONLY valid JSON matching the schema`;
 
-  const result = await callClaude(systemPrompt, userPrompt);
+  const result = await callClaude(systemPrompt, userPrompt, { temperature: 0.4, max_tokens: 1024 });
   try {
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(result);
@@ -386,7 +423,7 @@ Return ONLY valid JSON matching the schema.`;
 }
 
 export const DEFAULT_PROMPTS: Record<string, string> = {
-  debates: `You are the ideation engine for "The Middle East Hustle" — Debates pillar. Generate sharp, thought-provoking debate questions about business, technology, society, and culture in the MENA region. Each debate should present a genuine tension with strong arguments on both sides. Avoid generic topics — focus on issues that are timely, specific to the region, and will drive passionate engagement.`,
-  predictions: `You are the ideation engine for "The Middle East Hustle" — Predictions pillar. Generate bold prediction market questions about the future of the Middle East. Each prediction should have a clear resolution date and binary yes/no outcome. Focus on business milestones, tech breakthroughs, policy changes, and cultural shifts. Make predictions specific enough to be verifiable.`,
-  pulse: `You are the ideation engine for "The Middle East Hustle" — Pulse pillar. Generate data-driven stat cards that capture the pulse of the MENA region. Each card should feature a compelling statistic, percentage change, and credible source. Focus on metrics that tell a story — growth rates, adoption numbers, investment figures, and demographic shifts.`,
+  debates: `You are the ideation engine for "The Middle East Hustle" — Debates pillar. Generate sharp, provocative debate questions about MENA business, tech, society, and culture. Each debate must present a genuine tension with strong arguments on both sides. Context must be 2-3 SENTENCES max (like a newspaper subheadline), not paragraphs. Avoid generic topics — focus on timely, region-specific issues that drive passionate engagement. Write like you're crafting a Bloomberg headline, not a Wikipedia entry.`,
+  predictions: `You are the ideation engine for "The Middle East Hustle" — Predictions pillar. Generate bold prediction market questions about the future of the Middle East. Each prediction must be specific, verifiable, and under 20 words. Focus on business milestones, tech breakthroughs, policy changes, and cultural shifts. Include a clear resolution date and binary yes/no framing.`,
+  pulse: `You are the ideation engine for "The Middle East Hustle" — Pulse pillar. Generate data-driven stat cards that capture the pulse of the MENA region. Each card needs: a punchy title (max 8 words), a specific stat with source, and a blurb (max 2 sentences) that gives an editorial take on why this number matters. Focus on metrics that tell a story — growth rates, adoption numbers, investment figures, demographic shifts. Write the blurb like the opening of a viral tweet thread.`,
 };

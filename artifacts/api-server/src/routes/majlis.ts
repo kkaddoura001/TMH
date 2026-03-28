@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { db, majlisUsersTable, majlisMessagesTable, majlisInvitesTable, majlisChannelsTable, majlisChannelMembersTable, profilesTable } from "@workspace/db";
+import { db, majlisUsersTable, majlisMessagesTable, majlisInvitesTable, majlisChannelsTable, majlisChannelMembersTable, majlisSessionsTable, profilesTable, pollsTable, pollOptionsTable, predictionsTable } from "@workspace/db";
 import { eq, desc, lt, sql, and, count, isNull, or, inArray } from "drizzle-orm";
 import { cmsSessions } from "./cms";
 import { encrypt, decrypt } from "../utils/encryption";
@@ -18,7 +18,18 @@ interface MajlisUserUpdate {
   isMuted?: boolean;
 }
 
-const majlisSessions = new Map<string, { userId: number; createdAt: number }>();
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+async function createMajlisSession(userId: number): Promise<string> {
+  const token = generateToken();
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  await db.insert(majlisSessionsTable).values({ token, userId, expiresAt });
+  return token;
+}
+
+async function invalidateMajlisUserSessions(userId: number): Promise<void> {
+  await db.delete(majlisSessionsTable).where(eq(majlisSessionsTable.userId, userId));
+}
 
 function requireCmsAuth(req: Request, res: Response, next: NextFunction) {
   const token = req.headers["x-cms-token"] as string;
@@ -45,14 +56,31 @@ function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
+function generateInviteCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  const bytes = crypto.randomBytes(12);
+  for (let i = 0; i < 12; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
+}
+
 async function requireMajlisAuth(req: MajlisRequest, res: Response, next: NextFunction) {
   const token = req.headers["x-majlis-token"] as string;
-  if (!token || !majlisSessions.has(token)) {
+  if (!token) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  const session = majlisSessions.get(token)!;
-  if (Date.now() - session.createdAt > 7 * 24 * 60 * 60 * 1000) {
-    majlisSessions.delete(token);
+
+  const [session] = await db.select().from(majlisSessionsTable)
+    .where(eq(majlisSessionsTable.token, token))
+    .limit(1);
+
+  if (!session) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  if (new Date(session.expiresAt) < new Date()) {
+    await db.delete(majlisSessionsTable).where(eq(majlisSessionsTable.token, token));
     return res.status(401).json({ error: "Session expired" });
   }
 
@@ -61,7 +89,7 @@ async function requireMajlisAuth(req: MajlisRequest, res: Response, next: NextFu
     .limit(1);
 
   if (!dbUser || !dbUser.isActive || dbUser.isBanned) {
-    majlisSessions.delete(token);
+    await db.delete(majlisSessionsTable).where(eq(majlisSessionsTable.token, token));
     return res.status(403).json({ error: dbUser?.isBanned ? "Your account has been suspended" : "Your account is no longer active" });
   }
 
@@ -116,7 +144,7 @@ router.post("/majlis/auth/register", async (req: Request, res: Response) => {
   try {
     const { email, password, inviteToken } = req.body;
     if (!email || !password || !inviteToken) {
-      return res.status(400).json({ error: "Email, password, and invite token are required" });
+      return res.status(400).json({ error: "Email, password, and invite code are required" });
     }
 
     const [invite] = await db.select().from(majlisInvitesTable)
@@ -124,7 +152,7 @@ router.post("/majlis/auth/register", async (req: Request, res: Response) => {
       .limit(1);
 
     if (!invite) {
-      return res.status(403).json({ error: "Invalid invite token" });
+      return res.status(403).json({ error: "Invalid invite code" });
     }
     if (invite.isUsed) {
       return res.status(403).json({ error: "This invite has already been used" });
@@ -173,8 +201,7 @@ router.post("/majlis/auth/register", async (req: Request, res: Response) => {
 
     await ensureUserInGeneralChannel(user.id);
 
-    const token = generateToken();
-    majlisSessions.set(token, { userId: user.id, createdAt: Date.now() });
+    const token = await createMajlisSession(user.id);
 
     res.json({ token, user: { id: user.id, displayName: user.displayName, email: user.email } });
   } catch (err: unknown) {
@@ -213,8 +240,7 @@ router.post("/majlis/auth/login", async (req: Request, res: Response) => {
 
     await ensureUserInGeneralChannel(user.id);
 
-    const token = generateToken();
-    majlisSessions.set(token, { userId: user.id, createdAt: Date.now() });
+    const token = await createMajlisSession(user.id);
 
     const [profile] = await db.select().from(profilesTable)
       .where(eq(profilesTable.id, user.profileId))
@@ -762,6 +788,10 @@ router.get("/majlis/channels/:channelId/messages/poll", requireMajlisAuth, async
         ));
     }
 
+    await db.update(majlisUsersTable)
+      .set({ lastSeenAt: new Date() })
+      .where(eq(majlisUsersTable.id, userId));
+
     res.json({ messages: decryptedMessages });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to poll messages";
@@ -948,6 +978,11 @@ router.get("/majlis/messages/poll", requireMajlisAuth, async (req: MajlisRequest
       content: decrypt(m.content),
     }));
 
+    const userId = req.majlisUserId!;
+    await db.update(majlisUsersTable)
+      .set({ lastSeenAt: new Date() })
+      .where(eq(majlisUsersTable.id, userId));
+
     res.json({ messages: decryptedMessages });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to poll messages";
@@ -979,13 +1014,13 @@ router.post("/cms/majlis/invites", requireCmsAuth, async (req: Request, res: Res
       return res.status(409).json({ error: "This Voice already has a Majlis account" });
     }
 
-    const token = generateToken();
+    const code = generateInviteCode();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const [invite] = await db.insert(majlisInvitesTable).values({
       profileId,
       email,
-      token,
+      token: code,
       expiresAt,
     }).returning();
 
@@ -1070,9 +1105,7 @@ router.patch("/cms/majlis/users/:id", requireCmsAuth, async (req: Request, res: 
     if (!updated) return res.status(404).json({ error: "User not found" });
 
     if (isBanned || isActive === false) {
-      for (const [token, session] of majlisSessions.entries()) {
-        if (session.userId === id) majlisSessions.delete(token);
-      }
+      await invalidateMajlisUserSessions(id);
     }
 
     res.json({ user: updated });
@@ -1148,6 +1181,63 @@ router.get("/cms/majlis/stats", requireCmsAuth, async (_req: Request, res: Respo
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch stats";
     res.status(500).json({ error: message });
+  }
+});
+
+// ── Share preview endpoint ──────────────────────────────────────────────────
+router.get("/majlis/share-preview", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
+  try {
+    const { type, id } = req.query;
+    if (!type || !id) {
+      return res.status(400).json({ error: "type and id are required" });
+    }
+
+    const numId = parseInt(id as string);
+    if (isNaN(numId)) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+
+    if (type === "debate") {
+      const [poll] = await db.select().from(pollsTable)
+        .where(eq(pollsTable.id, numId)).limit(1);
+      if (!poll) return res.status(404).json({ error: "Poll not found" });
+
+      const options = await db.select().from(pollOptionsTable)
+        .where(eq(pollOptionsTable.pollId, numId));
+      const totalVotes = options.reduce((sum, o) => sum + o.voteCount, 0);
+      const topOption = options.reduce((a, b) => a.voteCount > b.voteCount ? a : b, options[0]);
+      const topPct = totalVotes > 0 ? Math.round((topOption.voteCount / totalVotes) * 100) : 0;
+
+      return res.json({
+        type: "debate",
+        id: poll.id,
+        title: poll.question,
+        stat: `${topPct}%`,
+        category: poll.category,
+        shareString: `[share:debate:${poll.id}|${poll.question}|${topPct}%|${poll.category}]`,
+      });
+    }
+
+    if (type === "prediction") {
+      const [pred] = await db.select().from(predictionsTable)
+        .where(eq(predictionsTable.id, numId)).limit(1);
+      if (!pred) return res.status(404).json({ error: "Prediction not found" });
+
+      const sentiment = pred.yesPercentage >= 50 ? `${pred.yesPercentage}% Yes` : `${pred.noPercentage}% No`;
+      return res.json({
+        type: "prediction",
+        id: pred.id,
+        title: pred.question,
+        stat: sentiment,
+        category: pred.category,
+        shareString: `[share:prediction:${pred.id}|${pred.question}|${sentiment}|${pred.category}]`,
+      });
+    }
+
+    return res.status(400).json({ error: "Invalid type. Use 'debate' or 'prediction'" });
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : "Failed to get share preview";
+    res.status(500).json({ error: errMsg });
   }
 });
 

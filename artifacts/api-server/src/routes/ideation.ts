@@ -272,6 +272,8 @@ router.post("/cms/ideation/sessions/:id/generate", requireCmsAuth, async (req, r
       promptTemplate,
       exclusionList,
       guardrails: config.guardrails || [],
+      categories: config.categories || [],
+      tags: config.tags || [],
       researchData: (session.researchData as Record<string, unknown>) || { topics: [], dataPoints: [], trends: [] },
     });
 
@@ -517,6 +519,7 @@ router.post("/cms/ideation/ideas/:id/publish-draft", requireCmsAuth, async (req,
           stat: (content.stat as string) || "N/A",
           delta: (content.delta as string) || "0%",
           direction: (content.direction as string) || "up",
+          blurb: (content.blurb as string) || "",
           source: (content.source as string) || "AI Generated",
         },
         note: "Pulse draft data returned — add to Pulse page configuration to publish",

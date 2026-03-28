@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Tribunal - Autonomous Content System</title>
+    <style>
+      :root {
+        --bg-color: #0d0d0d;
+        --surface-color: #1a1a1a;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --accent-red: #e62020;
+        --accent-dark: #8b0000;
+        --border-color: #333333;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        line-height: 1.6;
+        padding: 40px 20px;
+        font-size: 15px;
+      }
+
+      .container {
+        max-width: 850px;
+        margin: 0 auto;
+        background-color: var(--bg-color);
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 0.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border-bottom: 4px solid var(--accent-red);
+        padding-bottom: 10px;
+        display: inline-block;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        color: var(--accent-red);
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 5px;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+        color: #ffffff;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        margin-bottom: 1rem;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        font-weight: 300;
+      }
+
+      .meta {
+        font-size: 0.9rem;
+        color: var(--accent-red);
+        font-family: monospace;
+        margin-bottom: 3rem;
+      }
+
+      /* Lists */
+      ul {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      /* Checklists */
+      .checklist {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .checklist li {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 10px;
+      }
+
+      .checklist li::before {
+        content: "☐";
+        position: absolute;
+        left: 0;
+        color: var(--accent-red);
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        background-color: #222222;
+        color: var(--accent-red);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #141414;
+      }
+
+      /* Embedded Graphics */
+      .embedded-graphic {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        margin: 2rem 0;
+        border-radius: 4px;
+        box-shadow: 0 4px 20px rgba(230, 32, 32, 0.15); /* Subtle red glow */
+      }
+
+      /* Print Specifics */
+      @media print {
+        body {
+          background-color: var(--bg-color) !important;
+          color: var(--text-main) !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .page-break {
+          page-break-before: always;
+        }
+        h2 {
+          page-break-after: avoid;
+        }
+        table,
+        tr,
+        td {
+          page-break-inside: avoid;
+        }
+        .container {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>The Tribunal</h1>
+      <div class="subtitle">Autonomous Content System Architecture</div>
+      <div class="meta">Prepared by Soumik · 2026</div>
+
+      <h2>Ⅰ. Executive Overview</h2>
+      <p>
+        <strong>The Goal:</strong> A fully automated marketing ecosystem that
+        runs daily without requiring active management.
+      </p>
+      <p>
+        The Tribunal system scans the internet for trending MENA conversations,
+        generates original content using real vote data, publishes across 9
+        platforms simultaneously, tracks performance, and dynamically rewrites
+        its own strategy every week based on hard data.
+      </p>
+      <p><strong>Required Weekly Management:</strong> Under 30 minutes.</p>
+
+      <h2>Ⅱ. The Daily Operational Loop</h2>
+      <p>
+        <em
+          >Every single day, the system executes the following sequence
+          automatically:</em
+        >
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Time (Gulf)</th>
+            <th>Phase</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>10:00 PM</strong></td>
+            <td><span style="color: var(--accent-red)">SCAN</span></td>
+            <td>
+              Apify scrapes Reddit, X trending hashtags, LinkedIn, and YouTube.
+              Perplexity AI pulls the top 5 live MENA news stories. All 730
+              database content pieces are ranked by current relevance.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>6:00 AM</strong></td>
+            <td><span style="color: var(--accent-red)">GENERATE</span></td>
+            <td>
+              Claude analyzes trend data alongside historical performance. It
+              authors a LinkedIn post, X thread, short video script, and image
+              card using real vote results. No generic filler.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>7:00 AM</strong></td>
+            <td><span style="color: var(--accent-red)">ONE TAP</span></td>
+            <td>
+              A Telegram message is sent to Kareem with yesterday's vote count,
+              top debate, and today's content.
+              <strong>Takes < 3 mins to approve.</strong>
+              <em
+                >Fallback: Auto-posts highest-scoring variant after 4 hours.</em
+              >
+            </td>
+          </tr>
+          <tr>
+            <td><strong>9AM - 9PM</strong></td>
+            <td><span style="color: var(--accent-red)">PUBLISH</span></td>
+            <td>
+              Blotato distributes approved content to all 9 platforms at optimal
+              MENA time windows.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>All Day</strong></td>
+            <td><span style="color: var(--accent-red)">REACT</span></td>
+            <td>
+              Reddit monitor scans twice daily to draft automated, data-backed
+              replies. Spike detector checks hourly—if a debate hits 5x volume,
+              follow-up content is generated and an alert is fired.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Sunday</strong></td>
+            <td><span style="color: var(--accent-red)">LEARN</span></td>
+            <td>
+              The self-improvement engine analyzes the week's performance,
+              identifies winning formats/times, and rewrites content weights for
+              the upcoming week.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <img
+        src="image_0.png"
+        alt="The Tribunal Daily Loop Circular Flowchart"
+        class="embedded-graphic"
+      />
+
+      <div class="page-break"></div>
+
+      <h2>Ⅲ. The Content Engine</h2>
+      <p>The system transforms raw data into platform-native formats.</p>
+      <ul>
+        <li>
+          <strong>Video (30–45s):</strong> Faceless AI video generated via
+          Blotato (AI imagery + ElevenLabs voiceover). Script format:
+          <em>Hook Stat → Debate Question → Result Reveal</em>. Pushed to
+          TikTok, IG Reels, YouTube Shorts.
+        </li>
+        <li>
+          <strong>Image Cards:</strong> Crimson split-cards showcasing real vote
+          percentages. Auto-generated via template in seconds. Pushed to
+          Instagram, LinkedIn, Facebook, Pinterest.
+        </li>
+        <li>
+          <strong>LinkedIn Posts:</strong> Data-led, 150–200 words. Opens with
+          vote numbers, details MENA country breakdowns, and ends with a
+          high-conversion question.
+        </li>
+        <li>
+          <strong>X Threads:</strong> 4–6 tweets. Hook stat → Data breakdown →
+          Surprising finding → Link to The Tribunal.
+        </li>
+        <li>
+          <strong>Newsletter:</strong> Weekly auto-drafted Beehiiv email
+          featuring the top 3 debates, a prediction update, and a Voice
+          spotlight. Awaits Kareem's final review.
+        </li>
+      </ul>
+
+      <h2>Ⅳ. The Self-Learning Mechanism</h2>
+      <p>
+        <em
+          >By week 8, the system will understand The Tribunal's audience better
+          than any manual team.</em
+        >
+      </p>
+      <ul>
+        <li>
+          <strong>READS:</strong> Ingests a full week of data (votes per post,
+          platform, and category).
+        </li>
+        <li>
+          <strong>SCORES:</strong> Identifies over-indexing categories (e.g.,
+          gender debates at 3.1x average) and winning formats.
+        </li>
+        <li>
+          <strong>UPDATES:</strong> Rewrites the PostgreSQL/database content
+          weights. Prioritizes high-performing categories and winning formats.
+        </li>
+        <li>
+          <strong>REPORTS:</strong> Pushes a highly readable, 5-line Telegram
+          summary to Kareem detailing what worked, what failed, and 3 specific
+          automated adjustments made.
+        </li>
+      </ul>
+
+      <h2>Ⅴ. Architecture & Economics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Cost/Mo</th>
+            <th>System Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>n8n</strong> (Self-hosted)</td>
+            <td>$10</td>
+            <td>
+              <strong>Orchestration:</strong> Houses all 12 workflows, connects
+              the entire stack.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Blotato</strong></td>
+            <td>$29</td>
+            <td>
+              <strong>Creation & Publishing:</strong> Generates media and pushes
+              to 9 platforms.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Claude API</strong></td>
+            <td>$40</td>
+            <td>
+              <strong>Brain:</strong> Writes content, runs analysis, generates
+              Sunday reports.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Apify</strong></td>
+            <td>$49</td>
+            <td>
+              <strong>Scraper:</strong> Pulls nightly data from Reddit,
+              LinkedIn, YouTube, X, IG.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Perplexity AI</strong></td>
+            <td>$20</td>
+            <td>
+              <strong>News Feed:</strong> Real-time MENA news integrated into
+              content selection.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Apollo.io</strong></td>
+            <td>$49</td>
+            <td>
+              <strong>Sourcing:</strong> Finds MENA founders for Voices
+              outreach.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Instantly.ai</strong></td>
+            <td>$37</td>
+            <td>
+              <strong>Outreach:</strong> Sends and tracks automated email
+              sequences.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Obsidian</strong></td>
+            <td>Free</td>
+            <td>
+              <strong>Memory Layer:</strong> Stores historical results to
+              maintain LLM context.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Notion</strong></td>
+            <td>Free</td>
+            <td>
+              <strong>Dashboard:</strong> Auto-populated, read-only performance
+              dashboard.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="text-align: right; color: var(--accent-red); font-weight: bold">
+        Total: $234/mo
+      </p>
+
+      <img
+        src="image_1.png"
+        alt="The Tribunal Isometric Tech Stack Diagram"
+        class="embedded-graphic"
+      />
+
+      <div class="page-break"></div>
+
+      <h2>Ⅵ. Delivery Acceptance Checklist</h2>
+      <p><em>All items are pass/fail and testable on handover day.</em></p>
+
+      <h3>Data & Sourcing</h3>
+      <ul class="checklist">
+        <li>
+          Supabase <code>trends</code> table updates daily with tagged sources.
+        </li>
+        <li>
+          5 random content queue posts exactly match database debate IDs and
+          vote counts.
+        </li>
+        <li>
+          Notion trend pairings share clear themes (no random mismatching).
+        </li>
+        <li>
+          <code>news_feed</code> table logs 5 MENA-specific headlines daily.
+        </li>
+      </ul>
+
+      <h3>Content Quality</h3>
+      <ul class="checklist">
+        <li>Zero invented statistics; numbers match the DB perfectly.</li>
+        <li>4 out of 5 posts reference specific MENA contexts/countries.</li>
+        <li>
+          <code>last_posted_at</code> logic works; no debates repeated within 14
+          days.
+        </li>
+        <li>Video scripts strictly adhere to 65–100 word limits.</li>
+      </ul>
+
+      <h3>Distribution</h3>
+      <ul class="checklist">
+        <li>Approved test posts appear on all 9 platforms within 2 hours.</li>
+        <li>
+          <code>scheduled_at</code> times fall strictly within 8–10 AM or 7–9 PM
+          Gulf Time.
+        </li>
+        <li>
+          Disconnecting a platform triggers a Telegram error alert within 30
+          mins.
+        </li>
+      </ul>
+
+      <h3>Self-Learning & Outreach</h3>
+      <ul class="checklist">
+        <li>
+          <code>content_weights</code> table values shift after a Sunday run.
+        </li>
+        <li>Sunday 5-line Telegram report successfully delivers.</li>
+        <li>Instantly.ai sequences automatically pause upon reply.</li>
+        <li>
+          <code>voices_outreach</code> database grows by ~10 contacts every
+          weekday.
+        </li>
+      </ul>
+
+      <h3>User Experience (Kareem)</h3>
+      <ul class="checklist">
+        <li>Daily digest hits Telegram between 7:00 and 7:15 AM Gulf Time.</li>
+        <li>
+          Notion dashboard "Last Updated" timestamp is never older than 6 hours.
+        </li>
+        <li>Full approval flow takes Kareem < 5 minutes.</li>
+        <li>
+          Manual database vote spikes trigger Telegram alerts within 10 minutes.
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

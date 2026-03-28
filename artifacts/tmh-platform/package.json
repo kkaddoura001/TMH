@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --config vite.config.ts --host 0.0.0.0",
+    "dev": "sh -c 'set -a; . ./.env; set +a; exec vite --config vite.config.ts --host 0.0.0.0'",
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -54,7 +54,6 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "catalog:",
     "input-otp": "^1.4.2",
     "lucide-react": "catalog:",
     "next-themes": "^0.4.6",
@@ -75,6 +74,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "motion": "catalog:",
     "uuid": "^13.0.0"
   }
 }

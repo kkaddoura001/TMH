@@ -47,3 +47,21 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Environment files — use .env.production.example as the template
+.env
+.env.*
+!.env.production.example
+
+# Project uses pnpm — never commit the npm lockfile
+package-lock.json
+
+# Uploads directory (local dev only — production uses Cloudflare R2)
+uploads/
+
+# Claude Code
+.claude/
+.mcp.json
+
+# Large binary assets — Keynote decks don't belong in git
+attached_assets/*.key

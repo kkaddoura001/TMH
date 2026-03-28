@@ -212,7 +212,7 @@ export default function MajlisPage() {
       ) : tab === "invites" ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Issue invite tokens to verified Voices for Majlis registration</p>
+            <p className="text-sm text-muted-foreground">Issue invite codes to verified Voices for Majlis registration</p>
             <button
               onClick={() => setShowInviteForm(!showInviteForm)}
               className="flex items-center gap-2 text-sm bg-primary text-white px-4 py-2 hover:bg-primary/90 transition-colors"
@@ -276,7 +276,7 @@ export default function MajlisPage() {
                   <th className="text-left px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Email</th>
                   <th className="text-left px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
                   <th className="text-left px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Expires</th>
-                  <th className="text-right px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Token</th>
+                  <th className="text-right px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">Invite Code</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -306,7 +306,7 @@ export default function MajlisPage() {
                           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border hover:border-foreground"
                         >
                           <Copy className="w-3 h-3" />
-                          {copiedToken === inv.id ? "Copied!" : "Copy Token"}
+                          {copiedToken === inv.id ? "Copied!" : "Copy Code"}
                         </button>
                       )}
                     </td>

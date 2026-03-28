@@ -489,6 +489,7 @@ export default function Majlis() {
   const [newMsgCount, setNewMsgCount] = useState(0)
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [sharePreview, setSharePreview] = useState<{ type: string; title: string; stat: string; category: string; shareString: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const isAtBottomRef = useRef(true)
@@ -634,6 +635,30 @@ export default function Majlis() {
     if (atBottom) setNewMsgCount(0)
   }, [])
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData("text")
+    const pollMatch = text.match(/\/polls\/(\d+)/)
+    const predMatch = text.match(/\/predictions\/(\d+)/)
+    if (!pollMatch && !predMatch) return
+
+    const type = pollMatch ? "debate" : "prediction"
+    const id = pollMatch ? pollMatch[1] : predMatch![1]
+
+    try {
+      const res = await fetch(`${API_BASE}/api/majlis/share-preview?type=${type}&id=${id}`, { headers: apiHeaders() })
+      if (!res.ok) return
+      const data = await res.json()
+      setSharePreview(data)
+      e.preventDefault()
+      setInput(data.shareString)
+    } catch {}
+  }
+
+  const clearSharePreview = () => {
+    setSharePreview(null)
+    setInput("")
+  }
+
   const handleSend = async () => {
     if (!input.trim() || sending || !user || !activeChannelId) return
     if (isMuted) return
@@ -661,6 +686,7 @@ export default function Majlis() {
       })
       setInput("")
       setReplyTo(null)
+      setSharePreview(null)
       setTimeout(scrollToBottom, 50)
     } catch (err) {
       console.error(err)
@@ -719,7 +745,7 @@ export default function Majlis() {
 
   return (
     <Layout>
-      <div className="h-screen flex flex-col pt-16">
+      <div className="h-[calc(100vh-5rem)] flex flex-col overflow-hidden">
         <div className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <button
@@ -769,7 +795,7 @@ export default function Majlis() {
             onClose={() => setShowSidebar(false)}
           />
 
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 relative">
             {activeChannel && (
               <div className="px-4 py-2 border-b border-border bg-card/30 flex items-center gap-2">
                 {activeChannel.type === "dm" ? (
@@ -842,12 +868,25 @@ export default function Majlis() {
                   </button>
                 </div>
               )}
+              {sharePreview && (
+                <div className="mb-2 flex items-start gap-2 px-2 py-2 bg-muted/30 border border-border rounded">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[8px] font-serif font-bold uppercase tracking-[0.2em] text-primary">
+                      {sharePreview.type === "debate" ? "DEBATE" : "PREDICTION"}
+                    </span>
+                    <p className="text-xs font-serif font-bold text-foreground truncate">{sharePreview.title}</p>
+                    <span className="text-[10px] text-muted-foreground">{sharePreview.stat} · {sharePreview.category}</span>
+                  </div>
+                  <button onClick={clearSharePreview} className="text-muted-foreground hover:text-foreground text-xs flex-shrink-0 p-1">✕</button>
+                </div>
+              )}
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={input}
-                  onChange={e => setInput(e.target.value)}
+                  onChange={e => { setInput(e.target.value); if (!e.target.value.trim()) setSharePreview(null) }}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+                  onPaste={handlePaste}
                   placeholder={isMuted ? "You are muted" : "Type your message..."}
                   maxLength={2000}
                   disabled={isMuted || !activeChannelId}

@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx ./src/index.ts",
+    "dev": "NODE_ENV=development tsx --env-file=.env ./src/index.ts",
     "build": "tsx ./build.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.817.0",
+    "@aws-sdk/lib-storage": "^3.817.0",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/integrations-openai-ai-server": "workspace:*",
@@ -17,7 +19,9 @@
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
-    "multer": "^1.4.5-lts.2"
+    "express-rate-limit": "^7.5.0",
+    "multer": "^1.4.5-lts.2",
+    "multer-s3": "^3.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

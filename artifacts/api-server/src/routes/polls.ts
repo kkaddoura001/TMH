@@ -1,7 +1,17 @@
 import { Router, type IRouter } from "express";
+import rateLimit from "express-rate-limit";
 import { db, pollsTable, pollOptionsTable, votesTable, profilesTable, newsletterSubscribersTable, pollSnapshotsTable } from "@workspace/db";
 import { eq, desc, sql, and, inArray, asc } from "drizzle-orm";
+
 const router: IRouter = Router();
+
+const voteRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60, // max 60 votes per IP per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many votes from this IP, please try again later" },
+});
 
 async function getCountryFromIp(_ip: string): Promise<{ code: string; name: string } | null> {
   return null;
@@ -220,7 +230,7 @@ router.get("/polls/:id", async (req, res) => {
   }
 });
 
-router.post("/polls/:id/vote", async (req, res) => {
+router.post("/polls/:id/vote", voteRateLimit, async (req, res) => {
   try {
     const pollId = parseInt(req.params.id);
     const { optionId, voterToken } = req.body;

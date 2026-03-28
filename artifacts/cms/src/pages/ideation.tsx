@@ -120,25 +120,57 @@ const WORKFLOW_STEPS = [
   { key: "refine", label: "Refine & Publish", icon: Wand2, description: "Polish and create drafts" },
 ];
 
+const STORAGE_VERSION = 1;
+const STORAGE_KEY = "cms_ideation_state";
+
+interface IdeationPersistedState {
+  activeTab: ViewTab;
+  mode: Mode;
+  focusedPillar: PillarType;
+  batchSize: number;
+  pillarCounts: { debates: number; predictions: number; pulse: number };
+  usePillarCounts: boolean;
+  selectedCategories: string[];
+  selectedTags: string[];
+  selectedRegions: string[];
+  guardrails: string[];
+  currentStep: number;
+  session: Session | null;
+  ideas: Idea[];
+  researchData: Record<string, unknown> | null;
+}
+
+function loadPersistedState(): Partial<IdeationPersistedState> | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.version !== STORAGE_VERSION) return null;
+    return parsed.data as Partial<IdeationPersistedState>;
+  } catch {
+    return null;
+  }
+}
+
 export default function IdeationPage() {
-  const [activeTab, setActiveTab] = useState<ViewTab>("generate");
-  const [mode, setMode] = useState<Mode>("explore");
-  const [focusedPillar, setFocusedPillar] = useState<PillarType>("debates");
-  const [batchSize, setBatchSize] = useState(15);
-  const [pillarCounts, setPillarCounts] = useState({ debates: 5, predictions: 5, pulse: 5 });
-  const [usePillarCounts, setUsePillarCounts] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<ViewTab>(() => loadPersistedState()?.activeTab ?? "generate");
+  const [mode, setMode] = useState<Mode>(() => loadPersistedState()?.mode ?? "explore");
+  const [focusedPillar, setFocusedPillar] = useState<PillarType>(() => loadPersistedState()?.focusedPillar ?? "debates");
+  const [batchSize, setBatchSize] = useState<number>(() => loadPersistedState()?.batchSize ?? 15);
+  const [pillarCounts, setPillarCounts] = useState(() => loadPersistedState()?.pillarCounts ?? { debates: 5, predictions: 5, pulse: 5 });
+  const [usePillarCounts, setUsePillarCounts] = useState<boolean>(() => loadPersistedState()?.usePillarCounts ?? false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => loadPersistedState()?.selectedCategories ?? []);
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => loadPersistedState()?.selectedTags ?? []);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>(() => loadPersistedState()?.selectedRegions ?? []);
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
-  const [guardrails, setGuardrails] = useState<string[]>(DEFAULT_GUARDRAILS);
+  const [guardrails, setGuardrails] = useState<string[]>(() => loadPersistedState()?.guardrails ?? DEFAULT_GUARDRAILS);
   const [showGuardrails, setShowGuardrails] = useState(false);
 
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [currentStep, setCurrentStep] = useState<number>(() => loadPersistedState()?.currentStep ?? -1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [session, setSession] = useState<Session | null>(null);
-  const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [researchData, setResearchData] = useState<Record<string, unknown> | null>(null);
+  const [session, setSession] = useState<Session | null>(() => loadPersistedState()?.session ?? null);
+  const [ideas, setIdeas] = useState<Idea[]>(() => loadPersistedState()?.ideas ?? []);
+  const [researchData, setResearchData] = useState<Record<string, unknown> | null>(() => loadPersistedState()?.researchData ?? null);
 
   const [promptTemplates, setPromptTemplates] = useState<Record<string, { promptText: string; defaultPromptText: string }>>({});
   const [editingPrompt, setEditingPrompt] = useState<string | null>(null);
@@ -158,6 +190,20 @@ export default function IdeationPage() {
   useEffect(() => {
     api.getTaxonomy().then(setTaxonomy).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const stateToSave = {
+      version: STORAGE_VERSION,
+      data: {
+        activeTab, mode, focusedPillar, batchSize, pillarCounts,
+        usePillarCounts, selectedCategories, selectedTags, selectedRegions,
+        guardrails, currentStep, session, ideas, researchData,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [activeTab, mode, focusedPillar, batchSize, pillarCounts, usePillarCounts,
+      selectedCategories, selectedTags, selectedRegions, guardrails,
+      currentStep, session, ideas, researchData]);
 
   useEffect(() => {
     if (activeTab === "prompts") {
@@ -281,6 +327,7 @@ export default function IdeationPage() {
       try {
         await api.completeSession(session.id);
         setSession(prev => prev ? { ...prev, status: "completed" } : null);
+        localStorage.removeItem(STORAGE_KEY);
       } catch (err) {
         console.error("Complete session error:", err);
       }

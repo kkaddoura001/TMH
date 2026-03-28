@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "wouter"
-import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Share2, Linkedin, Lock, Mail, CheckCircle2, Flame } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
+import { ArrowRight, Share2, Linkedin, Lock, Mail, CheckCircle2, Flame, MessageSquare } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { useVotePoll } from "@workspace/api-client-react"
 import type { Poll, PollOption } from "@workspace/api-client-react/src/generated/api.schemas"
@@ -11,6 +11,7 @@ import { useSiteSettings } from "@/hooks/use-cms-data"
 import { cn } from "@/lib/utils"
 import { ResultsBreakdown } from "./ResultsBreakdown"
 import { generateShareCard, generateStoryCard, getPollUrl, getWhatsAppUrl, getLinkedInUrl } from "@/lib/shareCard"
+import { ShareToMajlisModal } from "@/components/ShareToMajlisModal"
 
 interface PollCardProps {
   poll: Poll
@@ -77,7 +78,9 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
   const [emailSubmitted, setEmailSubmitted] = useState(false)
   const [wasFirstTimer, setWasFirstTimer] = useState(false)
   const [showShareTooltip, setShowShareTooltip] = useState(false)
+  const [showMajlisShare, setShowMajlisShare] = useState(false)
   const shareTooltipRef = useRef<HTMLDivElement>(null)
+  const hasMajlisToken = typeof window !== "undefined" && !!localStorage.getItem("majlis_token")
 
   const isVoted = hasVoted(poll.id)
   const votedOptionId = getVotedOption(poll.id)
@@ -314,6 +317,16 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
                   <CheckCircle2 className="w-3 h-3" />
                   Voted
                 </span>
+              )}
+              {hasMajlisToken && (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMajlisShare(true) }}
+                  className="text-muted-foreground hover:text-primary transition-colors p-2"
+                  aria-label="Share to Majlis chat"
+                  title="Share to Majlis"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
               )}
               <button
                 onClick={handleCardShareIcon}
@@ -692,6 +705,12 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
         </div>
       )}
 
+      {showMajlisShare && (
+        <ShareToMajlisModal
+          shareString={`[share:debate:${poll.id}|${poll.question}|${localTotal} votes|${poll.category}]`}
+          onClose={() => setShowMajlisShare(false)}
+        />
+      )}
     </>
   )
 }

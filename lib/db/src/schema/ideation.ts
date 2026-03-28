@@ -10,6 +10,8 @@ export const ideationSessionsTable = pgTable("ideation_sessions", {
     regions: string[];
     batchSize: number;
     exclusionList: string[];
+    guardrails: string[];
+    pillarCounts?: { debates: number; predictions: number; pulse: number };
   }>().notNull(),
   status: text("status").notNull().default("pending"),
   researchData: jsonb("research_data").$type<Record<string, unknown>>(),

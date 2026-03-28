@@ -331,6 +331,12 @@
   animation: gateSlideIn 0.3s ease-out both;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .tmh-ticker-scroll,
+  .tmh-ticker-scroll-slow { animation-play-state: paused; }
+  .tmh-pulse-dot { animation: none; }
+}
+
 [dir="rtl"] {
   font-family: 'IBM Plex Sans Arabic', 'DM Sans', sans-serif;
 }

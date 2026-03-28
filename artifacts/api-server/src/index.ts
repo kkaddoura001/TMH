@@ -1,6 +1,14 @@
 import app from "./app";
 import { seedCmsData } from "@workspace/db/seed-cms";
 
+// Warn if critical security env vars are missing in production
+if (process.env.NODE_ENV === "production") {
+  const missing = ["MAJLIS_ENCRYPTION_KEY", "DATABASE_URL"].filter((k) => !process.env[k]);
+  if (missing.length > 0) {
+    console.error(`[SECURITY] Missing required production env vars: ${missing.join(", ")}`);
+  }
+}
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {

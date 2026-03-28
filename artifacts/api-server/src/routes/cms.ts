@@ -1,7 +1,10 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
+// @ts-expect-error — multer-s3 v3 ships without declaration files; typed via usage below
+import multerS3 from "multer-s3";
 import path from "path";
 import fs from "fs";
+import { r2Client, R2_BUCKET, R2_PUBLIC_URL, isR2Available } from "../utils/r2";
 import crypto from "crypto";
 import { db, pollsTable, pollOptionsTable, votesTable, newsletterSubscribersTable, hustlerApplicationsTable, profilesTable, predictionsTable, pulseTopicsTable, cmsConfigsTable, designTokensTable } from "@workspace/db";
 import { eq, desc, sql, count, like, or, inArray, and, asc } from "drizzle-orm";
@@ -10,6 +13,12 @@ const router = Router();
 
 const CMS_USERNAME = process.env.CMS_USERNAME ?? "admin";
 const CMS_PIN = process.env.CMS_PIN ?? "1234";
+
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.CMS_USERNAME || !process.env.CMS_PIN) {
+    console.error("[SECURITY] CMS_USERNAME and CMS_PIN must be set via environment variables in production. Default credentials are active — set these immediately.");
+  }
+}
 
 export const cmsSessions = new Map<string, { username: string; createdAt: number }>();
 const sessions = cmsSessions;
@@ -897,18 +906,28 @@ router.post("/cms/upload/:type", requireCmsAuth, async (req, res) => {
   }
 });
 
-const uploadsDir = path.resolve("/home/runner/workspace/uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const uploadsDir = path.join(process.cwd(), process.env.UPLOADS_DIR ?? "uploads");
 
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  },
-});
+// Use R2 object storage in production when configured, fall back to local disk for development
+const storage = isR2Available
+  ? multerS3({
+      s3: r2Client!,
+      bucket: R2_BUCKET,
+      key: (_req: any, file: Express.Multer.File, cb: (err: Error | null, key: string) => void) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+      },
+    })
+  : multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+        cb(null, uploadsDir);
+      },
+      filename: (_req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+      },
+    });
 
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -916,18 +935,24 @@ router.post("/cms/upload-image", requireCmsAuth, upload.single("image"), (req, r
   if (!req.file) {
     return res.status(400).json({ error: "No image provided" });
   }
-  const url = `/api/cms/uploads/${req.file.filename}`;
-  return res.json({ url, filename: req.file.filename });
+  // multer-s3 sets `location` (full R2 URL); local disk uses filename
+  const url = isR2Available
+    ? (req.file as any).location as string  // multer-s3 sets .location to the R2 public URL
+    : `/api/cms/uploads/${req.file.filename}`;
+  return res.json({ url, filename: req.file.filename ?? path.basename(url) });
 });
 
-router.get("/cms/uploads/:filename", (req, res) => {
-  const filename = path.basename(req.params.filename);
-  const filePath = path.join(uploadsDir, filename);
-  if (!filePath.startsWith(uploadsDir) || !fs.existsSync(filePath)) {
-    return res.status(404).json({ error: "File not found" });
-  }
-  return res.sendFile(filePath);
-});
+// Local file serving — only active when R2 is not configured (development)
+if (!isR2Available) {
+  router.get("/cms/uploads/:filename", (req, res) => {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(uploadsDir, filename);
+    if (!filePath.startsWith(uploadsDir) || !fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found" });
+    }
+    return res.sendFile(filePath);
+  });
+}
 
 router.get("/cms/homepage", requireCmsAuth, async (_req, res) => {
   try {

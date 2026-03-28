@@ -1,10 +1,19 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { db, predictionsTable, predictionVotesTable } from "@workspace/db";
 import { eq, and, count } from "drizzle-orm";
 
 const router = Router();
 
-router.post("/:id/vote", async (req, res) => {
+const voteRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many votes from this IP, please try again later" },
+});
+
+router.post("/:id/vote", voteRateLimit, async (req, res) => {
   try {
     const predictionId = Number(req.params.id);
     const { choice, voterToken } = req.body;

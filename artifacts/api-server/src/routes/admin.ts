@@ -4,7 +4,11 @@ import { desc, eq, sql } from "drizzle-orm"
 
 const router = Router()
 
-const ADMIN_KEY = process.env.ADMIN_KEY ?? "tmh-admin-2026"
+const ADMIN_KEY = process.env.ADMIN_KEY ?? "tmh-admin-2026";
+
+if (process.env.NODE_ENV === "production" && !process.env.ADMIN_KEY) {
+  console.error("[SECURITY] ADMIN_KEY is not set in production. Default key is active — set this environment variable immediately.");
+}
 
 function requireAdmin(req: any, res: any, next: any) {
   const key = req.headers["x-admin-key"] ?? req.query.key

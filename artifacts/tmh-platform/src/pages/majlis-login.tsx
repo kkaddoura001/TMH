@@ -1,69 +1,70 @@
-import { useState } from "react"
-import { Layout } from "@/components/layout/Layout"
-import { useLocation } from "wouter"
-import { Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { Layout } from "@/components/layout/Layout";
+import { useLocation } from "wouter";
+import { Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
-const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? ""
+const API_BASE = import.meta.env?.VITE_API_BASE_URL ?? "";
 
 export default function MajlisLogin() {
-  const [, navigate] = useLocation()
-  const [mode, setMode] = useState<"login" | "register">("login")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [inviteToken, setInviteToken] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const [, navigate] = useLocation();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [inviteToken, setInviteToken] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
       if (mode === "register" && !inviteToken.trim()) {
-        setError("A valid invite token is required to register")
-        setLoading(false)
-        return
+        setError("A valid invite code is required to register");
+        setLoading(false);
+        return;
       }
       if (!email.trim() || !password.trim()) {
-        setError("Email and password are required")
-        setLoading(false)
-        return
+        setError("Email and password are required");
+        setLoading(false);
+        return;
       }
 
-      const endpoint = mode === "login"
-        ? `${API_BASE}/api/majlis/auth/login`
-        : `${API_BASE}/api/majlis/auth/register`
+      const endpoint =
+        mode === "login"
+          ? `${API_BASE}/api/majlis/auth/login`
+          : `${API_BASE}/api/majlis/auth/register`;
 
-      const body: Record<string, string> = { email: email.trim(), password }
+      const body: Record<string, string> = { email: email.trim(), password };
       if (mode === "register") {
-        body.inviteToken = inviteToken.trim()
+        body.inviteToken = inviteToken.trim();
       }
 
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Authentication failed")
-        setLoading(false)
-        return
+        setError(data.error || "Authentication failed");
+        setLoading(false);
+        return;
       }
 
-      localStorage.setItem("majlis_token", data.token)
-      localStorage.setItem("majlis_user", JSON.stringify(data.user))
-      navigate("/majlis")
+      localStorage.setItem("majlis_token", data.token);
+      localStorage.setItem("majlis_user", JSON.stringify(data.user));
+      navigate("/majlis");
     } catch {
-      setError("Network error. Please try again.")
+      setError("Network error. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Layout>
@@ -87,17 +88,27 @@ export default function MajlisLogin() {
           <div className="border border-border bg-card p-8">
             <div className="flex mb-6 border-b border-border">
               <button
-                onClick={() => { setMode("login"); setError("") }}
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                }}
                 className={`flex-1 pb-3 text-xs font-serif font-bold uppercase tracking-[0.2em] transition-colors border-b-2 ${
-                  mode === "login" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                  mode === "login"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Sign In
               </button>
               <button
-                onClick={() => { setMode("register"); setError("") }}
+                onClick={() => {
+                  setMode("register");
+                  setError("");
+                }}
                 className={`flex-1 pb-3 text-xs font-serif font-bold uppercase tracking-[0.2em] transition-colors border-b-2 ${
-                  mode === "register" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                  mode === "register"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Register
@@ -108,18 +119,19 @@ export default function MajlisLogin() {
               {mode === "register" && (
                 <div>
                   <label className="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-1.5">
-                    Invite Token
+                    Invitation Code
                   </label>
                   <input
                     type="text"
                     value={inviteToken}
-                    onChange={e => setInviteToken(e.target.value)}
+                    onChange={(e) => setInviteToken(e.target.value)}
                     required
-                    placeholder="Paste your invite token"
+                    placeholder="Paste your invite code"
                     className="w-full bg-background border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors font-mono"
                   />
                   <p className="text-[9px] text-muted-foreground mt-1 font-serif">
-                    Invite tokens are issued by admins to verified Voices only.
+                    Invitation codes are issued by admins to verified Voices
+                    only.
                   </p>
                 </div>
               )}
@@ -131,7 +143,7 @@ export default function MajlisLogin() {
                 <input
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="your@email.com"
                   className="w-full bg-background border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
@@ -146,7 +158,7 @@ export default function MajlisLogin() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••"
                     className="w-full bg-background border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors pr-10"
@@ -156,7 +168,11 @@ export default function MajlisLogin() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -172,7 +188,9 @@ export default function MajlisLogin() {
                 disabled={loading}
                 className="w-full bg-primary text-white font-serif font-bold uppercase tracking-[0.2em] text-xs py-3.5 hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? "Authenticating..." : (
+                {loading ? (
+                  "Authenticating..."
+                ) : (
                   <>
                     {mode === "login" ? "Enter The Majlis" : "Register & Enter"}
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -188,5 +206,5 @@ export default function MajlisLogin() {
         </div>
       </div>
     </Layout>
-  )
+  );
 }
