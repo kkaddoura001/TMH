@@ -41,7 +41,7 @@ function requireCmsAuth(req: Request, res: Response, next: NextFunction) {
     cmsSessions.delete(token);
     return res.status(401).json({ error: "Session expired" });
   }
-  next();
+  return next();
 }
 
 async function hashPassword(password: string): Promise<string> {
@@ -94,7 +94,7 @@ async function requireMajlisAuth(req: MajlisRequest, res: Response, next: NextFu
   }
 
   req.majlisUserId = session.userId;
-  next();
+  return next();
 }
 
 async function ensureGeneralChannel(): Promise<number> {
@@ -203,10 +203,10 @@ router.post("/majlis/auth/register", async (req: Request, res: Response) => {
 
     const token = await createMajlisSession(user.id);
 
-    res.json({ token, user: { id: user.id, displayName: user.displayName, email: user.email } });
+    return res.json({ token, user: { id: user.id, displayName: user.displayName, email: user.email } });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Registration failed";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -246,7 +246,7 @@ router.post("/majlis/auth/login", async (req: Request, res: Response) => {
       .where(eq(profilesTable.id, user.profileId))
       .limit(1);
 
-    res.json({
+    return res.json({
       token,
       user: {
         id: user.id,
@@ -260,7 +260,7 @@ router.post("/majlis/auth/login", async (req: Request, res: Response) => {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Login failed";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -283,7 +283,7 @@ router.post("/majlis/auth/verify", requireMajlisAuth, async (req: MajlisRequest,
       .where(eq(profilesTable.id, user.profileId))
       .limit(1);
 
-    res.json({
+    return res.json({
       user: {
         id: user.id,
         displayName: user.displayName,
@@ -296,7 +296,7 @@ router.post("/majlis/auth/verify", requireMajlisAuth, async (req: MajlisRequest,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Verification failed";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -385,10 +385,10 @@ router.post("/majlis/channels", requireMajlisAuth, async (req: MajlisRequest, re
       membersToAdd.map(uid => ({ channelId: channel.id, userId: uid }))
     );
 
-    res.json({ channel, created: true });
+    return res.json({ channel, created: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to create channel";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -478,16 +478,16 @@ router.get("/majlis/channels", requireMajlisAuth, async (req: MajlisRequest, res
       return bTime - aTime;
     });
 
-    res.json({ channels: channelsWithMeta });
+    return res.json({ channels: channelsWithMeta });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch channels";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.get("/majlis/channels/:id", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.id);
+    const channelId = parseInt(req.params.id as string);
     const [channel] = await db.select().from(majlisChannelsTable)
       .where(eq(majlisChannelsTable.id, channelId)).limit(1);
     if (!channel) return res.status(404).json({ error: "Channel not found" });
@@ -506,16 +506,16 @@ router.get("/majlis/channels/:id", requireMajlisAuth, async (req: MajlisRequest,
       .innerJoin(profilesTable, eq(majlisUsersTable.profileId, profilesTable.id))
       .where(eq(majlisChannelMembersTable.channelId, channelId));
 
-    res.json({ channel, members });
+    return res.json({ channel, members });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch channel";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.post("/majlis/channels/:id/members", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.id);
+    const channelId = parseInt(req.params.id as string);
     const userId = req.majlisUserId!;
     const { memberIds } = req.body;
 
@@ -547,17 +547,17 @@ router.post("/majlis/channels/:id/members", requireMajlisAuth, async (req: Majli
       );
     }
 
-    res.json({ added: newMembers.length });
+    return res.json({ added: newMembers.length });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to add members";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.delete("/majlis/channels/:id/members/:userId", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.id);
-    const targetUserId = parseInt(req.params.userId);
+    const channelId = parseInt(req.params.id as string);
+    const targetUserId = parseInt(req.params.userId as string);
     const currentUserId = req.majlisUserId!;
 
     if (targetUserId !== currentUserId) {
@@ -577,16 +577,16 @@ router.delete("/majlis/channels/:id/members/:userId", requireMajlisAuth, async (
         eq(majlisChannelMembersTable.userId, targetUserId)
       ));
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to leave channel";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.get("/majlis/channels/:channelId/messages", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.channelId);
+    const channelId = parseInt(req.params.channelId as string);
     const userId = req.majlisUserId!;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const before = req.query.before ? parseInt(req.query.before as string) : null;
@@ -645,16 +645,16 @@ router.get("/majlis/channels/:channelId/messages", requireMajlisAuth, async (req
       .set({ lastSeenAt: new Date() })
       .where(eq(majlisUsersTable.id, userId));
 
-    res.json({ messages: decryptedMessages.reverse() });
+    return res.json({ messages: decryptedMessages.reverse() });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch messages";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.post("/majlis/channels/:channelId/messages", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.channelId);
+    const channelId = parseInt(req.params.channelId as string);
     const userId = req.majlisUserId!;
     const { content, replyToId } = req.body;
 
@@ -703,7 +703,7 @@ router.post("/majlis/channels/:channelId/messages", requireMajlisAuth, async (re
     const [profile] = await db.select().from(profilesTable)
       .where(eq(profilesTable.id, user.profileId)).limit(1);
 
-    res.json({
+    return res.json({
       message: {
         ...newMessage,
         content: content.trim(),
@@ -718,13 +718,13 @@ router.post("/majlis/channels/:channelId/messages", requireMajlisAuth, async (re
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : "Failed to send message";
-    res.status(500).json({ error: errMsg });
+    return res.status(500).json({ error: errMsg });
   }
 });
 
 router.get("/majlis/channels/:channelId/messages/poll", requireMajlisAuth, async (req: MajlisRequest, res: Response) => {
   try {
-    const channelId = parseInt(req.params.channelId);
+    const channelId = parseInt(req.params.channelId as string);
     const userId = req.majlisUserId!;
     const after = parseInt(req.query.after as string) || 0;
 
@@ -792,10 +792,10 @@ router.get("/majlis/channels/:channelId/messages/poll", requireMajlisAuth, async
       .set({ lastSeenAt: new Date() })
       .where(eq(majlisUsersTable.id, userId));
 
-    res.json({ messages: decryptedMessages });
+    return res.json({ messages: decryptedMessages });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to poll messages";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -847,10 +847,10 @@ router.get("/majlis/messages", requireMajlisAuth, async (req: MajlisRequest, res
       .set({ lastSeenAt: new Date() })
       .where(eq(majlisUsersTable.id, userId));
 
-    res.json({ messages: decryptedMessages.reverse() });
+    return res.json({ messages: decryptedMessages.reverse() });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch messages";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -889,7 +889,7 @@ router.post("/majlis/messages", requireMajlisAuth, async (req: MajlisRequest, re
     const [profile] = await db.select().from(profilesTable)
       .where(eq(profilesTable.id, user.profileId)).limit(1);
 
-    res.json({
+    return res.json({
       message: {
         ...newMessage,
         content: content.trim(),
@@ -904,7 +904,7 @@ router.post("/majlis/messages", requireMajlisAuth, async (req: MajlisRequest, re
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : "Failed to send message";
-    res.status(500).json({ error: errMsg });
+    return res.status(500).json({ error: errMsg });
   }
 });
 
@@ -934,10 +934,10 @@ router.get("/majlis/members", requireMajlisAuth, async (_req: MajlisRequest, res
       isOnline: m.lastSeenAt ? (now - new Date(m.lastSeenAt).getTime()) < 5 * 60 * 1000 : false,
     }));
 
-    res.json({ members: membersWithStatus });
+    return res.json({ members: membersWithStatus });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch members";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -983,10 +983,10 @@ router.get("/majlis/messages/poll", requireMajlisAuth, async (req: MajlisRequest
       .set({ lastSeenAt: new Date() })
       .where(eq(majlisUsersTable.id, userId));
 
-    res.json({ messages: decryptedMessages });
+    return res.json({ messages: decryptedMessages });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to poll messages";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1024,10 +1024,10 @@ router.post("/cms/majlis/invites", requireCmsAuth, async (req: Request, res: Res
       expiresAt,
     }).returning();
 
-    res.json({ invite: { ...invite, profileName: profile.name } });
+    return res.json({ invite: { ...invite, profileName: profile.name } });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to create invite";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1048,10 +1048,10 @@ router.get("/cms/majlis/invites", requireCmsAuth, async (_req: Request, res: Res
       .innerJoin(profilesTable, eq(majlisInvitesTable.profileId, profilesTable.id))
       .orderBy(desc(majlisInvitesTable.createdAt));
 
-    res.json({ invites });
+    return res.json({ invites });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch invites";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1077,16 +1077,16 @@ router.get("/cms/majlis/users", requireCmsAuth, async (_req: Request, res: Respo
       .innerJoin(profilesTable, eq(majlisUsersTable.profileId, profilesTable.id))
       .orderBy(desc(majlisUsersTable.createdAt));
 
-    res.json({ users });
+    return res.json({ users });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch users";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.patch("/cms/majlis/users/:id", requireCmsAuth, async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const { isActive, isBanned, isMuted } = req.body;
 
     const updates: MajlisUserUpdate = {};
@@ -1108,10 +1108,10 @@ router.patch("/cms/majlis/users/:id", requireCmsAuth, async (req: Request, res: 
       await invalidateMajlisUserSessions(id);
     }
 
-    res.json({ user: updated });
+    return res.json({ user: updated });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update user";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1146,16 +1146,16 @@ router.get("/cms/majlis/messages", requireCmsAuth, async (req: Request, res: Res
 
     const [{ total }] = await db.select({ total: count() }).from(majlisMessagesTable);
 
-    res.json({ messages: decryptedMessages, total, page, limit });
+    return res.json({ messages: decryptedMessages, total, page, limit });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch messages";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
 router.delete("/cms/majlis/messages/:id", requireCmsAuth, async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const [updated] = await db
       .update(majlisMessagesTable)
       .set({ isDeleted: true })
@@ -1163,10 +1163,10 @@ router.delete("/cms/majlis/messages/:id", requireCmsAuth, async (req: Request, r
       .returning();
 
     if (!updated) return res.status(404).json({ error: "Message not found" });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to delete message";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1177,10 +1177,10 @@ router.get("/cms/majlis/stats", requireCmsAuth, async (_req: Request, res: Respo
     const [{ activeCount }] = await db.select({ activeCount: count() }).from(majlisUsersTable).where(eq(majlisUsersTable.isActive, true));
     const [{ bannedCount }] = await db.select({ bannedCount: count() }).from(majlisUsersTable).where(eq(majlisUsersTable.isBanned, true));
 
-    res.json({ userCount, messageCount, activeCount, bannedCount });
+    return res.json({ userCount, messageCount, activeCount, bannedCount });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch stats";
-    res.status(500).json({ error: message });
+    return res.status(500).json({ error: message });
   }
 });
 
@@ -1237,7 +1237,7 @@ router.get("/majlis/share-preview", requireMajlisAuth, async (req: MajlisRequest
     return res.status(400).json({ error: "Invalid type. Use 'debate' or 'prediction'" });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : "Failed to get share preview";
-    res.status(500).json({ error: errMsg });
+    return res.status(500).json({ error: errMsg });
   }
 });
 

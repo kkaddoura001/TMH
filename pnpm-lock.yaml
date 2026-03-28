@@ -597,6 +597,9 @@ importers:
 
   artifacts/tmh-platform:
     dependencies:
+      cobe:
+        specifier: ^0.2.3
+        version: 0.2.4
       motion:
         specifier: 'catalog:'
         version: 12.35.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -2472,6 +2475,9 @@ packages:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
 
+  cobe@0.2.4:
+    resolution: {integrity: sha512-S8dIUiPEB98LKu84FTh9xtgnwJIX4Eu5NDUceKk1+o83Tj/b1SmaO6NgopHeLnjU0m7omgbfGKM58gGU5b35eg==}
+
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
@@ -3337,6 +3343,9 @@ packages:
 
   pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
+
+  phenomenon@1.6.0:
+    resolution: {integrity: sha512-7h9/fjPD3qNlgggzm88cY58l9sudZ6Ey+UmZsizfhtawO6E3srZQXywaNm2lBwT72TbpHYRPy7ytIHeBUD/G0A==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -6074,6 +6083,10 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
 
+  cobe@0.2.4:
+    dependencies:
+      phenomenon: 1.6.0
+
   commander@14.0.3: {}
 
   compare-versions@6.1.1: {}
@@ -6800,6 +6813,8 @@ snapshots:
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
+
+  phenomenon@1.6.0: {}
 
   picocolors@1.1.1: {}
 

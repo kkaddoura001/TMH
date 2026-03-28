@@ -74,6 +74,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "cobe": "^0.2.3",
     "motion": "catalog:",
     "uuid": "^13.0.0"
   }

@@ -109,10 +109,10 @@ router.get("/polls", async (req, res) => {
     );
 
     const [countRow] = await db.select({ count: sql<number>`count(*)` }).from(pollsTable).where(eq(pollsTable.editorialStatus, "approved"));
-    res.json({ polls: result, total: Number(countRow.count) });
+    return res.json({ polls: result, total: Number(countRow.count) });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch polls" });
+    return res.status(500).json({ error: "Failed to fetch polls" });
   }
 });
 
@@ -126,16 +126,16 @@ router.get("/polls/featured", async (_req, res) => {
       return res.json(await toPollResponse(fallback, options));
     }
     const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, poll.id));
-    res.json(await toPollResponse(poll, options));
+    return res.json(await toPollResponse(poll, options));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch featured poll" });
+    return res.status(500).json({ error: "Failed to fetch featured poll" });
   }
 });
 
 router.get("/polls/:id/breakdown", async (req, res) => {
   try {
-    const pollId = parseInt(req.params.id);
+    const pollId = parseInt(req.params.id as string);
     const rows = await db
       .select({
         countryCode: votesTable.countryCode,
@@ -175,16 +175,16 @@ router.get("/polls/:id/breakdown", async (req, res) => {
       topOptionText: r.countryCode ? (countryTopOptions[r.countryCode] ?? null) : null,
     }));
 
-    res.json({ countries, total });
+    return res.json({ countries, total });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ countries: [], total: 0 });
+    return res.status(500).json({ countries: [], total: 0 });
   }
 });
 
 router.get("/polls/:id/trends", async (req, res) => {
   try {
-    const pollId = parseInt(req.params.id);
+    const pollId = parseInt(req.params.id as string);
 
     const [poll] = await db.select().from(pollsTable).where(eq(pollsTable.id, pollId));
     if (!poll) return res.status(404).json({ error: "Poll not found" });
@@ -210,29 +210,29 @@ router.get("/polls/:id/trends", async (req, res) => {
     }
 
     const dataPoints = Array.from(grouped.values()).sort((a, b) => a.date.localeCompare(b.date));
-    res.json({ pollId, question: poll.question, dataPoints });
+    return res.json({ pollId, question: poll.question, dataPoints });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch trends" });
+    return res.status(500).json({ error: "Failed to fetch trends" });
   }
 });
 
 router.get("/polls/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const [poll] = await db.select().from(pollsTable).where(and(eq(pollsTable.id, id), eq(pollsTable.editorialStatus, "approved")));
     if (!poll) return res.status(404).json({ error: "Poll not found" });
     const options = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, id));
-    res.json(await toPollResponse(poll, options));
+    return res.json(await toPollResponse(poll, options));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch poll" });
+    return res.status(500).json({ error: "Failed to fetch poll" });
   }
 });
 
 router.post("/polls/:id/vote", voteRateLimit, async (req, res) => {
   try {
-    const pollId = parseInt(req.params.id);
+    const pollId = parseInt(req.params.id as string);
     const { optionId, voterToken } = req.body;
 
     if (!optionId || !voterToken) {
@@ -297,7 +297,7 @@ router.post("/polls/:id/vote", voteRateLimit, async (req, res) => {
     const updatedOptions = await db.select().from(pollOptionsTable).where(eq(pollOptionsTable.pollId, pollId));
     const updatedTotal = updatedOptions.reduce((s: number, o: any) => s + o.voteCount, 0);
 
-    res.json({
+    return res.json({
       success: true,
       alreadyVoted: false,
       country: geoData ?? null,
@@ -311,13 +311,13 @@ router.post("/polls/:id/vote", voteRateLimit, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to record vote" });
+    return res.status(500).json({ error: "Failed to record vote" });
   }
 });
 
 router.post("/polls/:id/email-unlock", async (req, res) => {
   try {
-    const pollId = parseInt(req.params.id);
+    const pollId = parseInt(req.params.id as string);
     const { email } = req.body;
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: "Valid email required" });
@@ -346,7 +346,7 @@ router.get("/stats", async (_req, res) => {
       db.select({ count: sql<number>`count(distinct country_code)::int` }).from(votesTable).where(sql`country_code IS NOT NULL`),
       db.select({ count: sql<number>`count(distinct voter_token)::int` }).from(votesTable).where(sql`created_at > now() - interval '7 days'`),
     ]);
-    res.json({
+    return res.json({
       livePolls: Number(pollsRow.count),
       totalVotes: Number(votesRow.total),
       countries: Number(countriesRow.count),
@@ -354,7 +354,7 @@ router.get("/stats", async (_req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ livePolls: 0, totalVotes: 0, countries: 0, activeThisWeek: 0 });
+    return res.status(500).json({ livePolls: 0, totalVotes: 0, countries: 0, activeThisWeek: 0 });
   }
 });
 
@@ -373,7 +373,7 @@ router.get("/activity", async (_req, res) => {
       .where(and(sql`${votesTable.countryCode} IS NOT NULL`, eq(pollsTable.editorialStatus, "approved")))
       .orderBy(desc(votesTable.createdAt))
       .limit(10);
-    res.json({
+    return res.json({
       activity: rows.map((r) => ({
         countryCode: r.countryCode,
         countryName: r.countryName,
@@ -384,7 +384,7 @@ router.get("/activity", async (_req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ activity: [] });
+    return res.status(500).json({ activity: [] });
   }
 });
 
@@ -410,10 +410,10 @@ router.get("/stats/countries", async (_req, res) => {
       percentage: total > 0 ? Math.round((Number(r.count) / total) * 100) : 0,
     }));
 
-    res.json({ countries, total });
+    return res.json({ countries, total });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ countries: [], total: 0 });
+    return res.status(500).json({ countries: [], total: 0 });
   }
 });
 
