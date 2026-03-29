@@ -180,11 +180,11 @@ export default function ProfileDetail() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-16">
           {/* Impact Statement */}
-          {(profile as Record<string, unknown>).impactStatement && (
+          {!!(profile as unknown as Record<string, unknown>).impactStatement && (
             <section className="bg-background border border-border p-6 md:p-8">
               <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-primary mb-3">Impact</p>
               <p className="text-lg font-sans font-medium text-foreground leading-relaxed">
-                {String((profile as Record<string, unknown>).impactStatement)}
+                {String((profile as unknown as Record<string, unknown>).impactStatement)}
               </p>
             </section>
           )}

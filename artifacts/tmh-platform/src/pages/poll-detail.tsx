@@ -15,7 +15,7 @@ export default function PollDetail() {
 
   const { data: relatedData } = useListPolls(
     { category: poll?.categorySlug, limit: 8 },
-    { query: { enabled: !!poll?.categorySlug } }
+    { query: { enabled: !!poll?.categorySlug } as any }
   )
 
   if (isLoading) {

@@ -1,0 +1,2 @@
+echo "Running typecheck before push..."
+pnpm run typecheck || { echo "Typecheck failed. Fix errors before pushing."; exit 1; }

@@ -168,9 +168,9 @@ export default function HomepagePage() {
                 <p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)] font-serif">Configuration</p>
                 <div className="text-xs text-[rgba(255,255,255,0.5)] space-y-1">
                   <p>Type: <span className="text-white">{SECTION_TYPE_LABELS[previewSection.type] || previewSection.type}</span></p>
-                  {previewSection.config.layout && <p>Layout: <span className="text-white">{String(previewSection.config.layout)}</span></p>}
-                  {previewSection.config.maxItems && <p>Max Items: <span className="text-white">{String(previewSection.config.maxItems)}</span></p>}
-                  {previewSection.config.firstSpanFull && <p>First item full width: <span className="text-white">Yes</span></p>}
+                  {!!previewSection.config.layout && <p>Layout: <span className="text-white">{String(previewSection.config.layout)}</span></p>}
+                  {!!previewSection.config.maxItems && <p>Max Items: <span className="text-white">{String(previewSection.config.maxItems)}</span></p>}
+                  {!!previewSection.config.firstSpanFull && <p>First item full width: <span className="text-white">Yes</span></p>}
                   {previewSection.config.showSidebar !== undefined && <p>Sidebar: <span className="text-white">{previewSection.config.showSidebar ? "Yes" : "No"}</span></p>}
                   {previewSection.config.showOpinionBubbles !== undefined && <p>Opinion bubbles: <span className="text-white">{previewSection.config.showOpinionBubbles ? "Yes" : "No"}</span></p>}
                 </div>

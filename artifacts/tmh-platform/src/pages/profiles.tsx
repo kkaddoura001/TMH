@@ -167,7 +167,7 @@ export default function Profiles() {
   >("all");
   const [country, setCountry] = useState("all");
 
-  const { data, isLoading } = useListProfiles({ search, filter, limit: 200 });
+  const { data, isLoading } = useListProfiles({ search, filter: filter === "all" ? undefined : filter as any, limit: 200 });
   const { data: pageConfig } = usePageConfig<{
     impactStatements?: Record<string, string>;
   }>("profiles");

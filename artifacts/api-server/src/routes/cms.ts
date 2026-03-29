@@ -45,15 +45,17 @@ function isValidStatusTransition(from: string | null, to: string): boolean {
   return ALLOWED_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-function requireCmsAuth(req: Request, res: Response, next: NextFunction) {
+function requireCmsAuth(req: Request, res: Response, next: NextFunction): void {
   const token = req.headers["x-cms-token"] as string;
   if (!token || !sessions.has(token)) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
   const session = sessions.get(token)!;
   if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
     sessions.delete(token);
-    return res.status(401).json({ error: "Session expired" });
+    res.status(401).json({ error: "Session expired" });
+    return;
   }
   next();
 }

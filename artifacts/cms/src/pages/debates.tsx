@@ -7,8 +7,8 @@ export default function DebatesPage() {
       type="debates"
       title="Debates"
       getItems={(status) => api.getDebates(status)}
-      getTitle={(item) => item.question}
-      getCategory={(item) => item.category}
+      getTitle={(item) => item.question as string}
+      getCategory={(item) => item.category as string}
       editPath={(id) => `/debates/${id}/edit`}
     />
   );

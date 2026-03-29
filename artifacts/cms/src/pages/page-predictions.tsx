@@ -25,7 +25,7 @@ export default function PagePredictions() {
     api.getPage("predictions_page").then(data => {
       const { featuredIds, ...rest } = data as Record<string, unknown>;
       void featuredIds;
-      setConfig(rest as PredictionsPageConfig);
+      setConfig(rest as unknown as PredictionsPageConfig);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 

@@ -1483,7 +1483,7 @@ export default function Home() {
     predictionItems.length,
     pulseItems.length,
   );
-  const interleaved: typeof debateItems = [];
+  const interleaved: { topic: string; badge: string; stat: string }[] = [];
   for (let i = 0; i < maxLen; i++) {
     if (debateItems[i]) interleaved.push(debateItems[i]);
     if (predictionItems[i]) interleaved.push(predictionItems[i]);

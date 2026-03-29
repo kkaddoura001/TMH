@@ -1,6 +1,6 @@
 import { useLocation } from "wouter"
 import { MapPin, ExternalLink } from "lucide-react"
-import type { Profile } from "@workspace/api-client-react/src/generated/api.schemas"
+import type { Profile } from "@workspace/api-client-react"
 
 const COMPANY_URLS: Record<string, string> = {
   "1833 Members Club": "https://1833.club",

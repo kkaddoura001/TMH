@@ -66,7 +66,7 @@ router.get("/profiles/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const [profile] = await db.select().from(profilesTable).where(eq(profilesTable.id, id));
-    if (!profile) return res.status(404).json({ error: "Profile not found" });
+    if (!profile) { res.status(404).json({ error: "Profile not found" }); return; }
 
     await db.update(profilesTable).set({ viewCount: sql`view_count + 1` }).where(eq(profilesTable.id, id));
 

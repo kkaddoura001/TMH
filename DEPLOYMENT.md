@@ -326,6 +326,15 @@ const allowedOrigins =
 
 ## Troubleshooting
 
+### Build fails with TypeScript errors
+
+The most common deploy failure. Railway runs `pnpm run typecheck` as part of the build, and strict settings (`noImplicitReturns`, `strictNullChecks`, Express 5 types) can surface errors that don't appear in your editor.
+
+- Run `pnpm run preflight` locally to catch these before pushing
+- The pre-push hook should block pushes with type errors automatically
+- Test files (`src/__tests__/`) are excluded from typecheck to avoid false positives
+- Express 5 types (`@types/express ^5`) type `req.params` as `string | string[]` — use `String(req.params.x)` to narrow
+
 ### Build fails with missing native binaries
 
 The `pnpm-workspace.yaml` excludes platform-specific binaries to keep installs fast. The Linux x64 (glibc) variants needed by Railway are **not** excluded and should work out of the box. If you hit a missing binary error:
@@ -372,7 +381,31 @@ Free Supabase projects pause after 7 days of inactivity. To prevent this:
 
 ## Redeploying
 
-After code changes:
+### Pre-deploy Verification
+
+Always verify the build passes locally before pushing. The project includes safeguards at multiple levels:
+
+**1. Automatic (pre-push hook)**
+
+A Husky pre-push hook runs `pnpm run typecheck` before every `git push`. If typecheck fails, the push is blocked. This is your last line of defense.
+
+**2. Quick check (recommended before deploying)**
+
+```bash
+pnpm run preflight
+```
+
+Runs the full monorepo typecheck — the same step that fails most Railway builds.
+
+**3. Full Docker build (exact Railway parity)**
+
+```bash
+pnpm run preflight:full
+```
+
+Builds a Docker image that mirrors Railway's Nixpacks pipeline. If this passes, Railway will pass.
+
+### Deploy
 
 ```bash
 # Option A: CLI push

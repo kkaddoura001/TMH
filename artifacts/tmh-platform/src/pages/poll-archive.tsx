@@ -17,7 +17,7 @@ export default function PollArchive() {
   const PAGE_SIZE = 12
 
   const { data: pollsData, isLoading } = useListPolls({
-    filter: sort,
+    filter: sort as any,
     category: category || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,

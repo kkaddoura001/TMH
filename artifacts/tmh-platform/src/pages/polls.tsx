@@ -68,7 +68,7 @@ export default function Polls() {
     return pollsData.polls.filter(
       (p) =>
         p.question?.toLowerCase().includes(q) ||
-        p.categoryName?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
         (p.tags as string[])?.some((t: string) => t.toLowerCase().includes(q)),
     );
   }, [pollsData?.polls, searchQuery]);

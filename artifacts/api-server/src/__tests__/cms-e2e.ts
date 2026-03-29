@@ -11,7 +11,8 @@ async function req(path: string, options: RequestInit = {}) {
   if (token) headers["x-cms-token"] = token;
   if (options.body && typeof options.body === "string") headers["Content-Type"] = "application/json";
   const res = await fetch(`${API}${path}`, { ...options, headers });
-  const data = await res.json().catch(() => null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = await (res.json() as Promise<any>).catch(() => null);
   return { status: res.status, data };
 }
 

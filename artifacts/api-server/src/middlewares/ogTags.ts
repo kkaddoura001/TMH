@@ -86,8 +86,8 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
     // We'll try to fetch poll data from the internal polls route
     const pollId = pollMatch[1]
     fetch(`http://localhost:${process.env.PORT ?? 8080}/api/polls/${pollId}`)
-      .then(r => r.json())
-      .then(poll => {
+      .then(r => r.json() as Promise<Record<string, any>>)
+      .then((poll) => {
         const title = poll.question ?? "The Middle East's boldest question"
         const totalVotes = poll.totalVotes ?? 0
         const description = `${totalVotes.toLocaleString()} votes and counting. What do YOU think? Vote on The Tribunal — the region's most honest opinion platform.`
@@ -114,8 +114,8 @@ export function ogTagsMiddleware(req: Request, res: Response, next: NextFunction
   if (profileMatch) {
     const profileId = profileMatch[1]
     fetch(`http://localhost:${process.env.PORT ?? 8080}/api/profiles/${profileId}`)
-      .then(r => r.json())
-      .then(profile => {
+      .then(r => r.json() as Promise<Record<string, any>>)
+      .then((profile) => {
         const name = profile.name ?? "A Hustler"
         const role = profile.role ? ` — ${profile.role}` : ""
         const company = profile.company ? ` at ${profile.company}` : ""

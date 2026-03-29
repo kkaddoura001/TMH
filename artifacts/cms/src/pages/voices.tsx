@@ -7,8 +7,8 @@ export default function VoicesPage() {
       type="voices"
       title="Voices"
       getItems={(status) => api.getVoices(status)}
-      getTitle={(item) => item.name}
-      getCategory={(item) => item.sector}
+      getTitle={(item) => item.name as string}
+      getCategory={(item) => item.sector as string}
       editPath={(id) => `/voices/${id}/edit`}
     />
   );

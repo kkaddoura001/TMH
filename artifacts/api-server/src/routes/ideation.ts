@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import {
   db,
   ideationSessionsTable,
@@ -21,15 +21,17 @@ import {
 
 const router = Router();
 
-function requireCmsAuth(req: Request, res: Response, next: Function) {
+function requireCmsAuth(req: Request, res: Response, next: NextFunction): void {
   const token = req.headers["x-cms-token"] as string;
   if (!token || !cmsSessions.has(token)) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
   const session = cmsSessions.get(token)!;
   if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
     cmsSessions.delete(token);
-    return res.status(401).json({ error: "Session expired" });
+    res.status(401).json({ error: "Session expired" });
+    return;
   }
   next();
 }
@@ -57,7 +59,7 @@ router.get("/cms/ideation/prompt-templates", requireCmsAuth, async (_req, res) =
 
 router.put("/cms/ideation/prompt-templates/:pillar", requireCmsAuth, async (req, res) => {
   try {
-    const { pillar } = req.params;
+    const pillar = String(req.params.pillar);
     const { promptText } = req.body;
 
     if (!["debates", "predictions", "pulse"].includes(pillar)) {
@@ -74,7 +76,7 @@ router.put("/cms/ideation/prompt-templates/:pillar", requireCmsAuth, async (req,
       await db.insert(ideationPromptTemplatesTable).values({
         pillarType: pillar,
         promptText,
-        defaultPromptText: DEFAULT_PROMPTS[pillar],
+        defaultPromptText: DEFAULT_PROMPTS[pillar as keyof typeof DEFAULT_PROMPTS],
       });
     }
 
@@ -206,7 +208,7 @@ router.post("/cms/ideation/sessions/:id/research", requireCmsAuth, async (req, r
     });
 
     await db.update(ideationSessionsTable)
-      .set({ researchData, status: "researched" })
+      .set({ researchData: researchData as unknown as Record<string, unknown>, status: "researched" })
       .where(eq(ideationSessionsTable.id, sessionId));
 
     return res.json({ researchData });

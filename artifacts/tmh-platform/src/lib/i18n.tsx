@@ -111,7 +111,6 @@ const AR: Record<string, string> = {
   "Someone from": "شخص من",
   "just voted on": "صوّت الآن على",
 
-  "Predictions": "التوقعات",
   "What will happen next? The region decides.": "شو اللي رح يصير؟ المنطقة تقرر.",
   "YES": "نعم",
   "NO": "لا",
@@ -384,7 +383,6 @@ const AR: Record<string, string> = {
   "All Countries": "كل الدول",
   "All Sectors": "كل القطاعات",
 
-  "The Voices": "الأصوات",
   "Think You Belong In The Voices?": "بتحس إنك لازم تكون من الأصوات؟",
   "Apply Now →": "← قدّم الآن",
 
@@ -404,7 +402,6 @@ const AR: Record<string, string> = {
   "Yes": "نعم",
   "No": "لا",
   "Lock In Your Prediction →": "← سجّل توقعك",
-  "The Voices": "الأصوات",
   "View All →": "← شوف الكل",
   "The founders, operators, and change-makers shaping the Middle East. Real people. Real stories.": "المؤسسين والمشغلين وصنّاع التغيير اللي عم يشكلوا الشرق الأوسط. ناس حقيقيين. قصص حقيقية.",
   "View All Voices": "كل الأصوات",
@@ -412,7 +409,6 @@ const AR: Record<string, string> = {
   "The Region's Opinion.": "رأي المنطقة.",
   "Unfiltered.": "بدون فلتر.",
   "Join The Hustle": "انضم للهاسل",
-  "Live Activity": "نشاط مباشر",
   "Someone from ": "شخص من ",
   " just voted on ": " صوّت الآن على ",
   "your@email.com": "your@email.com",
